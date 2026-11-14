@@ -4132,10 +4132,11 @@
     <div id="eis-widget">
         <!-- Minimal Top Bar with Controls -->
         <div class="gi-top-bar" id="gi-header">
-            <span class="gi-inst-title" id="gi-title">GI 275 EIS</span>
+            <span class="gi-inst-title">GI 275 EIS</span>
             <div class="gi-controls-row">
-                <button class="gi-mode-btn active" id="eis-tab-p" onclick="setEisViewTab('P')" title="Page P: Battery Monitor & Electrical Power">P</button>
-                <button class="gi-mode-btn" id="eis-tab-e" onclick="setEisViewTab('E')" title="Page E: Engine RPM Telemetry">E</button>
+                <button class="gi-mode-btn active" id="eis-btn-single" onclick="setEisEngineMode('single')">1 ENG</button>
+                <button class="gi-mode-btn" id="eis-btn-twin" onclick="setEisEngineMode('twin')">2 ENG</button>
+                <button class="gi-mode-btn" id="eis-btn-ch" onclick="cycleEisChannels()" title="Change ESC Channel Mapping">CH: ESC 1</button>
                 <button class="gi-btn-close" onclick="toggleEisWidget()" title="Close EIS">&times;</button>
             </div>
         </div>
@@ -4148,8 +4149,8 @@
                 <span class="gi-capsule-sub">PWR LOAD</span>
             </div>
 
-            <!-- Center Arch: Battery Current (AMPS in P) / Engine RPM (in E) -->
-            <div class="gi-arch-display" id="gi-arch-display" onclick="cycleArchMetric()" style="cursor: pointer;" title="Click to cycle Arch metric">
+            <!-- Center Arch: RPM -->
+            <div class="gi-arch-display">
                 <svg class="gi-arch-svg" viewBox="0 0 126 64">
                     <!-- White Arch Baseline -->
                     <path d="M 20 52 A 43 43 0 0 1 106 52" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="2" stroke-linecap="round"/>
@@ -4158,19 +4159,17 @@
                     <line x1="63" y1="9" x2="63" y2="5" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/>
                     <line x1="106" y1="52" x2="110" y2="52" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/>
                     <!-- Green Operating Zone -->
-                    <path id="gi-arch-zone-green" d="M 20 52 A 43 43 0 0 1 82 14" fill="none" stroke="#00e676" stroke-width="4.5"/>
-                    <!-- Yellow Caution Zone -->
-                    <path id="gi-arch-zone-yellow" d="M 82 14 A 43 43 0 0 1 101 33" fill="none" stroke="#ffd60a" stroke-width="4.5"/>
-                    <!-- Redline Zone -->
-                    <path id="gi-arch-zone-red" d="M 101 33 A 43 43 0 0 1 106 52" fill="none" stroke="#ff3b30" stroke-width="4.5" stroke-linecap="round"/>
+                    <path d="M 70 13 A 43 43 0 0 1 96 32" fill="none" stroke="#00e676" stroke-width="4.5"/>
+                    <!-- Redline Zone at High RPM -->
+                    <path d="M 96 32 A 43 43 0 0 1 103 44" fill="none" stroke="#ff3b30" stroke-width="4.5" stroke-linecap="round"/>
                     <!-- Crisp White Inverted Triangle Pointer pointing at Arc -->
                     <polygon id="gi-ptr-rpm-polygon" points="63,9 58.5,1 67.5,1" fill="#ffffff"/>
                     <!-- Second pointer for Twin Engine Mode -->
                     <polygon id="gi-ptr-rpm2-polygon" points="63,9 58.5,1 67.5,1" fill="#ffd60a" style="display: none;"/>
                 </svg>
                 <div class="gi-arch-text-wrap">
-                    <span class="gi-arch-lbl" id="gi-arch-lbl">AMPS</span>
-                    <span class="gi-arch-rpm-digits" id="gi-digits-rpm">0.0</span>
+                    <span class="gi-arch-lbl">RPM</span>
+                    <span class="gi-arch-rpm-digits" id="gi-digits-rpm">0</span>
                 </div>
             </div>
 
@@ -4194,10 +4193,10 @@
                 </div>
             </div>
 
-            <!-- Box 2: Single (BATT TEMP with Tape Slider) / Twin (R AMPS) -->
+            <!-- Box 2: Single (ESC TEMP with Tape Slider) / Twin (R AMPS) -->
             <div class="gi-grid-cell has-slider" id="gi-cell-box2">
                 <div class="gi-cell-title-row">
-                    <span class="gi-cell-tag" id="gi-tag-box2">BATT TEMP</span>
+                    <span class="gi-cell-tag" id="gi-tag-box2">ESC TEMP</span>
                     <span class="gi-cell-unit" id="gi-unit-box2">&deg;C</span>
                 </div>
                 <div class="gi-cell-val-wrap" id="gi-val-wrap-box2">
@@ -4284,6 +4283,7 @@
                 <span class="gi-stat-val" id="gi-stat-mah-consumed">0 mAh</span>
             </div>
         </div>
+    </div>
     </div>
 
     <!-- Live Weather Widget -->
@@ -12841,7 +12841,7 @@
         function toggleEisWidget() {
             const isVisible = eisWidget && (eisWidget.style.display !== 'none' && window.getComputedStyle(eisWidget).display !== 'none');
             eisWidgetVisible = !isVisible;
-            if (eisWidget) eisWidget.style.display = eisWidgetVisible ? 'block' : 'none';
+            if (eisWidget) eisWidget.style.display = eisWidgetVisible ? 'flex' : 'none';
             if (btnToggleEis) btnToggleEis.classList.toggle('active', eisWidgetVisible);
             const tabEngine = document.getElementById('tab-engine');
             if (tabEngine) tabEngine.classList.toggle('active', eisWidgetVisible);
@@ -12876,41 +12876,37 @@
             if (btnToggleEis) btnToggleEis.classList.remove('active');
         }
 
-        let eisViewTab = localStorage.getItem('eis_view_tab') || 'P'; // 'P' (Power / Battery Monitor) | 'E' (Engine / RPM)
-
-        function setEisViewTab(tab) {
-            eisViewTab = (tab === 'E') ? 'E' : 'P';
-            localStorage.setItem('eis_view_tab', eisViewTab);
-            window.eisArchMetric = (eisViewTab === 'P') ? 'AMPS' : 'RPM';
-            updateEisTabUI();
-            if (typeof updateEisInstrument === 'function') {
-                updateEisInstrument();
-            }
+        function setEisEngineMode(mode) {
+            eisEngineMode = mode;
+            localStorage.setItem('eis_engine_mode', eisEngineMode);
+            updateEisModeUI();
         }
-        window.setEisViewTab = setEisViewTab;
 
-        function updateEisTabUI() {
-            const isP = (eisViewTab === 'P');
-            const tabP = document.getElementById('eis-tab-p');
-            const tabE = document.getElementById('eis-tab-e');
-            const titleEl = document.getElementById('gi-title');
-
-            if (titleEl) titleEl.textContent = 'GI 275 EIS';
-            if (tabP) tabP.classList.toggle('active', isP);
-            if (tabE) tabE.classList.toggle('active', !isP);
+        function updateEisModeUI() {
+            const isTwin = (eisEngineMode === 'twin');
+            if (eisBtnSingle) eisBtnSingle.classList.toggle('active', !isTwin);
+            if (eisBtnTwin) eisBtnTwin.classList.toggle('active', isTwin);
 
             const ptrRpm2 = document.getElementById('gi-ptr-rpm2-polygon');
-            if (ptrRpm2) ptrRpm2.style.display = 'none';
+            if (ptrRpm2) ptrRpm2.style.display = isTwin ? 'block' : 'none';
 
             const ptrUp = document.getElementById('gi-ptr-box4-up');
-            if (ptrUp) ptrUp.style.display = 'none';
+            if (ptrUp) ptrUp.style.display = isTwin ? 'block' : 'none';
 
             const trackBox2 = document.getElementById('gi-track-box2');
-            if (trackBox2) trackBox2.style.display = 'flex';
+            if (trackBox2) trackBox2.style.display = isTwin ? 'none' : 'flex';
             const cellBox2 = document.getElementById('gi-cell-box2');
-            if (cellBox2) cellBox2.classList.add('has-slider');
+            if (cellBox2) cellBox2.classList.toggle('has-slider', !isTwin);
 
-            const lblArch = document.getElementById('gi-arch-lbl');
+            if (eisBtnCh) {
+                if (!isTwin) {
+                    eisBtnCh.textContent = `CH: ESC ${eisSingleChannel}`;
+                } else {
+                    eisBtnCh.textContent = `L:${eisTwinLeftCh} | R:${eisTwinRightCh}`;
+                }
+            }
+
+            // Update box labels and units for Single vs Twin mode
             const lblBox1 = document.getElementById('gi-tag-box1');
             const lblBox2 = document.getElementById('gi-tag-box2');
             const lblBox3 = document.getElementById('gi-tag-box3');
@@ -12922,58 +12918,30 @@
             const unitBox4 = document.getElementById('gi-unit-box4');
             const unitBox5 = document.getElementById('gi-unit-box5');
 
-            const zoneGreen = document.getElementById('gi-arch-zone-green');
-            const zoneYellow = document.getElementById('gi-arch-zone-yellow');
-            const zoneRed = document.getElementById('gi-arch-zone-red');
-
-            if (isP) {
-                if (lblArch) lblArch.textContent = 'AMPS';
-                if (lblBox1) lblBox1.textContent = 'AMPS';
-                if (unitBox1) unitBox1.textContent = 'A';
-                if (lblBox2) lblBox2.textContent = 'BATT TEMP';
-                if (unitBox2) unitBox2.innerHTML = '&deg;C';
-                if (zoneGreen) zoneGreen.setAttribute('d', 'M 20 52 A 43 43 0 0 1 82 14');
-                if (zoneYellow) {
-                    zoneYellow.style.display = 'inline';
-                    zoneYellow.setAttribute('d', 'M 82 14 A 43 43 0 0 1 101 33');
-                }
-                if (zoneRed) zoneRed.setAttribute('d', 'M 101 33 A 43 43 0 0 1 106 52');
-            } else {
-                if (lblArch) lblArch.textContent = 'RPM';
+            if (!isTwin) {
                 if (lblBox1) lblBox1.textContent = 'AMPS';
                 if (unitBox1) unitBox1.textContent = 'A';
                 if (lblBox2) lblBox2.textContent = 'ESC TEMP';
                 if (unitBox2) unitBox2.innerHTML = '&deg;C';
-                if (zoneGreen) zoneGreen.setAttribute('d', 'M 70 13 A 43 43 0 0 1 96 32');
-                if (zoneYellow) zoneYellow.style.display = 'none';
-                if (zoneRed) zoneRed.setAttribute('d', 'M 96 32 A 43 43 0 0 1 103 44');
-            }
-
-            if (lblBox3) lblBox3.textContent = 'POWER';
-            if (unitBox3) unitBox3.textContent = 'W';
-            if (lblBox4) lblBox4.textContent = 'mAH USED';
-            if (unitBox4) unitBox4.textContent = `/ ${batteryCapacityMah}`;
-            if (lblBox5) lblBox5.textContent = 'EFFICIENCY';
-            if (unitBox5) unitBox5.textContent = 'mAH/KM';
-        }
-
-        window.updateEisModeUI = updateEisTabUI;
-        window.updateEisTabUI = updateEisTabUI;
-
-        window.cycleArchMetric = function() {
-            if (eisViewTab === 'P') {
-                const metrics = ['AMPS', 'WATTS', 'LOAD'];
-                const cur = window.eisArchMetric || 'AMPS';
-                const nextIdx = (metrics.indexOf(cur) + 1) % metrics.length;
-                window.eisArchMetric = metrics[nextIdx];
+                if (lblBox3) lblBox3.textContent = 'POWER';
+                if (unitBox3) unitBox3.textContent = 'W';
+                if (lblBox4) lblBox4.textContent = 'mAH USED';
+                if (unitBox4) unitBox4.textContent = `/ ${batteryCapacityMah}`;
+                if (lblBox5) lblBox5.textContent = 'EFFICIENCY';
+                if (unitBox5) unitBox5.textContent = 'mAH/KM';
             } else {
-                const metrics = ['RPM', 'LOAD'];
-                const cur = window.eisArchMetric || 'RPM';
-                const nextIdx = (metrics.indexOf(cur) + 1) % metrics.length;
-                window.eisArchMetric = metrics[nextIdx];
+                if (lblBox1) lblBox1.textContent = `L AMPS (E${eisTwinLeftCh})`;
+                if (unitBox1) unitBox1.textContent = 'A';
+                if (lblBox2) lblBox2.textContent = `R AMPS (E${eisTwinRightCh})`;
+                if (unitBox2) unitBox2.textContent = 'A';
+                if (lblBox3) lblBox3.textContent = `L ESC TEMP`;
+                if (unitBox3) unitBox3.innerHTML = '&deg;C';
+                if (lblBox4) lblBox4.textContent = `R ESC TEMP`;
+                if (unitBox4) unitBox4.innerHTML = '&deg;C';
+                if (lblBox5) lblBox5.textContent = 'EFFICIENCY';
+                if (unitBox5) unitBox5.textContent = 'mAH/KM';
             }
-            if (typeof updateEisInstrument === 'function') updateEisInstrument();
-        };
+        }
 
         function cycleEisChannels() {
             if (eisEngineMode === 'single') {
@@ -13331,9 +13299,8 @@
                 : 0.0;
             const packVolt = (am32Telemetry.pack_voltage > 3.0) ? am32Telemetry.pack_voltage : 12.0;
 
-            // If replaying a flight log, emulation MUST be completely disabled!
-            // In live SITL mode, run realistic emulation only if no hardware telemetry packet received in last 2.5s.
-            const isEmulated = !window.isLogReplayActive && ((now - am32Telemetry.lastTelemTime) > 2500);
+            // If no hardware telemetry packet received in last 2.5s, run realistic SITL emulation
+            const isEmulated = (now - am32Telemetry.lastTelemTime) > 2500;
             if (isEmulated) {
                 const t = throttleNorm;
                 if (t > 0.02) {
@@ -13385,99 +13352,49 @@
             const resolveEscTemp = (raw) => {
                 let t = (typeof raw === 'number') ? raw : 0;
                 if (t > 0 && t < 1.0) t = Math.round(t * 100.0);
-                // When receiving live telemetry from ArduPilot/SITL or flight log replay, display genuine reported values directly
-                if (am32Telemetry.hasHardwareTelem || window.isLogReplayActive) {
+                // When receiving live telemetry from ArduPilot/SITL, display genuine reported values directly
+                if (am32Telemetry.hasHardwareTelem) {
                     return Math.round(t);
                 }
                 return (t > 0) ? Math.round(t) : modeledEscTemp;
             };
 
-            if (eisEngineMode === 'single' || window.isLogReplayActive || true) {
+            if (eisEngineMode === 'single') {
                 const ch = Math.max(0, Math.min(7, eisSingleChannel - 1));
-                const isP = (eisViewTab === 'P');
-
                 activeRpm1 = am32Telemetry.rpm[ch] || 0;
-                // In P tab: Always prioritize genuine battery monitor current
-                activeAmp1 = (isP || window.isLogReplayActive || genuineBattAmps > 0.01) ? genuineBattAmps : (am32Telemetry.current[ch] || 0);
-                totAmp = (genuineBattAmps > 0) ? genuineBattAmps : activeAmp1;
-                totWatt = packVolt * totAmp;
+                activeAmp1 = am32Telemetry.current[ch] || 0;
                 activeTemp1 = resolveEscTemp(am32Telemetry.temperature[ch]);
                 escTempMax = activeTemp1;
 
-                // Top Arch metric resolution: 'AMPS' in Tab P, 'RPM' in Tab E
-                const archMetric = window.eisArchMetric || (isP ? 'AMPS' : 'RPM');
+                // If ESC doesn't report shunt current (reporting idle <0.8A) while the vehicle is drawing power,
+                // prioritize the genuine flight controller battery current measurement!
+                if (genuineBattAmps > 0.5 && activeAmp1 <= 0.8) {
+                    activeAmp1 = genuineBattAmps;
+                }
+                totAmp = (genuineBattAmps > 0) ? genuineBattAmps : activeAmp1;
+                totWatt = packVolt * totAmp;
+
+                // Top Arch
                 const valPwr = document.getElementById('gi-num-pwr');
                 const valRpm = document.getElementById('gi-digits-rpm');
-                const lblArch = document.getElementById('gi-arch-lbl');
                 const ptrRpm = document.getElementById('gi-ptr-rpm-polygon');
 
                 if (valPwr) valPwr.textContent = `${throttlePercent}%`;
-
-                if (archMetric === 'AMPS') {
-                    if (lblArch) lblArch.textContent = 'AMPS';
-                    if (valRpm) {
-                        valRpm.textContent = totAmp.toFixed(1);
-                        if (totAmp > 34.0) {
-                            valRpm.style.color = '#ff3b30';
-                        } else if (totAmp > 26.0) {
-                            valRpm.style.color = '#ffd60a';
-                        } else if (totAmp >= 4.0) {
-                            valRpm.style.color = '#00e676';
-                        } else {
-                            valRpm.style.color = '#38bdf8';
-                        }
-                    }
-                    const ampNorm = Math.max(0, Math.min(1, totAmp / 40.0));
-                    setGiArchPointer(ptrRpm, ampNorm);
-                } else if (archMetric === 'WATTS') {
-                    if (lblArch) lblArch.textContent = 'WATTS';
-                    if (valRpm) {
-                        valRpm.textContent = Math.round(totWatt);
-                        if (totWatt > 850) valRpm.style.color = '#ff3b30';
-                        else if (totWatt > 650) valRpm.style.color = '#ffd60a';
-                        else valRpm.style.color = '#ff9f0a';
-                    }
-                    const wattNorm = Math.max(0, Math.min(1, totWatt / 1000.0));
-                    setGiArchPointer(ptrRpm, wattNorm);
-                } else if (archMetric === 'LOAD') {
-                    if (lblArch) lblArch.textContent = 'LOAD %';
-                    if (valRpm) {
-                        valRpm.textContent = `${throttlePercent}%`;
-                        if (throttlePercent > 85) valRpm.style.color = '#ff3b30';
-                        else if (throttlePercent > 65) valRpm.style.color = '#ffd60a';
-                        else valRpm.style.color = '#00e676';
-                    }
-                    setGiArchPointer(ptrRpm, throttleNorm);
-                } else {
-                    // RPM mode (in Tab E)
-                    if (lblArch) lblArch.textContent = 'RPM';
-                    if (valRpm) {
-                        valRpm.textContent = Math.round(activeRpm1);
-                        if (activeRpm1 > 8500) {
-                            valRpm.style.color = '#ff3b30';
-                        } else if (activeRpm1 > 7500) {
-                            valRpm.style.color = '#ffd60a';
-                        } else if (activeRpm1 >= 4500) {
-                            valRpm.style.color = '#00e676';
-                        } else {
-                            valRpm.style.color = '#ffffff';
-                        }
-                    }
-                    const rpmNorm = Math.max(0, Math.min(1, activeRpm1 / 9500.0));
-                    setGiArchPointer(ptrRpm, rpmNorm);
-                }
+                if (valRpm) valRpm.textContent = Math.round(activeRpm1);
+                const rpmNorm = Math.max(0, Math.min(1, activeRpm1 / 9500.0));
+                setGiArchPointer(ptrRpm, rpmNorm);
 
                 // Box 1: AMPS (Vibrant Green / Dynamic Cyan-Amber-Red)
                 const valBox1 = document.getElementById('gi-val-box1');
                 if (valBox1) {
                     valBox1.textContent = activeAmp1.toFixed(1);
-                    if (activeAmp1 > 34.0) {
+                    if (activeAmp1 > 22.0) {
                         valBox1.style.color = '#ff3b30'; // Redline
                         valBox1.style.textShadow = '0 0 10px rgba(255,59,48,0.5)';
-                    } else if (activeAmp1 > 26.0) {
+                    } else if (activeAmp1 > 15.0) {
                         valBox1.style.color = '#ffd60a'; // Caution
                         valBox1.style.textShadow = '0 0 10px rgba(255,214,10,0.5)';
-                    } else if (activeAmp1 >= 4.0 && activeAmp1 <= 20.0) {
+                    } else if (activeAmp1 >= 5.0 && activeAmp1 <= 12.0) {
                         valBox1.style.color = '#00e676'; // Cruise Green Operating Zone
                         valBox1.style.textShadow = '0 0 12px rgba(0,230,118,0.45)';
                     } else {
@@ -13486,19 +13403,15 @@
                     }
                 }
 
-                // Box 2: BATT TEMP in P / ESC TEMP in E
+                // Box 2: ESC TEMP (Digital Readout + Physical Tape Slider Gauge)
                 const valBox2 = document.getElementById('gi-val-box2');
                 const ptrBox2 = document.getElementById('gi-ptr-box2');
-                const lblBox2 = document.getElementById('gi-tag-box2');
-                if (lblBox2) lblBox2.textContent = isP ? 'BATT TEMP' : 'ESC TEMP';
                 if (valBox2) {
                     valBox2.textContent = Math.round(escTempMax);
-                    const warnThresh = isP ? 50 : 65;
-                    const critThresh = isP ? 65 : 80;
-                    if (escTempMax > critThresh) {
+                    if (escTempMax > 80) {
                         valBox2.style.color = '#ff3b30';
                         valBox2.style.textShadow = '0 0 10px rgba(255,59,48,0.5)';
-                    } else if (escTempMax > warnThresh) {
+                    } else if (escTempMax > 65) {
                         valBox2.style.color = '#ffd60a';
                         valBox2.style.textShadow = '0 0 10px rgba(255,214,10,0.5)';
                     } else {
@@ -13507,8 +13420,8 @@
                     }
                 }
                 if (ptrBox2) {
-                    const maxRange = isP ? 60.0 : 80.0;
-                    const tNorm = Math.max(0, Math.min(1, (escTempMax - 20) / maxRange));
+                    // Normalize temperature from 20°C to 100°C across 5% - 95% track
+                    const tNorm = Math.max(0, Math.min(1, (escTempMax - 20) / 80.0));
                     ptrBox2.style.left = `${Math.max(5, Math.min(95, tNorm * 90 + 5)).toFixed(1)}%`;
                 }
 
@@ -13516,10 +13429,10 @@
                 const valBox3 = document.getElementById('gi-val-box3');
                 if (valBox3) {
                     valBox3.textContent = Math.round(totWatt);
-                    if (totWatt > 850) {
+                    if (totWatt > 1000) {
                         valBox3.style.color = '#ff3b30';
                         valBox3.style.textShadow = '0 0 10px rgba(255,59,48,0.5)';
-                    } else if (totWatt > 650) {
+                    } else if (totWatt > 700) {
                         valBox3.style.color = '#ffd60a';
                         valBox3.style.textShadow = '0 0 10px rgba(255,214,10,0.5)';
                     } else {
@@ -13578,7 +13491,7 @@
                 activeTemp1 = resolveEscTemp(am32Telemetry.temperature[lCh]);
                 activeTemp2 = resolveEscTemp(am32Telemetry.temperature[rCh]);
 
-                if (genuineBattAmps > 0.05 && (activeAmp1 <= 0.8 || activeAmp2 <= 0.8)) {
+                if (genuineBattAmps > 0.5 && (activeAmp1 <= 0.8 || activeAmp2 <= 0.8)) {
                     activeAmp1 = genuineBattAmps / 2.0;
                     activeAmp2 = genuineBattAmps / 2.0;
                 }
@@ -13749,48 +13662,33 @@
                 valBattCell.style.textShadow = voltShadow;
             }
 
-            // Bottom Status Strip: Flight Time (from Airspeed Alive) & Total mAh Consumed
-            if (!window.isLogReplayActive) {
-                const now = performance.now();
-                if (planeAirspeed >= 5.0) {
-                    if (liveAirspeedAliveStart === null) {
-                        liveAirspeedAliveStart = now;
-                        liveAirspeedAliveEnd = null;
-                    }
-                } else if (planeAirspeed < 2.0 && liveAirspeedAliveStart !== null) {
-                    if (liveAirspeedAliveEnd === null) {
-                        liveAirspeedAliveEnd = now;
-                    }
-                }
-                if (liveAirspeedAliveStart !== null) {
-                    const endT = (liveAirspeedAliveEnd !== null && (now - liveAirspeedAliveEnd > 10000)) ? liveAirspeedAliveEnd : now;
-                    currentFlightTimeSec = Math.max(0, (endT - liveAirspeedAliveStart) / 1000);
-                } else {
-                    currentFlightTimeSec = 0;
-                }
+            // Bottom Status Strip: OAT & Battery Endurance in Orderly Columns
+            const statRem = document.getElementById('gi-stat-rem');
+            const statEst = document.getElementById('gi-stat-est');
+
+            let minsRem = '-- MIN';
+            if (totAmp > 0.8) {
+                const remMah = Math.max(0, (pct / 100.0) * batteryCapacityMah);
+                minsRem = Math.round((remMah / (totAmp * 1000.0)) * 60) + ' MIN';
             }
+            const remMahTotal = Math.max(0, Math.round(batteryCapacityMah - am32Telemetry.consumed_mah));
+
+            if (statRem) statRem.textContent = `${remMahTotal} mAh`;
+            if (statEst) statEst.textContent = minsRem;
 
             const elFlightTime = document.getElementById('gi-stat-flight-time');
             const elMahConsumed = document.getElementById('gi-stat-mah-consumed');
-
-            const flightTimeStr = formatFlightTimer(currentFlightTimeSec);
+            const flightTimeStr = (typeof formatFlightTimer === 'function') ? formatFlightTimer(currentFlightTimeSec) : `${Math.floor(currentFlightTimeSec/60)}:${Math.floor(currentFlightTimeSec%60).toString().padStart(2,'0')}`;
             const consumedMahVal = Math.round(am32Telemetry.consumed_mah || 0);
-            const mahConsumedStr = `${consumedMahVal} mAh`;
 
             if (elFlightTime) {
                 elFlightTime.textContent = flightTimeStr;
                 elFlightTime.style.color = (currentFlightTimeSec > 0) ? '#38bdf8' : '#94a3b8';
             }
             if (elMahConsumed) {
-                elMahConsumed.textContent = mahConsumedStr;
+                elMahConsumed.textContent = `${consumedMahVal} mAh`;
                 elMahConsumed.style.color = '#22d3ee';
             }
-
-            // Backward compatibility aliases
-            const statRem = document.getElementById('gi-stat-rem');
-            if (statRem) statRem.textContent = mahConsumedStr;
-            const statEst = document.getElementById('gi-stat-est');
-            if (statEst) statEst.textContent = flightTimeStr;
         }
 
         setInterval(updateEisInstrument, 60);
