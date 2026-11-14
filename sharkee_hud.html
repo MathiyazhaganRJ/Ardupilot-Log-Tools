@@ -14223,96 +14223,27 @@
             const defaultModeColor = new THREE.Color(0x00d2ff);
 
             const N = rawPoints.length;
-            const ribbonWidth = 2.4;
-            const halfW = ribbonWidth * 0.5;
-
-            const ribbonVertices = new Float32Array(N * 2 * 3);
-            const ribbonColors = new Float32Array(N * 2 * 3);
-            const spineVertices = new Float32Array(N * 3);
-            const spineColors = new Float32Array(N * 3);
-            const ribbonIndices = [];
+            const lineVertices = new Float32Array(N * 3);
+            const lineColors = new Float32Array(N * 3);
 
             for (let i = 0; i < N; i++) {
                 const p = rawPoints[i];
                 const mode = pointModes[i] || 'MANUAL';
                 const col = MODE_THREE_COLORS[mode] || defaultModeColor;
 
-                spineVertices[i * 3] = p.x;
-                spineVertices[i * 3 + 1] = p.y;
-                spineVertices[i * 3 + 2] = p.z;
-                spineColors[i * 3] = col.r;
-                spineColors[i * 3 + 1] = col.g;
-                spineColors[i * 3 + 2] = col.b;
-
-                let tx, tz;
-                if (i === 0) {
-                    tx = rawPoints[1].x - p.x;
-                    tz = rawPoints[1].z - p.z;
-                } else if (i === N - 1) {
-                    tx = p.x - rawPoints[N - 2].x;
-                    tz = p.z - rawPoints[N - 2].z;
-                } else {
-                    tx = rawPoints[i + 1].x - rawPoints[i - 1].x;
-                    tz = rawPoints[i + 1].z - rawPoints[i - 1].z;
-                }
-                const len = Math.hypot(tx, tz);
-                let nx = 0, nz = 1;
-                if (len > 1e-4) {
-                    nx = -tz / len;
-                    nz = tx / len;
-                }
-
-                const vL = i * 2;
-                ribbonVertices[vL * 3] = p.x + nx * halfW;
-                ribbonVertices[vL * 3 + 1] = p.y;
-                ribbonVertices[vL * 3 + 2] = p.z + nz * halfW;
-                ribbonColors[vL * 3] = col.r;
-                ribbonColors[vL * 3 + 1] = col.g;
-                ribbonColors[vL * 3 + 2] = col.b;
-
-                const vR = i * 2 + 1;
-                ribbonVertices[vR * 3] = p.x - nx * halfW;
-                ribbonVertices[vR * 3 + 1] = p.y;
-                ribbonVertices[vR * 3 + 2] = p.z - nz * halfW;
-                ribbonColors[vR * 3] = col.r;
-                ribbonColors[vR * 3 + 1] = col.g;
-                ribbonColors[vR * 3 + 2] = col.b;
-
-                if (i < N - 1) {
-                    const i0 = vL;
-                    const i1 = vR;
-                    const i2 = (i + 1) * 2;
-                    const i3 = (i + 1) * 2 + 1;
-                    ribbonIndices.push(i0, i1, i2);
-                    ribbonIndices.push(i1, i3, i2);
-                }
+                lineVertices[i * 3] = p.x;
+                lineVertices[i * 3 + 1] = p.y;
+                lineVertices[i * 3 + 2] = p.z;
+                lineColors[i * 3] = col.r;
+                lineColors[i * 3 + 1] = col.g;
+                lineColors[i * 3 + 2] = col.b;
             }
 
-            // 1. Wide 3D Flight Mode Ribbon Mesh (High visibility, thick path width)
-            const ribbonGeo = new THREE.BufferGeometry();
-            ribbonGeo.setAttribute('position', new THREE.BufferAttribute(ribbonVertices, 3));
-            ribbonGeo.setAttribute('color', new THREE.BufferAttribute(ribbonColors, 3));
-            ribbonGeo.setIndex(ribbonIndices);
-            ribbonGeo.computeVertexNormals();
-
-            const ribbonMat = new THREE.MeshBasicMaterial({
-                vertexColors: true,
-                side: THREE.DoubleSide,
-                transparent: true,
-                opacity: 0.92,
-                depthTest: false,
-                depthWrite: false
-            });
-            const ribbonMesh = new THREE.Mesh(ribbonGeo, ribbonMat);
-            ribbonMesh.renderOrder = 8990;
-            ribbonMesh.frustumCulled = false;
-            window.logCorridorGroup.add(ribbonMesh);
-
-            // 2. High-Visibility Spine Vector Line
-            const spineGeo = new THREE.BufferGeometry();
-            spineGeo.setAttribute('position', new THREE.BufferAttribute(spineVertices, 3));
-            spineGeo.setAttribute('color', new THREE.BufferAttribute(spineColors, 3));
-            const spineMat = new THREE.LineBasicMaterial({
+            // 1. High-Visibility Flight Mode Color-Coded Path Line (Clean vector flight track)
+            const lineGeo = new THREE.BufferGeometry();
+            lineGeo.setAttribute('position', new THREE.BufferAttribute(lineVertices, 3));
+            lineGeo.setAttribute('color', new THREE.BufferAttribute(lineColors, 3));
+            const lineMat = new THREE.LineBasicMaterial({
                 vertexColors: true,
                 linewidth: 2,
                 transparent: true,
@@ -14320,10 +14251,10 @@
                 depthTest: false,
                 depthWrite: false
             });
-            const spineLine = new THREE.Line(spineGeo, spineMat);
-            spineLine.renderOrder = 8995;
-            spineLine.frustumCulled = false;
-            window.logCorridorGroup.add(spineLine);
+            const flightLine = new THREE.Line(lineGeo, lineMat);
+            flightLine.renderOrder = 8990;
+            flightLine.frustumCulled = false;
+            window.logCorridorGroup.add(flightLine);
 
             // 3. Periodic vertical drop pins colored by active flight mode
             const dropStep = Math.max(25, Math.floor(N / 50));

@@ -1212,8 +1212,8 @@
                         const color = FLIGHT_MODE_COLORS[seg.mode] || '#00d2ff';
                         const poly = L.polyline(seg.pts, {
                             color: color,
-                            weight: 6,
-                            opacity: 0.98,
+                            weight: 4,
+                            opacity: 0.95,
                             smoothFactor: 1
                         }).addTo(mapInstance);
                         poly.bindTooltip(`Mode: ${seg.mode}`, { sticky: true });
