@@ -14215,31 +14215,31 @@
             }
             if (rawPoints.length < 2) return;
 
-            // Vibrant Neon Aeronautical Flight Mode Color Palette
+                        // Vibrant Neon Aeronautical Flight Mode Color Palette (Synced with Workstation)
             const MODE_THREE_COLORS = {
-                'MANUAL': new THREE.Color(0x94a3b8),
-                'STABILIZE': new THREE.Color(0xff7300),
-                'TRAINING': new THREE.Color(0xff9100),
-                'ACRO': new THREE.Color(0xffab00),
+                'MANUAL': new THREE.Color(0xef4444),
+                'STABILIZE': new THREE.Color(0xf59e0b),
+                'TRAINING': new THREE.Color(0xf97316),
+                'ACRO': new THREE.Color(0xec4899),
                 'FBWA': new THREE.Color(0x00d2ff),
                 'FBWB': new THREE.Color(0x2979ff),
-                'CRUISE': new THREE.Color(0x00e5ff),
+                'CRUISE': new THREE.Color(0xa855f7),
                 'AUTOTUNE': new THREE.Color(0x00b4d8),
-                'AUTO': new THREE.Color(0x00ff88),
-                'RTL': new THREE.Color(0xff2d87),
-                'LOITER': new THREE.Color(0xffcc00),
-                'TAKEOFF': new THREE.Color(0xa855f7),
+                'AUTO': new THREE.Color(0x00ff66),
+                'RTL': new THREE.Color(0xf59e0b),
+                'LOITER': new THREE.Color(0x06b6d4),
+                'TAKEOFF': new THREE.Color(0x10b981),
                 'LAND': new THREE.Color(0xff3344),
-                'GUIDED': new THREE.Color(0xb5179e),
-                'QSTABILIZE': new THREE.Color(0xff7300),
-                'QHOVER': new THREE.Color(0x00f5d4),
-                'QLOITER': new THREE.Color(0xffcc00),
-                'QLAND': new THREE.Color(0xff2a4b),
-                'QRTL': new THREE.Color(0xff2d87),
+                'GUIDED': new THREE.Color(0x3b82f6),
+                'QSTABILIZE': new THREE.Color(0xf59e0b),
+                'QHOVER': new THREE.Color(0x14b8a6),
+                'QLOITER': new THREE.Color(0x38bdf8),
+                'QLAND': new THREE.Color(0xeab308),
+                'QRTL': new THREE.Color(0xf97316),
                 'QAUTOTUNE': new THREE.Color(0x00b4d8),
-                'QACRO': new THREE.Color(0xffab00)
+                'QACRO': new THREE.Color(0xec4899)
             };
-            const defaultModeColor = new THREE.Color(0x00d2ff);
+            const defaultModeColor = new THREE.Color(0x00ff66);
 
             const N = rawPoints.length;
             const lineVertices = new Float32Array(N * 3);

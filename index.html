@@ -1357,11 +1357,11 @@
             'STABILIZE': '#f59e0b',
             'TRAINING': '#f97316',
             'ACRO': '#ec4899',
-            'FBWA': '#0284c7',
+            'FBWA': '#00d2ff',
             'FBWB': '#0ea5e9',
-            'CRUISE': '#8b5cf6',
+            'CRUISE': '#a855f7',
             'AUTOTUNE': '#00b4d8',
-            'AUTO': '#10b981',
+            'AUTO': '#00ff66',
             'RTL': '#f59e0b',
             'LOITER': '#06b6d4',
             'TAKEOFF': '#14b8a6',
@@ -2403,10 +2403,10 @@
 
             const shapes = [];
             const modeColors = {
-                'AUTO': 'rgba(16, 185, 129, 0.14)',
-                'FBWA': 'rgba(2, 132, 199, 0.16)',
+                'AUTO': 'rgba(0, 255, 102, 0.18)',
+                'FBWA': 'rgba(0, 210, 255, 0.18)',
                 'FBWB': 'rgba(14, 165, 233, 0.16)',
-                'CRUISE': 'rgba(139, 92, 246, 0.16)',
+                'CRUISE': 'rgba(168, 85, 247, 0.18)',
                 'MANUAL': 'rgba(239, 68, 68, 0.16)',
                 'RTL': 'rgba(245, 158, 11, 0.18)'
             };
@@ -2576,7 +2576,7 @@
             const modePill = document.getElementById('replay-mode-pill');
             if (sample.mode) {
                 if (modeLabel) modeLabel.textContent = sample.mode;
-                const modeColor = FLIGHT_MODE_COLORS[sample.mode] || '#10b981';
+                const modeColor = FLIGHT_MODE_COLORS[sample.mode] || '#00ff66';
                 if (modeLed) {
                     modeLed.style.backgroundColor = modeColor;
                     modeLed.style.boxShadow = `0 0 6px ${modeColor}`;
@@ -2832,7 +2832,7 @@
 
             if (points.length > 1) {
                 const geom = new THREE.BufferGeometry().setFromPoints(points);
-                const mat = new THREE.LineBasicMaterial({ color: 0x22c55e, linewidth: 2 });
+                const mat = new THREE.LineBasicMaterial({ color: 0x00ff66, linewidth: 2 });
                 trajectoryLine = new THREE.Line(geom, mat);
                 scene.add(trajectoryLine);
             }
