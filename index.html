@@ -1027,21 +1027,32 @@
 
         const FLIGHT_MODE_COLORS = {
             'MANUAL': '#64748b',
+            'CIRCLE': '#0284c7',
             'STABILIZE': '#ea580c',
+            'TRAINING': '#f97316',
+            'ACRO': '#d97706',
             'FBWA': '#0284c7',
             'FBWB': '#2563eb',
             'CRUISE': '#06b6d4',
+            'AUTOTUNE': '#0891b2',
             'AUTO': '#10b981',
-            'LOITER': '#eab308',
             'RTL': '#ec4899',
+            'LOITER': '#eab308',
             'TAKEOFF': '#8b5cf6',
             'LAND': '#ef4444',
-            'QLOITER': '#d97706',
+            'GUIDED': '#9333ea',
+            'INITIALISING': '#64748b',
             'QSTABILIZE': '#f97316',
             'QHOVER': '#14b8a6',
-            'QRTL': '#db2777',
+            'QLOITER': '#eab308',
             'QLAND': '#dc2626',
-            'GUIDED': '#9333ea'
+            'QRTL': '#db2777',
+            'QAUTOTUNE': '#0891b2',
+            'QACRO': '#b45309',
+            'THERMAL': '#059669',
+            'ALT_HOLD': '#0284c7',
+            'POSHOLD': '#eab308',
+            'BRAKE': '#ef4444'
         };
 
         function renderFlightModeTimeline(modeSegs) {
@@ -1149,10 +1160,16 @@
             }
         }
 
+        let trackLayers = [];
+
         function updateMapTrajectory(trajectory) {
             if (!mapInstance) return;
 
-            // Remove existing track
+            // Remove existing track layers
+            if (trackLayers && trackLayers.length > 0) {
+                trackLayers.forEach(layer => mapInstance.removeLayer(layer));
+                trackLayers = [];
+            }
             if (trackPolyline) {
                 mapInstance.removeLayer(trackPolyline);
                 trackPolyline = null;
@@ -1164,21 +1181,48 @@
 
             if (!trajectory || trajectory.length === 0) return;
 
-            const latlngs = [];
+            // Group into flight mode continuous segments
+            const modeSegments = [];
+            let currentSeg = null;
+            const validPoints = [];
+
             trajectory.forEach(pt => {
                 if (pt.lat && pt.lng && Math.abs(pt.lat) > 0.001) {
-                    latlngs.push([pt.lat, pt.lng]);
+                    const latlng = [pt.lat, pt.lng];
+                    const mode = pt.mode || 'MANUAL';
+                    validPoints.push(latlng);
+
+                    if (!currentSeg || currentSeg.mode !== mode) {
+                        if (currentSeg && currentSeg.pts.length > 0) {
+                            // Overlap by 1 point so no visual gaps between modes
+                            currentSeg.pts.push(latlng);
+                        }
+                        currentSeg = { mode: mode, pts: [latlng] };
+                        modeSegments.push(currentSeg);
+                    } else {
+                        currentSeg.pts.push(latlng);
+                    }
                 }
             });
 
-            if (latlngs.length > 0) {
-                // Plot glowing cyan flight track
-                trackPolyline = L.polyline(latlngs, {
-                    color: '#00d2ff',
-                    weight: 3,
-                    opacity: 0.92,
-                    smoothFactor: 1
-                }).addTo(mapInstance);
+            if (validPoints.length > 0) {
+                // Plot each flight mode segment in its authentic mode color
+                modeSegments.forEach(seg => {
+                    if (seg.pts.length >= 2) {
+                        const color = FLIGHT_MODE_COLORS[seg.mode] || '#0284c7';
+                        const poly = L.polyline(seg.pts, {
+                            color: color,
+                            weight: 4,
+                            opacity: 0.95,
+                            smoothFactor: 1
+                        }).addTo(mapInstance);
+                        poly.bindTooltip(`Mode: ${seg.mode}`, { sticky: true });
+                        trackLayers.push(poly);
+                    }
+                });
+
+                // Also keep reference for fitBounds
+                trackPolyline = trackLayers.length > 0 ? L.featureGroup(trackLayers) : null;
 
                 // Add Home Marker at start
                 const homeIcon = L.divIcon({
@@ -1186,16 +1230,16 @@
                     iconSize: [12, 12],
                     iconAnchor: [6, 6]
                 });
-                homeMarker = L.marker(latlngs[0], { icon: homeIcon }).addTo(mapInstance);
+                homeMarker = L.marker(validPoints[0], { icon: homeIcon }).addTo(mapInstance);
                 homeMarker.bindTooltip('TAKEOFF / HOME', { permanent: false, direction: 'top' });
 
                 // Set initial plane position
-                currentPlaneLat = latlngs[0][0];
-                currentPlaneLng = latlngs[0][1];
-                planeMarker.setLatLng(latlngs[0]);
+                currentPlaneLat = validPoints[0][0];
+                currentPlaneLng = validPoints[0][1];
+                planeMarker.setLatLng(validPoints[0]);
 
                 const mapPaneEl = document.getElementById('map-pane');
-                if (mapPaneEl && mapPaneEl.offsetWidth > 50 && mapPaneEl.offsetHeight > 50) {
+                if (mapPaneEl && mapPaneEl.offsetWidth > 50 && mapPaneEl.offsetHeight > 50 && trackPolyline) {
                     try {
                         mapInstance.fitBounds(trackPolyline.getBounds(), { padding: [30, 30] });
                     } catch(e) {}

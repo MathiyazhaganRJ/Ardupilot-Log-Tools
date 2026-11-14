@@ -10,11 +10,87 @@ import numpy as np
 from pymavlink import mavutil
 
 GPS_EPOCH = datetime.datetime(1980, 1, 6, tzinfo=datetime.timezone.utc)
-MODE_MAP = {
-    0: 'MANUAL', 1: 'CIRCLE', 2: 'STABILIZE', 3: 'TRAINING',
-    5: 'FBWA', 6: 'FBWB', 7: 'CRUISE', 10: 'AUTO',
-    11: 'RTL', 12: 'LOITER', 15: 'GUIDED'
+PLANE_MODE_MAP = {
+    0: 'MANUAL',
+    1: 'CIRCLE',
+    2: 'STABILIZE',
+    3: 'TRAINING',
+    4: 'ACRO',
+    5: 'FBWA',
+    6: 'FBWB',
+    7: 'CRUISE',
+    8: 'AUTOTUNE',
+    10: 'AUTO',
+    11: 'RTL',
+    12: 'LOITER',
+    13: 'TAKEOFF',
+    14: 'AVOID_ADSB',
+    15: 'GUIDED',
+    16: 'INITIALISING',
+    17: 'QSTABILIZE',
+    18: 'QHOVER',
+    19: 'QLOITER',
+    20: 'QLAND',
+    21: 'QRTL',
+    22: 'QAUTOTUNE',
+    23: 'QACRO',
+    24: 'THERMAL',
+    25: 'LOITER_ALT_QLAND'
 }
+
+COPTER_MODE_MAP = {
+    0: 'STABILIZE',
+    1: 'ACRO',
+    2: 'ALT_HOLD',
+    3: 'AUTO',
+    4: 'GUIDED',
+    5: 'LOITER',
+    6: 'RTL',
+    7: 'CIRCLE',
+    9: 'LAND',
+    11: 'DRIFT',
+    13: 'SPORT',
+    14: 'FLIP',
+    15: 'AUTOTUNE',
+    16: 'POSHOLD',
+    17: 'BRAKE',
+    18: 'THROW',
+    19: 'AVOID_ADSB',
+    20: 'GUIDED_NOGPS',
+    21: 'SMART_RTL',
+    22: 'FLOWHOLD',
+    23: 'FOLLOW',
+    24: 'ZIGZAG',
+    25: 'SYSTEMID',
+    26: 'AUTOROTATE',
+    27: 'AUTO_RTL'
+}
+
+MODE_MAP = PLANE_MODE_MAP
+
+def resolve_flight_mode(val, is_copter=False):
+    if val is None:
+        return 'MANUAL'
+    mode_map = COPTER_MODE_MAP if is_copter else PLANE_MODE_MAP
+    if isinstance(val, int):
+        return mode_map.get(val, PLANE_MODE_MAP.get(val, f'MODE_{val}'))
+    val_str = str(val).strip()
+    if val_str.isdigit():
+        num = int(val_str)
+        return mode_map.get(num, PLANE_MODE_MAP.get(num, f'MODE_{num}'))
+    upper = val_str.upper()
+    alias_map = {
+        'FLYBYWIREA': 'FBWA',
+        'FLY_BY_WIRE_A': 'FBWA',
+        'FLYBYWIREB': 'FBWB',
+        'FLY_BY_WIRE_B': 'FBWB',
+        'QLOITER': 'QLOITER',
+        'QSTABILIZE': 'QSTABILIZE',
+        'QHOVER': 'QHOVER',
+        'QRTL': 'QRTL',
+        'QLAND': 'QLAND'
+    }
+    return alias_map.get(upper, upper)
 
 def get_default_logs_dir(base_dir=None):
     if base_dir and os.path.exists(base_dir):
@@ -186,8 +262,11 @@ def parse_flight_telemetry(file_path, target_samples=6000):
                 cur_amsl = cur_alt
 
         elif mtype == 'MODE':
-            m_val = getattr(msg, 'Mode', 'MANUAL')
-            cur_mode = MODE_MAP.get(m_val, str(m_val)) if isinstance(m_val, int) else str(m_val)
+            m_val = getattr(msg, 'Mode', None)
+            if m_val is None:
+                m_val = getattr(msg, 'ModeNum', 'MANUAL')
+            is_cop = 'Copter' in firmware or 'Quad' in firmware
+            cur_mode = resolve_flight_mode(m_val, is_cop)
 
         elif mtype == 'ATT':
             cur_roll = getattr(msg, 'Roll', cur_roll)
@@ -337,7 +416,8 @@ def parse_flight_telemetry(file_path, target_samples=6000):
                     'qnh_hpa': round((cur_press / 100.0 if cur_press > 2000 else cur_press) * (max(0.001, 1.0 - ((cur_amsl if cur_amsl != 0.0 else cur_alt) / 44330.77)) ** -5.25588), 1),
                     'temp': round(cur_temp, 1),
                     'baro_temp': round(cur_baro_temp, 1),
-                    'arsp_temp': round(cur_arsp_temp, 1) if cur_arsp_temp is not None else round(cur_baro_temp, 1),
+                    'arsp_temp': round(cur_arsp_temp, 1) if cur_arsp_temp is not None else 0.0,
+                    'has_arsp': cur_arsp_temp is not None,
                     'density': round(rho, 4),
                     'wind_spd': round(w_spd, 1),
                     'wind_dir': round(w_dir, 0),
