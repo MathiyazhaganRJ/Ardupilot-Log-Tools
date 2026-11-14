@@ -3,6 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!-- Airbus Aeronautical Cockpit Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=B612:ital,wght@0,400;0,700;1,400;1,700&family=B612+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap">
     <title>UAV Log Viewer - Sharkee Aero Lab</title>
     
     <!-- Offline & Local Core Libraries -->
@@ -15,37 +19,46 @@
     <link rel="stylesheet" href="libs/leaflet.css" />
     <script src="libs/leaflet.js"></script>
 
-        <style>
+            <style>
         :root {
-            --mac-bg: #0b0f17;
-            --mac-glass-header: rgba(18, 24, 34, 0.85);
-            --mac-glass-sidebar: rgba(15, 20, 29, 0.92);
-            --mac-glass-bottom: rgba(15, 20, 29, 0.90);
-            --mac-border: rgba(255, 255, 255, 0.08);
-            --mac-border-subtle: rgba(255, 255, 255, 0.05);
-            --mac-accent: #38bdf8;
-            --mac-accent-blue: #0284c7;
-            --mac-text-main: #f8fafc;
-            --mac-text-muted: rgba(255, 255, 255, 0.55);
+            /* Aeronautical Cockpit Palette (Garmin / Airbus B612 Design System) */
+            --av-bg-dark: #070a10;
+            --av-panel-bg: #0d121c;
+            --av-panel-surface: #121824;
+            --av-border: #1e2838;
+            --av-border-light: rgba(255, 255, 255, 0.08);
+            --av-border-subtle: rgba(255, 255, 255, 0.04);
+            
+            --av-cyan: #00e5ff;
+            --av-cyan-dim: #0284c7;
+            --av-green: #10b981;
+            --av-amber: #f59e0b;
+            --av-red: #ef4444;
+            --av-purple: #c084fc;
+            
+            --av-text-primary: #f8fafc;
+            --av-text-secondary: #94a3b8;
+            --av-text-muted: #64748b;
+            
             --header-h: 46px;
-            --footer-h: 50px;
-            --sidebar-w: 300px;
+            --footer-h: 48px;
+            --sidebar-w: 290px;
 
             /* Backward compatibility aliases */
-            --bg-dark: var(--mac-bg);
-            --panel-bg: var(--mac-glass-sidebar);
-            --card-bg: rgba(255, 255, 255, 0.05);
-            --border: var(--mac-border);
-            --accent: var(--mac-accent);
-            --text-main: var(--mac-text-main);
-            --text-muted: var(--mac-text-muted);
+            --bg-dark: var(--av-bg-dark);
+            --panel-bg: var(--av-panel-bg);
+            --card-bg: var(--av-panel-surface);
+            --border: var(--av-border);
+            --accent: var(--av-cyan);
+            --text-main: var(--av-text-primary);
+            --text-muted: var(--av-text-secondary);
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'B612', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
             -webkit-user-select: none;
             user-select: none;
             -webkit-font-smoothing: antialiased;
@@ -53,43 +66,49 @@
         }
 
         body {
-            background-color: var(--mac-bg);
-            color: var(--mac-text-main);
+            background-color: var(--av-bg-dark);
+            color: var(--av-text-primary);
             height: 100vh;
             display: flex;
             flex-direction: column;
             overflow: hidden;
         }
 
-        /* macOS Custom Thin Scrollbars */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.12);
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.25);
+        /* Aeronautical Monospace Elements */
+        .font-mono {
+            font-family: 'B612 Mono', Consolas, monospace !important;
         }
 
-        /* macOS Window Titlebar Header */
+        /* Slim Dark Bezel Scrollbars */
+        ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #090d14;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e2838;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #38bdf8;
+        }
+
+        /* ------------------------------------------------------------- */
+        /* Top Navigation: Flight Telemetry Console Header               */
+        /* ------------------------------------------------------------- */
         header {
             height: var(--header-h);
-            background: var(--mac-glass-header);
-            backdrop-filter: blur(25px) saturate(190%);
-            -webkit-backdrop-filter: blur(25px) saturate(190%);
-            border-bottom: 1px solid var(--mac-border);
+            background: #0b0f17;
+            border-bottom: 1px solid var(--av-border);
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 16px;
+            padding: 0 14px;
             z-index: 1000;
-            box-shadow: 0 1px 12px rgba(0, 0, 0, 0.35);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+            flex-shrink: 0;
         }
 
         .header-left {
@@ -98,144 +117,155 @@
             gap: 12px;
         }
 
-        /* macOS Traffic Light Window Controls */
-        .mac-window-dots {
+        .aero-brand-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding-right: 12px;
+            border-right: 1px solid var(--av-border);
+        }
+
+        .aero-logo-icon {
+            color: var(--av-cyan);
+            filter: drop-shadow(0 0 6px rgba(0, 229, 255, 0.5));
+            display: flex;
+            align-items: center;
+        }
+
+        .aero-brand-text {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.1;
+        }
+
+        .aero-brand-title {
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            color: #ffffff;
+            text-transform: uppercase;
+        }
+
+        .aero-brand-sub {
+            font-family: 'B612 Mono', monospace;
+            font-size: 8.5px;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            color: var(--av-cyan);
+            text-transform: uppercase;
+        }
+
+        /* Tactile Aeronautical Switch Button */
+        .aero-btn-switch {
+            background: #101622;
+            border: 1px solid var(--av-border);
+            color: #94a3b8;
+            padding: 5px 11px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.4px;
+            cursor: pointer;
             display: inline-flex;
             align-items: center;
-            gap: 7px;
-            margin-right: 4px;
-            padding-right: 12px;
-            border-right: 1px solid var(--mac-border);
+            gap: 6px;
+            transition: all 0.14s ease;
+        }
+        .aero-btn-switch:hover {
+            background: #162030;
+            color: #ffffff;
+            border-color: #2b3a50;
+        }
+        .aero-btn-switch.active {
+            background: rgba(0, 229, 255, 0.12);
+            border-color: var(--av-cyan);
+            color: var(--av-cyan);
+            box-shadow: 0 0 8px rgba(0, 229, 255, 0.25);
         }
 
-        .mac-dot {
-            width: 11px;
-            height: 11px;
-            border-radius: 50%;
-            display: inline-block;
-            box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.3);
-            cursor: pointer;
-            transition: opacity 0.15s ease;
-        }
-        .mac-dot:hover {
-            opacity: 0.85;
-        }
-        .mac-dot-close { background: #ff5f57; border: 1px solid #e0443e; }
-        .mac-dot-minimize { background: #febc2e; border: 1px solid #d89e24; }
-        .mac-dot-maximize { background: #28c840; border: 1px solid #1aab29; }
-
-        /* macOS Toolbar Toggle Button */
-        .mac-btn-toggle, .view-mode-btn {
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: rgba(255, 255, 255, 0.85);
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 11.5px;
-            font-weight: 500;
+        /* Primary Action: Import Log */
+        .aero-btn-primary {
+            background: #0284c7;
+            border: 1px solid #38bdf8;
+            color: #ffffff;
+            padding: 5px 12px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.4px;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
             gap: 5px;
-            transition: all 0.15s ease;
-            backdrop-filter: blur(8px);
+            transition: all 0.14s ease;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
         }
-        .mac-btn-toggle:hover, .view-mode-btn:hover {
-            background: rgba(255, 255, 255, 0.12);
-            color: #ffffff;
-            border-color: rgba(255, 255, 255, 0.18);
-        }
-        .mac-btn-toggle.active, .view-mode-btn.active {
-            background: rgba(56, 189, 248, 0.18);
-            border-color: rgba(56, 189, 248, 0.45);
-            color: #38bdf8;
-            box-shadow: 0 1px 4px rgba(56, 189, 248, 0.2);
+        .aero-btn-primary:hover {
+            background: #0369a1;
+            border-color: #7dd3fc;
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
         }
 
-        .brand-title {
-            font-size: 13.5px;
-            font-weight: 600;
-            letter-spacing: -0.01em;
-            color: rgba(255, 255, 255, 0.92);
-        }
-
-        .log-selector-container {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        /* macOS Accent Button */
-        .mac-btn-primary, .btn-primary {
-            background: linear-gradient(180deg, #0284c7 0%, #0369a1 100%) !important;
-            border: 1px solid #38bdf8 !important;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.22) !important;
-            color: #ffffff !important;
-            padding: 4px 12px;
-            border-radius: 6px;
-            font-size: 11.5px;
-            font-weight: 500;
-            cursor: pointer;
+        /* Aeronautical FDR Log Identifier Capsule */
+        .aero-log-capsule {
             display: inline-flex;
             align-items: center;
-            gap: 4px;
-            transition: all 0.15s ease;
-        }
-        .mac-btn-primary:hover, .btn-primary:hover {
-            background: linear-gradient(180deg, #0369a1 0%, #075985 100%) !important;
-            box-shadow: 0 2px 8px rgba(2, 132, 199, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
-        }
-        .mac-btn-primary:active, .btn-primary:active {
-            transform: translateY(1px);
+            background: #080c14;
+            border: 1px solid #1a2434;
+            border-radius: 4px;
+            height: 27px;
+            overflow: hidden;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.6);
         }
 
-        /* macOS Document Capsule Badge */
-        .log-badge-wrapper {
-            display: inline-flex;
-            align-items: center;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.09);
-            border-radius: 6px;
-            height: 26px;
-            padding: 0 3px;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-        }
-
-        .log-badge-tag {
-            background: rgba(56, 189, 248, 0.18);
+        .aero-log-tag {
+            background: #1e293b;
             color: #38bdf8;
+            font-family: 'B612 Mono', monospace;
             font-size: 9.5px;
             font-weight: 700;
-            padding: 2px 6px;
-            border-radius: 4px;
-            letter-spacing: 0.04em;
-            user-select: none;
+            padding: 0 7px;
+            height: 100%;
+            display: inline-flex;
+            align-items: center;
+            letter-spacing: 0.5px;
+            border-right: 1px solid #1a2434;
         }
 
-        .log-name-display {
-            color: rgba(255, 255, 255, 0.88);
-            padding: 0 8px;
-            font-size: 11.5px;
-            font-family: -apple-system, "SF Mono", Menlo, Consolas, monospace;
+        .aero-log-name {
+            color: #e2e8f0;
+            padding: 0 10px;
+            font-size: 11px;
+            font-family: 'B612 Mono', Consolas, monospace;
             font-weight: 500;
-            max-width: 280px;
+            display: inline-flex;
+            align-items: center;
+            height: 100%;
+            max-width: 270px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
             user-select: text;
         }
 
-        .header-meta {
-            font-family: -apple-system, "SF Mono", Menlo, Consolas, monospace;
-            font-size: 11px;
-            color: rgba(255, 255, 255, 0.45);
+        /* Telemetry Metadata Strip */
+        .aero-meta-strip {
             display: flex;
-            gap: 12px;
-            background: rgba(255, 255, 255, 0.03);
-            padding: 4px 10px;
-            border-radius: 6px;
-            border: 1px solid var(--mac-border-subtle);
+            align-items: center;
+            gap: 8px;
+            font-family: 'B612 Mono', monospace;
+            font-size: 10.5px;
+            color: var(--av-text-muted);
+            background: #080c14;
+            padding: 3px 8px;
+            border-radius: 4px;
+            border: 1px solid #141c28;
+        }
+        .aero-meta-item {
+            color: #cbd5e1;
+        }
+        .aero-meta-sep {
+            color: #334155;
         }
 
         .header-right {
@@ -244,85 +274,69 @@
             gap: 10px;
         }
 
-        /* macOS Segmented Control */
-        .mac-segmented-control, .view-mode-group {
+        /* Avionic Rocker Switcher (3D Spatial vs 2D Tactical) */
+        .aero-rocker-group {
             display: inline-flex;
             align-items: center;
-            background: rgba(0, 0, 0, 0.45);
+            background: #080c14;
             padding: 2px;
-            border-radius: 7px;
-            border: 1px solid var(--mac-border);
-            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.6);
-            gap: 2px;
+            border-radius: 4px;
+            border: 1px solid var(--av-border);
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.7);
         }
 
-        .mac-segmented-btn {
+        .aero-rocker-btn {
             background: transparent;
             border: none;
-            color: rgba(255, 255, 255, 0.65);
-            padding: 4px 12px;
-            border-radius: 5px;
-            font-size: 11.5px;
-            font-weight: 500;
+            color: #64748b;
+            padding: 4px 11px;
+            border-radius: 3px;
+            font-size: 10.5px;
+            font-weight: 700;
+            letter-spacing: 0.4px;
             cursor: pointer;
-            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.14s ease;
         }
-        .mac-segmented-btn:hover {
-            color: rgba(255, 255, 255, 0.95);
+        .aero-rocker-btn:hover {
+            color: #cbd5e1;
         }
-        .mac-segmented-btn.active {
-            background: rgba(255, 255, 255, 0.14);
+        .aero-rocker-btn.active {
+            background: #0284c7;
             color: #ffffff;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
         }
 
-        /* macOS Glass Action Button (Show Plot) */
-        .mac-btn-glass {
-            background: rgba(56, 189, 248, 0.08);
-            border: 1px solid rgba(56, 189, 248, 0.3);
-            color: #38bdf8;
-            padding: 4px 12px;
-            border-radius: 6px;
-            font-size: 11.5px;
-            font-weight: 500;
+        /* Oscillograph Graph Toggle */
+        .aero-btn-graph {
+            background: #101622;
+            border: 1px solid var(--av-border);
+            color: var(--av-cyan);
+            padding: 5px 12px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.4px;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
-            gap: 5px;
-            transition: all 0.15s ease;
+            gap: 6px;
+            transition: all 0.14s ease;
         }
-        .mac-btn-glass:hover {
-            background: rgba(56, 189, 248, 0.16);
-            border-color: rgba(56, 189, 248, 0.5);
-            color: #e0f2fe;
-            box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
+        .aero-btn-graph:hover {
+            background: #162030;
+            border-color: var(--av-cyan);
+            box-shadow: 0 0 10px rgba(0, 229, 255, 0.25);
         }
-        .mac-btn-glass.active {
+        .aero-btn-graph.active {
             background: #0284c7;
             border-color: #38bdf8;
             color: #ffffff;
-            box-shadow: 0 1px 5px rgba(2, 132, 199, 0.45);
+            box-shadow: 0 1px 6px rgba(2, 132, 199, 0.5);
         }
 
-        /* Generic macOS Secondary Button */
-        .btn {
-            background: rgba(255, 255, 255, 0.06);
-            color: rgba(255, 255, 255, 0.85);
-            border: 1px solid var(--mac-border);
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 11.5px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.15s ease;
-        }
-        .btn:hover {
-            background: rgba(255, 255, 255, 0.12);
-            color: #ffffff;
-            border-color: rgba(255, 255, 255, 0.16);
-        }
-
-        /* Main Workspace Layout */
+        /* ------------------------------------------------------------- */
+        /* Main Workspace & Sidebar Layout                               */
+        /* ------------------------------------------------------------- */
         #workspace {
             display: flex;
             flex: 1;
@@ -332,101 +346,124 @@
             background: #000000;
         }
 
-        /* Left Sidebar: macOS Finder / Xcode Style */
+        /* Left Sidebar: Telemetry Matrix & Channel Selector */
         #sidebar {
             width: var(--sidebar-w);
             min-width: var(--sidebar-w);
-            background: var(--mac-glass-sidebar);
-            backdrop-filter: blur(30px) saturate(190%);
-            -webkit-backdrop-filter: blur(30px) saturate(190%);
-            border-right: 1px solid var(--mac-border);
+            background: var(--av-panel-bg);
+            border-right: 1px solid var(--av-border);
             display: flex;
             flex-direction: column;
             height: 100%;
             overflow: hidden;
-            transition: width 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 50;
         }
 
         .sidebar-section {
-            padding: 10px 14px;
-            border-bottom: 1px solid var(--mac-border-subtle);
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--av-border);
         }
 
         .sidebar-title {
-            font-size: 10.5px;
-            font-weight: 600;
-            color: rgba(255, 255, 255, 0.45);
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--av-cyan);
             text-transform: uppercase;
-            letter-spacing: 0.06em;
-            margin-bottom: 8px;
+            letter-spacing: 0.8px;
+            margin-bottom: 6px;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
-        /* Active Plotted Fields List */
+        .sidebar-title-badge {
+            font-family: 'B612 Mono', monospace;
+            font-size: 9.5px;
+            color: #cbd5e1;
+            background: #172030;
+            padding: 1px 6px;
+            border-radius: 3px;
+            border: 1px solid #233148;
+        }
+
+        /* Active Channel Cards */
         #active-fields-list {
             display: flex;
             flex-direction: column;
-            gap: 5px;
-            max-height: 175px;
+            gap: 4px;
+            max-height: 165px;
             overflow-y: auto;
         }
 
         .active-field-chip {
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.07);
-            border-radius: 6px;
-            padding: 4px 8px;
+            background: #090d15;
+            border: 1px solid #1a2436;
+            border-radius: 4px;
+            padding: 4px 6px;
+            display: flex;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.12s ease;
+        }
+        .active-field-chip:hover {
+            border-color: #2a3c58;
+            background: #0d131e;
+        }
+
+        .chip-color-bar {
+            width: 3px;
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+        }
+
+        .chip-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            padding-left: 6px;
+        }
+
+        .chip-row-top {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            font-size: 11px;
-            transition: background 0.12s ease, border-color 0.12s ease;
-        }
-        .active-field-chip:hover {
-            background: rgba(255, 255, 255, 0.07);
-            border-color: rgba(255, 255, 255, 0.12);
-        }
-
-        .chip-left {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .color-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            flex-shrink: 0;
         }
 
         .chip-label {
-            font-weight: 500;
-            color: rgba(255, 255, 255, 0.9);
-            font-family: -apple-system, "SF Mono", Menlo, Consolas, monospace;
+            font-family: 'B612 Mono', monospace;
             font-size: 10.5px;
+            font-weight: 700;
+            color: #f1f5f9;
+        }
+
+        .chip-val {
+            font-family: 'B612 Mono', monospace;
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--av-cyan);
         }
 
         .chip-ctrls {
             display: flex;
             align-items: center;
-            gap: 4px;
+            justify-content: space-between;
+            margin-top: 1px;
         }
 
         .axis-btn {
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 9.5px;
-            font-weight: 600;
+            background: #141c28;
+            border: 1px solid #243044;
+            color: #94a3b8;
+            font-family: 'B612 Mono', monospace;
+            font-size: 9px;
+            font-weight: 700;
             padding: 1px 6px;
-            border-radius: 4px;
+            border-radius: 2px;
             cursor: pointer;
             transition: all 0.12s ease;
         }
@@ -434,80 +471,94 @@
             color: #ffffff;
             background: #0284c7;
             border-color: #38bdf8;
-            box-shadow: 0 1px 3px rgba(2, 132, 199, 0.4);
         }
 
         .chip-del {
             background: transparent;
             border: none;
-            color: rgba(255, 255, 255, 0.4);
+            color: #64748b;
             cursor: pointer;
             padding: 2px 4px;
-            border-radius: 4px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.12s ease;
+            transition: color 0.12s ease;
         }
         .chip-del:hover {
-            color: #ef4444;
-            background: rgba(239, 68, 68, 0.15);
+            color: var(--av-red);
         }
 
         .sidebar-actions {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 6px;
-            margin-top: 8px;
-        }
-        .sidebar-actions .btn {
-            padding: 4px 6px;
-            font-size: 11px;
-            text-align: center;
+            margin-top: 6px;
         }
 
-        /* macOS Style Select & Search Input */
+        .btn {
+            background: #121824;
+            color: #cbd5e1;
+            border: 1px solid var(--av-border);
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 10.5px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.12s ease;
+        }
+        .btn:hover {
+            background: #182234;
+            color: #ffffff;
+            border-color: #2b3a50;
+        }
+
+        /* Tactical Presets Dropdown */
         .log-select {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 6px;
-            color: rgba(255, 255, 255, 0.9);
+            width: 100%;
+            background: #090d15;
+            border: 1px solid var(--av-border);
+            border-radius: 4px;
+            color: #f1f5f9;
             padding: 5px 8px;
-            font-size: 11.5px;
+            font-size: 11px;
+            font-family: 'B612', sans-serif;
             cursor: pointer;
             outline: none;
-            transition: all 0.15s ease;
+            transition: border-color 0.14s ease;
         }
         .log-select:focus {
-            border-color: #38bdf8;
-            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+            border-color: var(--av-cyan);
         }
         .log-select option {
-            background: #111722;
+            background: #090d15;
             color: #f1f5f9;
         }
 
+        /* Signal Search Box */
         .search-box {
             width: 100%;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.09);
+            background: #080c14;
+            border: 1px solid var(--av-border);
             color: #f8fafc;
-            padding: 6px 10px;
-            border-radius: 7px;
-            font-size: 11.5px;
-            transition: all 0.15s ease;
+            padding: 5px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-family: 'B612 Mono', monospace;
+            outline: none;
+            transition: border-color 0.14s ease;
         }
         .search-box:focus {
-            outline: none;
-            background: rgba(255, 255, 255, 0.08);
-            border-color: #38bdf8;
-            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+            border-color: var(--av-cyan);
+            box-shadow: 0 0 6px rgba(0, 229, 255, 0.2);
         }
         .search-box::placeholder {
-            color: rgba(255, 255, 255, 0.35);
+            color: #475569;
+            font-family: 'B612', sans-serif;
         }
 
-        /* Message Tree: macOS Navigation Rows */
+        /* Telemetry Message Tree */
         #message-tree {
             flex: 1;
             overflow-y: auto;
@@ -516,98 +567,109 @@
 
         .msg-node {
             margin-bottom: 2px;
-            border-radius: 6px;
+            border-radius: 3px;
             overflow: hidden;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.02);
         }
 
         .msg-header {
-            padding: 5px 8px;
-            font-size: 11.5px;
-            font-weight: 500;
-            color: rgba(255, 255, 255, 0.78);
+            padding: 4px 6px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #cbd5e1;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            border-radius: 6px;
-            transition: background 0.12s ease, color 0.12s ease;
+            border-radius: 3px;
+            transition: background 0.1s ease;
         }
         .msg-header:hover {
-            background: rgba(255, 255, 255, 0.06);
-            color: #ffffff;
+            background: #141c2b;
+            color: var(--av-cyan);
+        }
+
+        .msg-name {
+            font-family: 'B612 Mono', monospace;
+            letter-spacing: 0.5px;
         }
 
         .msg-pill {
-            font-size: 9.5px;
-            color: rgba(255, 255, 255, 0.35);
-            background: rgba(255, 255, 255, 0.04);
-            padding: 1px 6px;
-            border-radius: 10px;
-            font-family: -apple-system, "SF Mono", Menlo, Consolas, monospace;
+            font-family: 'B612 Mono', monospace;
+            font-size: 9px;
+            color: #64748b;
+            background: #090d15;
+            padding: 1px 5px;
+            border-radius: 3px;
+            border: 1px solid #141c28;
         }
 
         .msg-fields-container {
             display: none;
-            background: rgba(0, 0, 0, 0.25);
-            border-radius: 6px;
-            margin: 2px 0 4px 6px;
-            padding: 3px 0 3px 6px;
-            border-left: 1px solid rgba(255, 255, 255, 0.08);
+            background: #060910;
+            border-radius: 3px;
+            margin: 2px 0 4px 4px;
+            padding: 2px 0 2px 6px;
+            border-left: 2px solid #1b2638;
         }
         .msg-fields-container.expanded {
             display: block;
         }
 
         .field-item {
-            padding: 3.5px 8px;
-            font-size: 11px;
-            font-family: -apple-system, "SF Mono", Menlo, Consolas, monospace;
-            color: rgba(255, 255, 255, 0.55);
+            padding: 3px 6px;
+            font-size: 10.5px;
+            font-family: 'B612 Mono', monospace;
+            color: #94a3b8;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            border-radius: 5px;
-            transition: all 0.12s ease;
+            border-radius: 2px;
+            transition: all 0.1s ease;
         }
         .field-item:hover {
-            background: rgba(56, 189, 248, 0.12);
-            color: #38bdf8;
+            background: rgba(0, 229, 255, 0.08);
+            color: var(--av-cyan);
         }
 
         .plot-tag {
-            font-size: 9px;
+            font-family: 'B612 Mono', monospace;
+            font-size: 8.5px;
             font-weight: 700;
-            color: rgba(255, 255, 255, 0.3);
-            padding: 1px 5px;
-            border-radius: 3px;
-            transition: all 0.12s ease;
-            letter-spacing: 0.04em;
+            color: #475569;
+            padding: 0 4px;
+            border-radius: 2px;
+            transition: all 0.1s ease;
         }
         .field-item:hover .plot-tag {
-            color: #38bdf8;
-            background: rgba(56, 189, 248, 0.18);
+            color: var(--av-cyan);
+            background: rgba(0, 229, 255, 0.15);
         }
 
-        /* Center / Right Content Area */
+        /* ------------------------------------------------------------- */
+        /* Center / Right Area & Multi-Channel Telemetry Oscillograph    */
+        /* ------------------------------------------------------------- */
         #content-area {
             flex: 1;
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            background: var(--mac-bg);
+            background: var(--av-bg-dark);
             position: relative;
         }
 
-        /* Top Half: macOS Multi-Series Chart Container */
+        /* Oscillograph Graph Container */
         #plot-container {
             height: 48%;
             min-height: 240px;
             width: 100%;
-            background: #080c14;
-            border-bottom: 1px solid var(--mac-border);
+            background: #05080f;
+            border-bottom: 2px solid var(--av-border);
             position: relative;
-            transition: height 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            transition: height 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
         #plot-container.collapsed {
             display: none !important;
@@ -616,65 +678,125 @@
             border-bottom: none !important;
         }
 
-        #main-plot {
-            width: 100%;
-            height: 100%;
+        /* Avionic Channel Annunciator Ribbon */
+        .plot-channel-ribbon {
+            height: 26px;
+            min-height: 26px;
+            background: #080c14;
+            border-bottom: 1px solid #141c28;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0 14px;
+            overflow-x: auto;
+            flex-shrink: 0;
         }
 
-        /* Precision Timeline Plot Cursor */
-        #plot-cursor-line {
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            width: 1.5px;
-            background: #38bdf8;
-            pointer-events: none;
-            z-index: 100;
-            display: none;
-            box-shadow: 0 0 8px rgba(56, 189, 248, 0.9);
-        }
-        #plot-cursor-badge {
-            position: absolute;
-            top: 3px;
-            left: 5px;
-            font-family: -apple-system, "SF Mono", Menlo, Consolas, monospace;
-            font-size: 9.5px;
-            font-weight: 600;
-            color: #38bdf8;
-            background: rgba(8, 12, 20, 0.94);
-            padding: 2px 6px;
-            border-radius: 4px;
-            border: 1px solid rgba(56, 189, 248, 0.5);
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+        .ribbon-channel-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: #0d121c;
+            border: 1px solid #1c2738;
+            border-radius: 3px;
+            padding: 2px 7px;
+            font-size: 10px;
             white-space: nowrap;
         }
 
-        /* Lower Half Viewports Wrapper */
+        .ribbon-color-pip {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .ribbon-name {
+            font-family: 'B612 Mono', monospace;
+            font-weight: 700;
+            color: #f1f5f9;
+        }
+
+        .ribbon-axis-badge {
+            font-family: 'B612 Mono', monospace;
+            font-size: 8.5px;
+            color: #64748b;
+        }
+
+        .ribbon-val {
+            font-family: 'B612 Mono', monospace;
+            font-weight: 700;
+            color: var(--av-cyan);
+            margin: 0 2px;
+        }
+
+        .ribbon-stats {
+            font-family: 'B612 Mono', monospace;
+            font-size: 8.5px;
+            color: #64748b;
+        }
+
+        #main-plot {
+            flex: 1;
+            width: 100%;
+            height: calc(100% - 26px);
+        }
+
+        /* Precision Timeline Plot Laser Cursor */
+        #plot-cursor-line {
+            position: absolute;
+            top: 26px;
+            bottom: 0;
+            width: 1.5px;
+            background: var(--av-cyan);
+            pointer-events: none;
+            z-index: 100;
+            display: none;
+            box-shadow: 0 0 8px rgba(0, 229, 255, 0.8);
+        }
+
+        #plot-cursor-badge {
+            position: absolute;
+            top: 4px;
+            left: 5px;
+            font-family: 'B612 Mono', monospace;
+            font-size: 9.5px;
+            font-weight: 700;
+            color: var(--av-cyan);
+            background: rgba(5, 8, 15, 0.95);
+            padding: 2px 6px;
+            border-radius: 3px;
+            border: 1px solid var(--av-cyan);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
+            white-space: nowrap;
+        }
+
+        /* Lower Viewports Wrapper */
         #lower-viewports-wrapper {
             height: 52%;
             display: flex;
             flex-direction: column;
             position: relative;
             background: #000000;
-            transition: height 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: height 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
         #lower-viewports-wrapper.fullscreen {
             height: 100% !important;
             flex: 1;
         }
 
-        /* Bottom Playback Control Bar: macOS QuickTime Style */
+        /* ------------------------------------------------------------- */
+        /* Bottom Mission Playback Bar: Mission Elapsed Time Console     */
+        /* ------------------------------------------------------------- */
         #bottom-playback-bar {
             height: var(--footer-h);
-            background: var(--mac-glass-bottom);
-            backdrop-filter: blur(25px) saturate(190%);
-            -webkit-backdrop-filter: blur(25px) saturate(190%);
-            border-top: 1px solid var(--mac-border);
+            background: #090d15;
+            border-top: 1px solid var(--av-border);
             display: flex;
             align-items: center;
-            padding: 0 16px;
+            padding: 0 14px;
             gap: 12px;
-            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.7);
             z-index: 1000;
             flex-shrink: 0;
             user-select: none;
@@ -695,48 +817,58 @@
         }
 
         .replay-btn {
-            background: rgba(255, 255, 255, 0.06);
-            color: rgba(255, 255, 255, 0.85);
-            border: 1px solid rgba(255, 255, 255, 0.09);
+            background: #111724;
+            color: #cbd5e1;
+            border: 1px solid #1f2a3a;
             padding: 4px 10px;
-            border-radius: 6px;
+            border-radius: 3px;
             font-size: 11px;
-            font-weight: 600;
+            font-weight: 700;
+            letter-spacing: 0.3px;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 4px;
-            transition: all 0.14s ease;
+            gap: 5px;
+            transition: all 0.12s ease;
         }
         .replay-btn:hover {
-            background: rgba(255, 255, 255, 0.12);
+            background: #182236;
             color: #ffffff;
-            border-color: rgba(255, 255, 255, 0.18);
+            border-color: #2e3e56;
         }
         .replay-btn.playing {
-            background: linear-gradient(180deg, #0284c7 0%, #0369a1 100%);
+            background: #0284c7;
             border-color: #38bdf8;
             color: #ffffff;
-            box-shadow: 0 1px 4px rgba(2, 132, 199, 0.4);
+            box-shadow: 0 0 8px rgba(56, 189, 248, 0.4);
         }
 
-        .flight-mode-pill {
-            font-family: -apple-system, "SF Mono", Menlo, Consolas, monospace;
-            font-size: 10.5px;
+        /* Flight Mode Annunciator (FMA) Panel */
+        .flight-mode-annunciator {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-family: 'B612 Mono', monospace;
+            font-size: 10px;
             font-weight: 700;
-            padding: 3px 10px;
-            border-radius: 5px;
+            padding: 4px 10px;
+            border-radius: 3px;
             text-transform: uppercase;
-            background: rgba(100, 116, 139, 0.25);
-            color: #ffffff;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            letter-spacing: 0.05em;
-            min-width: 68px;
-            text-align: center;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(8px);
-            transition: background-color 0.2s ease, border-color 0.2s ease;
+            letter-spacing: 0.8px;
+            background: #060910;
+            border: 1px solid #1e2838;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.8);
+            min-width: 82px;
+            justify-content: center;
+        }
+
+        .mode-led {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            display: inline-block;
+            background: #64748b;
         }
 
         .timeline-container {
@@ -750,12 +882,12 @@
         .timeline-track-wrapper {
             position: relative;
             width: 100%;
-            height: 20px;
-            background: rgba(0, 0, 0, 0.55);
-            border-radius: 6px;
+            height: 22px;
+            background: #05080e;
+            border-radius: 3px;
             overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.07);
-            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.7);
+            border: 1px solid #182232;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.8);
         }
 
         .flight-mode-bar {
@@ -776,19 +908,19 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-family: -apple-system, "SF Mono", Menlo, Consolas, monospace;
+            font-family: 'B612 Mono', monospace;
             font-size: 9px;
             font-weight: 700;
             color: rgba(255, 255, 255, 0.95);
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
-            border-right: 1px solid rgba(0, 0, 0, 0.35);
-            opacity: 0.88;
-            transition: opacity 0.15s ease;
+            border-right: 1px solid rgba(0, 0, 0, 0.4);
+            opacity: 0.85;
+            transition: opacity 0.12s ease;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
             box-sizing: border-box;
-            padding: 0 3px;
+            padding: 0 4px;
         }
         .flight-mode-seg:hover {
             opacity: 1;
@@ -812,7 +944,7 @@
             bottom: 0;
             width: 2px;
             background: #ffffff;
-            box-shadow: 0 0 6px #38bdf8, 0 0 12px #38bdf8;
+            box-shadow: 0 0 6px #00e5ff, 0 0 12px #00e5ff;
             pointer-events: none;
             z-index: 10;
             transform: translateX(-50%);
@@ -827,48 +959,50 @@
             height: 0;
             border-left: 4px solid transparent;
             border-right: 4px solid transparent;
-            border-top: 5px solid #38bdf8;
+            border-top: 5px solid #00e5ff;
         }
 
         .replay-time-badge {
-            font-family: -apple-system, "SF Mono", Menlo, Consolas, monospace;
+            font-family: 'B612 Mono', monospace;
             font-size: 11px;
-            font-weight: 500;
-            color: rgba(255, 255, 255, 0.85);
-            background: rgba(255, 255, 255, 0.05);
+            font-weight: 700;
+            color: #f1f5f9;
+            background: #080c14;
             padding: 4px 10px;
-            border-radius: 6px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            min-width: 125px;
+            border-radius: 3px;
+            border: 1px solid #1a2332;
+            min-width: 130px;
             text-align: center;
             font-variant-numeric: tabular-nums;
+            letter-spacing: 0.5px;
         }
 
         .replay-speed-select {
-            background: rgba(255, 255, 255, 0.06);
-            color: #38bdf8;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: #111724;
+            color: var(--av-cyan);
+            border: 1px solid #1f2a3a;
             padding: 4px 8px;
-            border-radius: 6px;
-            font-size: 11px;
-            font-weight: 600;
+            border-radius: 3px;
+            font-family: 'B612 Mono', monospace;
+            font-size: 10.5px;
+            font-weight: 700;
             cursor: pointer;
             outline: none;
         }
         .replay-speed-select:focus {
-            border-color: #38bdf8;
+            border-color: var(--av-cyan);
         }
         .replay-speed-select option {
-            background: #111722;
+            background: #090d15;
             color: #f1f5f9;
         }
 
-        /* 2D Leaflet Map Elements */
+        /* 2D Leaflet Tactical Map Elements */
         #map-pane {
             flex: 1;
             height: 100%;
             position: relative;
-            background: #080c14;
+            background: #060910;
         }
         #leaflet-map {
             width: 100%;
@@ -878,7 +1012,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: #060910;
+            background: #05080e;
         }
         .map-overlay-ctrls {
             position: absolute;
@@ -889,77 +1023,79 @@
             z-index: 1000;
         }
         .map-select {
-            background: rgba(18, 24, 34, 0.88);
-            backdrop-filter: blur(12px);
+            background: rgba(11, 16, 24, 0.92);
+            backdrop-filter: blur(8px);
             color: #ffffff;
-            border: 1px solid var(--mac-border);
+            border: 1px solid var(--av-border);
             padding: 4px 8px;
-            border-radius: 6px;
+            border-radius: 3px;
             font-size: 11px;
+            font-family: 'B612', sans-serif;
             cursor: pointer;
         }
         .viewport-badge {
             position: absolute;
             top: 12px;
             left: 14px;
-            background: rgba(15, 20, 28, 0.85);
-            backdrop-filter: blur(12px);
-            border: 1px solid var(--mac-border);
-            border-radius: 6px;
-            padding: 4px 8px;
-            font-size: 10px;
-            font-weight: 600;
-            color: var(--mac-accent);
+            background: rgba(8, 12, 19, 0.92);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--av-border);
+            border-radius: 3px;
+            padding: 3px 8px;
+            font-size: 9.5px;
+            font-weight: 700;
+            color: var(--av-cyan);
             text-transform: uppercase;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.6px;
             pointer-events: none;
             z-index: 1000;
         }
 
-        /* Modal Dialogs (macOS Sheets Style) */
+        /* Modal Dialogs */
         .modal-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: rgba(0, 0, 0, 0.65);
-            backdrop-filter: blur(8px);
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(6px);
             display: none;
             align-items: center;
             justify-content: center;
             z-index: 10000;
         }
         .modal-box {
-            background: rgba(22, 28, 38, 0.95);
-            backdrop-filter: blur(30px);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 10px;
+            background: #0d131f;
+            border: 1px solid #233148;
+            border-radius: 6px;
             width: 480px;
-            padding: 18px 20px;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.05);
+            padding: 16px 20px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.9);
         }
         .modal-title {
-            font-size: 14px;
-            font-weight: 600;
-            color: #ffffff;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--av-cyan);
             margin-bottom: 12px;
-            letter-spacing: -0.01em;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
         }
         .modal-input {
             width: 100%;
-            background: rgba(255, 255, 255, 0.06);
+            background: #080c14;
             color: #f8fafc;
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-size: 12.5px;
+            border: 1px solid #1a2436;
+            padding: 8px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-family: 'B612 Mono', monospace;
             margin-bottom: 14px;
             outline: none;
         }
         .modal-input:focus {
-            border-color: #38bdf8;
-            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+            border-color: var(--av-cyan);
+            box-shadow: 0 0 6px rgba(0, 229, 255, 0.25);
         }
         .modal-actions {
             display: flex;
@@ -967,6 +1103,7 @@
             gap: 8px;
         }
     </style>
+    <script>window.onSitlIframeLoaded = function(){};</script>
 </head>
 <body>
 
@@ -980,65 +1117,75 @@
 
     <!-- Header Navigation -->
         <!-- Header Navigation (macOS Titlebar Style) -->
+        <!-- Header: Flight Telemetry Console Navigation -->
     <header>
         <div class="header-left">
-            <!-- macOS Traffic Light Window Controls -->
-            <div class="mac-window-dots">
-                <span class="mac-dot mac-dot-close" title="Close"></span>
-                <span class="mac-dot mac-dot-minimize" title="Minimize"></span>
-                <span class="mac-dot mac-dot-maximize" title="Zoom"></span>
-            </div>
-
-            <!-- Sidebar Toggle Button (macOS Toolbar Pill) -->
-            <button class="mac-btn-toggle active" id="btn-toggle-sidebar" onclick="toggleSidebar()" title="Toggle Parameters Sidebar">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                    <line x1="9" y1="3" x2="9" y2="21"></line>
-                </svg>
-                <span>Parameters</span>
-            </button>
-
-            <!-- Brand Title -->
-            <span class="brand-title">UAV Log Viewer</span>
-
-            <div class="log-selector-container">
-                <!-- Open Single File (macOS Accent Button) -->
-                <button class="mac-btn-primary" onclick="triggerFilePicker()" title="Browse and open any ArduPilot .bin log file from your computer">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+            <!-- Aeronautical Station Branding -->
+            <div class="aero-brand-badge">
+                <div class="aero-logo-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                        <path d="M2 17l10 5 10-5"></path>
+                        <path d="M2 12l10 5 10-5"></path>
                     </svg>
-                    <span>Open File</span>
-                </button>
-                <input type="file" id="local-file-picker" accept=".bin,.log,.tlog,.BIN,.LOG,.TLOG" style="display: none;" onchange="onFileChosen(this)">
-
-                <!-- Loaded Flight Log Document Badge (macOS Finder Capsule) -->
-                <div class="log-badge-wrapper" title="Current loaded flight log">
-                    <span class="log-badge-tag">LOG</span>
-                    <span id="loaded-log-name" class="log-name-display">Loading log...</span>
+                </div>
+                <div class="aero-brand-text">
+                    <span class="aero-brand-title">SHARKEE AERO</span>
+                    <span class="aero-brand-sub">TELEMETRY WORKSTATION</span>
                 </div>
             </div>
 
-            <!-- Metadata Info -->
-            <div class="header-meta">
-                <span id="meta-date">Date: ---</span>
-                <span id="meta-board">Board: ---</span>
-                <span id="meta-dur">Duration: ---</span>
+            <!-- Telemetry Channels Toggle Button -->
+            <button class="aero-btn-switch active" id="btn-toggle-sidebar" onclick="toggleSidebar()" title="Toggle Telemetry Channels & Signal Tree">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="9" y1="3" x2="9" y2="21"></line>
+                </svg>
+                <span>CHANNELS</span>
+            </button>
+
+            <div class="log-selector-container">
+                <!-- Import Log File Button -->
+                <button class="aero-btn-primary" onclick="triggerFilePicker()" title="Import ArduPilot .bin flight log file">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    <span>IMPORT LOG</span>
+                </button>
+                <input type="file" id="local-file-picker" accept=".bin,.log,.tlog,.BIN,.LOG,.TLOG" style="display: none;" onchange="onFileChosen(this)">
+
+                <!-- FDR Log Annunciator Capsule -->
+                <div class="aero-log-capsule" title="Active DataFlash flight log recording">
+                    <span class="aero-log-tag">DATAFLASH</span>
+                    <span id="loaded-log-name" class="aero-log-name">Loading log...</span>
+                </div>
+            </div>
+
+            <!-- Telemetry Metadata Strip -->
+            <div class="aero-meta-strip">
+                <span id="meta-date" class="aero-meta-item">DATE: ---</span>
+                <span class="aero-meta-sep">|</span>
+                <span id="meta-board" class="aero-meta-item">BOARD: ---</span>
+                <span class="aero-meta-sep">|</span>
+                <span id="meta-dur" class="aero-meta-item">MET: ---</span>
             </div>
         </div>
 
         <div class="header-right">
-            <!-- macOS Segmented Control (View Modes) -->
-            <div class="mac-segmented-control view-mode-group">
-                <button class="mac-segmented-btn view-mode-btn active" id="btn-view-sitl" onclick="setViewMode('sitl')" title="3D Digital Twin Visualizer with Terrain, Horizon & Compass">3D Flight Visualizer</button>
-                <button class="mac-segmented-btn view-mode-btn" id="btn-view-map" onclick="setViewMode('map')" title="2D Satellite Map with Flight Track">2D Satellite Map</button>
+            <!-- Avionic Rocker Switcher (3D Spatial vs 2D Tactical) -->
+            <div class="aero-rocker-group view-mode-group">
+                <button class="aero-rocker-btn view-mode-btn active" id="btn-view-sitl" onclick="setViewMode('sitl')" title="3D Digital Twin Spatial Visualizer">3D SPATIAL TWIN</button>
+                <button class="aero-rocker-btn view-mode-btn" id="btn-view-map" onclick="setViewMode('map')" title="2D Tactical Satellite Map">2D TACTICAL MAP</button>
             </div>
 
-            <!-- Show / Hide Plot Toggle -->
-            <button class="mac-btn-glass" id="btn-toggle-plot-layout" onclick="togglePlotVisibility()" title="Toggle Multi-Series Plot View">
+            <!-- Oscillograph Telemetry Plot Toggle -->
+            <button class="aero-btn-graph" id="btn-toggle-plot-layout" onclick="togglePlotVisibility()" title="Toggle Multi-Channel Oscillograph Graph">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
                 </svg>
-                <span id="txt-toggle-plot-layout">Show Plot</span>
+                <span id="txt-toggle-plot-layout">OSCILLOGRAPH</span>
             </button>
         </div>
     </header>
@@ -1047,51 +1194,52 @@
     <div id="workspace">
 
         <!-- Left Sidebar: UAV Log Viewer Message & Field Selector -->
+                <!-- Left Sidebar: Telemetry Matrix & Channel Selector -->
         <div id="sidebar">
             <div class="sidebar-section">
                 <div class="sidebar-title">
-                    <span>Active Plotted Fields</span>
-                    <span id="active-field-count" style="color:var(--accent);">0 / 8</span>
+                    <span>ACTIVE CHANNELS</span>
+                    <span id="active-field-count" class="sidebar-title-badge">0 / 8</span>
                 </div>
                 <div id="active-fields-list"></div>
                 <div class="sidebar-actions">
-                    <button class="btn" onclick="openExpressionModal()">+ Add Expression</button>
-                    <button class="btn" onclick="clearAllFields()">Clear All</button>
+                    <button class="btn" onclick="openExpressionModal()">+ EXPRESSION</button>
+                    <button class="btn" onclick="clearAllFields()">CLEAR ALL</button>
                 </div>
             </div>
 
-            <div class="sidebar-section" style="padding: 8px 12px;">
-                <div class="sidebar-title">Flight Presets</div>
-                <select id="preset-select" class="log-select" style="width: 100%;" onchange="applyPreset(this.value)">
+            <div class="sidebar-section">
+                <div class="sidebar-title">MISSION TEST PRESETS</div>
+                <select id="preset-select" class="log-select" onchange="applyPreset(this.value)">
                     <option value="">-- Choose Preset to Plot --</option>
-                    <option value="efficiency">1. Cruise Efficiency & Airspeed (TAS, Power, ThO, AoA)</option>
+                    <option value="efficiency">1. Cruise Performance & Airspeed (TAS, Power, ThO, AoA)</option>
                     <option value="atmosphere">2. Atmospheric & Wind Vector (Press, Temp, Rho, Wind)</option>
-                    <option value="altitude">3. Altitude & Climb Performance (Alt, CRt, DemSpd)</option>
-                    <option value="attitude">4. Aircraft Attitude & Dynamic Stability (Roll, Pitch, Yaw)</option>
-                    <option value="power">5. Electrical Power & Battery Health (Volt, Curr, Watts)</option>
+                    <option value="altitude">3. Altitude & Climb Envelope (Alt, CRt, DemSpd)</option>
+                    <option value="attitude">4. Three-Axis Flight Dynamics (Roll, Pitch, Yaw)</option>
+                    <option value="power">5. Propulsion & Electrical Power (Volt, Curr, Watts)</option>
                 </select>
             </div>
 
-            <div class="sidebar-section" style="padding: 8px 12px; flex-shrink: 0;">
-                <div class="sidebar-title">Plot Individual Field</div>
-                <input type="text" id="field-search-input" class="search-box" placeholder="Type here to filter messages..." oninput="filterMessageTree(this.value)">
+            <div class="sidebar-section" style="flex-shrink: 0;">
+                <div class="sidebar-title">TELEMETRY SIGNAL TREE</div>
+                <input type="text" id="field-search-input" class="search-box" placeholder="Filter signals (e.g. ATT, BARO, CTUN)..." oninput="filterMessageTree(this.value)">
             </div>
 
             <div id="message-tree"></div>
         </div>
 
-        <!-- Center / Right Content Area -->
         <div id="content-area">
 
             <!-- Top Pane: Interactive Multi-Series Plot (Collapsed until plotting starts) -->
+                        <!-- Top Pane: Multi-Channel Telemetry Oscillograph -->
             <div id="plot-container" class="collapsed">
+                <div id="plot-channel-ribbon" class="plot-channel-ribbon"></div>
                 <div id="main-plot"></div>
-                <div id="plot-cursor-line" style="position: absolute; top: 0; bottom: 0; width: 2px; background: #00e5ff; pointer-events: none; z-index: 100; display: none; box-shadow: 0 0 8px rgba(0, 229, 255, 0.9);">
-                    <div id="plot-cursor-badge" style="position: absolute; top: 2px; left: 4px; font-family: Consolas, monospace; font-size: 10px; font-weight: 700; color: #00e5ff; background: rgba(5,10,18,0.9); padding: 1px 4px; border-radius: 2px; border: 1px solid #00e5ff; white-space: nowrap;">00:00.0</div>
+                <div id="plot-cursor-line">
+                    <div id="plot-cursor-badge">00:00.0</div>
                 </div>
             </div>
 
-            <!-- Lower Pane: 3D Flight Visualizer or 2D Satellite Map -->
             <div id="lower-viewports-wrapper" class="fullscreen" style="flex: 1; position: relative; width: 100%; height: 100%; min-height: 0;">
                 <!-- 3D Flight Visualizer View (3D Terrain + PFD Horizon + NAV Compass + Atmosphere Panel) -->
                 <div id="sitl-pane" style="width: 100%; height: 100%; position: absolute; top: 0; left: 0; right: 0; bottom: 0;">
@@ -1120,14 +1268,23 @@
     </div>
 
     <!-- Bottom Playback Control Bar with Colored Flight Mode Timeline -->
+        <!-- Bottom Mission Playback Bar: Mission Elapsed Time Console -->
     <div id="bottom-playback-bar">
         <div class="playback-ctrls-left">
-            <button class="replay-btn" id="btn-play-pause" onclick="toggleReplayPlayback()" title="Toggle Play / Pause (Shortcut: Space)">
-                <span id="play-icon">Play</span>
+            <button class="replay-btn" id="btn-play-pause" onclick="toggleReplayPlayback()" title="Toggle Mission Playback (Shortcut: Space)">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
+                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                </svg>
+                <span id="play-icon">PLAY</span>
             </button>
-            <button class="replay-btn" style="padding: 4px 8px;" title="Step Back 5 Seconds (Left Arrow)" onclick="stepReplayTime(-5)">-5s</button>
-            <button class="replay-btn" style="padding: 4px 8px;" title="Step Forward 5 Seconds (Right Arrow)" onclick="stepReplayTime(5)">+5s</button>
-            <span id="replay-mode-pill" class="flight-mode-pill">MANUAL</span>
+            <button class="replay-btn" style="padding: 4px 7px; font-family: 'B612 Mono', monospace;" title="Step Back 5 Seconds" onclick="stepReplayTime(-5)">-5s</button>
+            <button class="replay-btn" style="padding: 4px 7px; font-family: 'B612 Mono', monospace;" title="Step Forward 5 Seconds" onclick="stepReplayTime(5)">+5s</button>
+            
+            <!-- Flight Mode Annunciator (FMA) Panel -->
+            <div id="replay-mode-pill" class="flight-mode-annunciator">
+                <span class="mode-led" id="mode-led-dot"></span>
+                <span id="mode-label-text">MANUAL</span>
+            </div>
         </div>
 
         <div class="timeline-container">
@@ -1139,8 +1296,9 @@
         </div>
 
         <div class="playback-ctrls-right">
-            <div class="replay-time-badge" id="replay-time-text">00:00.0 / 00:00.0</div>
+            <div class="replay-time-badge font-mono" id="replay-time-text">00:00.0 / 00:00.0</div>
             <select id="replay-speed-sel" class="replay-speed-select" onchange="onReplaySpeedChange(this.value)" title="Playback Speed Multiplier">
+                <option value="0.25">0.25x</option>
                 <option value="0.5">0.5x</option>
                 <option value="1.0" selected>1.0x</option>
                 <option value="2.0">2.0x</option>
@@ -1194,33 +1352,27 @@
         };
 
         const FLIGHT_MODE_COLORS = {
-            'MANUAL': '#94a3b8',
-            'CIRCLE': '#00d2ff',
-            'STABILIZE': '#ff7300',
-            'TRAINING': '#ff9100',
-            'ACRO': '#ffab00',
-            'FBWA': '#00d2ff',
-            'FBWB': '#2979ff',
-            'CRUISE': '#00e5ff',
+            'MANUAL': '#ef4444',
+            'CIRCLE': '#06b6d4',
+            'STABILIZE': '#f59e0b',
+            'TRAINING': '#f97316',
+            'ACRO': '#ec4899',
+            'FBWA': '#0284c7',
+            'FBWB': '#0ea5e9',
+            'CRUISE': '#8b5cf6',
             'AUTOTUNE': '#00b4d8',
-            'AUTO': '#00ff88',
-            'RTL': '#ff2d87',
-            'LOITER': '#ffcc00',
-            'TAKEOFF': '#a855f7',
-            'LAND': '#ff3344',
-            'GUIDED': '#b5179e',
-            'INITIALISING': '#94a3b8',
-            'QSTABILIZE': '#ff7300',
-            'QHOVER': '#00f5d4',
-            'QLOITER': '#ffcc00',
-            'QLAND': '#ff2a4b',
-            'QRTL': '#ff2d87',
-            'QAUTOTUNE': '#00b4d8',
-            'QACRO': '#ffab00',
-            'THERMAL': '#00ff88',
-            'ALT_HOLD': '#00d2ff',
-            'POSHOLD': '#ffcc00',
-            'BRAKE': '#ff3344'
+            'AUTO': '#10b981',
+            'RTL': '#f59e0b',
+            'LOITER': '#06b6d4',
+            'TAKEOFF': '#14b8a6',
+            'AVOID_ADSB': '#f43f5e',
+            'GUIDED': '#3b82f6',
+            'INITIALISING': '#64748b',
+            'QSTABILIZE': '#f59e0b',
+            'QHOVER': '#14b8a6',
+            'QLOITER': '#38bdf8',
+            'QLAND': '#eab308',
+            'QRTL': '#f97316'
         };
 
         function renderFlightModeTimeline(modeSegs) {
@@ -1491,47 +1643,38 @@
             if (show) {
                 if (plotContainer) {
                     plotContainer.classList.remove('collapsed');
-                    plotContainer.style.display = 'block';
+                    plotContainer.style.display = 'flex';
                     plotContainer.style.height = '48%';
                 }
                 if (lowerWrapper) {
                     lowerWrapper.classList.remove('fullscreen');
                     lowerWrapper.style.height = '52%';
                 }
-                if (toggleBtnText) toggleBtnText.textContent = "Full Screen";
+                if (toggleBtnText) toggleBtnText.textContent = "HIDE OSCILLOGRAPH";
                 if (toggleBtn) toggleBtn.classList.add('active');
+                setTimeout(() => {
+                    Plotly.Plots.resize('main-plot');
+                    if (typeof map !== 'undefined' && map && map.invalidateSize) {
+                        map.invalidateSize();
+                    }
+                }, 180);
             } else {
                 if (plotContainer) {
                     plotContainer.classList.add('collapsed');
                     plotContainer.style.display = 'none';
-                    plotContainer.style.height = '0';
                 }
                 if (lowerWrapper) {
                     lowerWrapper.classList.add('fullscreen');
                     lowerWrapper.style.height = '100%';
                 }
-                if (toggleBtnText) toggleBtnText.textContent = "Show Plot";
+                if (toggleBtnText) toggleBtnText.textContent = "OSCILLOGRAPH";
                 if (toggleBtn) toggleBtn.classList.remove('active');
+                setTimeout(() => {
+                    if (typeof map !== 'undefined' && map && map.invalidateSize) {
+                        map.invalidateSize();
+                    }
+                }, 180);
             }
-
-            // Smoothly relayout & resize all active viewports
-            setTimeout(() => {
-                if (show && typeof Plotly !== 'undefined') {
-                    try { Plotly.Plots.resize('main-plot'); } catch(e) {}
-                }
-                if (mapInstance) {
-                    try {
-                        mapInstance.invalidateSize(true);
-                        if (trackPolyline) {
-                            mapInstance.fitBounds(trackPolyline.getBounds(), { padding: [35, 35] });
-                        }
-                    } catch(e) {}
-                }
-                const sitlIframe = document.getElementById('sitl-viewer-frame');
-                if (sitlIframe && sitlIframe.contentWindow) {
-                    try { sitlIframe.contentWindow.dispatchEvent(new Event('resize')); } catch(e) {}
-                }
-            }, 60);
         }
 
         function togglePlotVisibility() {
@@ -1750,9 +1893,9 @@
             const metaDate = document.getElementById('meta-date');
             const metaBoard = document.getElementById('meta-board');
             const metaDur = document.getElementById('meta-dur');
-            if (metaDate) metaDate.textContent = "Date: " + (data.metadata?.date_str || "---");
-            if (metaBoard) metaBoard.textContent = "Board: " + (data.metadata?.board || "---");
-            if (metaDur) metaDur.textContent = data.metadata ? `Duration: ${Math.floor(data.metadata.duration_s / 60)}m ${Math.floor(data.metadata.duration_s % 60)}s` : "---";
+            if (metaDate) metaDate.textContent = "DATE: " + (data.metadata?.date_str || "---");
+            if (metaBoard) metaBoard.textContent = "BOARD: " + (data.metadata?.board || "---");
+            if (metaDur) metaDur.textContent = data.metadata ? `MET: ${Math.floor(data.metadata.duration_s / 60)}m ${Math.floor(data.metadata.duration_s % 60)}s` : "---";
 
             // Display active log name in the header badge (no dropdown)
             const logNameEl = document.getElementById('loaded-log-name');
@@ -1769,7 +1912,7 @@
             const playBtn = document.getElementById('btn-play-pause');
             if (playBtn) playBtn.classList.remove('playing');
             const playIcon = document.getElementById('play-icon');
-            if (playIcon) playIcon.textContent = "Play";
+            if (playIcon) playIcon.textContent = "PLAY";
 
             // Render bottom flight mode colored timeline
             renderFlightModeTimeline(data.mode_segments);
@@ -2075,24 +2218,102 @@
             document.getElementById('active-field-count').textContent = `${activeFields.length} / 8`;
 
             activeFields.forEach(f => {
+                const idSafe = f.name.replace(/[^a-zA-Z0-9]/g, '_');
                 const chip = document.createElement('div');
                 chip.className = 'active-field-chip';
                 chip.innerHTML = `
-                    <div class="chip-left">
-                        <span class="color-dot" style="background:${f.color}; box-shadow: 0 0 6px ${f.color}88;"></span>
-                        <span class="chip-label">${f.name}</span>
-                    </div>
-                    <div class="chip-ctrls">
-                        <button class="axis-btn ${f.axis === 0 ? 'active' : ''}" onclick="toggleAxis('${f.name}')" title="Toggle Primary (Y1) / Secondary (Y2) Axis">Y${f.axis + 1}</button>
-                        <button class="chip-del" onclick="removeField('${f.name}')" title="Remove curve">
-                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                <line x1="18" y1="6" x2="6" y2="18"></line>
-                                <line x1="6" y1="6" x2="18" y2="18"></line>
-                            </svg>
-                        </button>
+                    <div class="chip-color-bar" style="background:${f.color};"></div>
+                    <div class="chip-content">
+                        <div class="chip-row-top">
+                            <span class="chip-label">${f.name}</span>
+                            <span class="chip-val font-mono" id="chip-val-${idSafe}">--</span>
+                        </div>
+                        <div class="chip-ctrls">
+                            <button class="axis-btn ${f.axis === 0 ? 'active' : ''}" onclick="toggleAxis('${f.name}')" title="Toggle Primary (Y1) / Secondary (Y2) Axis">Y${f.axis + 1}</button>
+                            <button class="chip-del" onclick="removeField('${f.name}')" title="Remove signal">
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                </svg>
+                            </button>
+                        </div>
                     </div>
                 `;
                 container.appendChild(chip);
+            });
+            updateChannelRibbon();
+            updateChannelReadouts(currentTimeCursor);
+        }
+
+        function updateChannelRibbon() {
+            const ribbon = document.getElementById('plot-channel-ribbon');
+            if (!ribbon) return;
+            ribbon.innerHTML = '';
+            if (activeFields.length === 0) {
+                ribbon.innerHTML = '<span style="font-family:\'B612 Mono\', monospace; font-size:10px; color:#475569; letter-spacing:0.5px;">NO ACTIVE TELEMETRY CHANNELS PLOTTED</span>';
+                return;
+            }
+
+            const tele = currentFlightData && currentFlightData.telemetry ? currentFlightData.telemetry : [];
+
+            activeFields.forEach(f => {
+                const idSafe = f.name.replace(/[^a-zA-Z0-9]/g, '_');
+                let minStr = '--', maxStr = '--';
+                if (tele.length > 0) {
+                    let key = FIELD_ALIAS_MAP[f.name];
+                    if (!key) {
+                        const parts = f.name.split('.');
+                        const col = (parts.length > 1 ? parts[1] : parts[0]).toLowerCase();
+                        if (tele[0] && tele[0][col] !== undefined) key = col;
+                        else if (tele[0] && tele[0][f.name] !== undefined) key = f.name;
+                    }
+                    if (key) {
+                        const vals = tele.map(r => r[key]).filter(v => v !== null && !isNaN(v));
+                        if (vals.length > 0) {
+                            minStr = Math.min(...vals).toFixed(1);
+                            maxStr = Math.max(...vals).toFixed(1);
+                        }
+                    }
+                }
+
+                const item = document.createElement('div');
+                item.className = 'ribbon-channel-item';
+                item.innerHTML = `
+                    <span class="ribbon-color-pip" style="background:${f.color}; box-shadow:0 0 5px ${f.color}88;"></span>
+                    <span class="ribbon-name">${f.name}</span>
+                    <span class="ribbon-axis-badge">[Y${f.axis + 1}]</span>
+                    <span class="ribbon-val" id="ribbon-val-${idSafe}">--</span>
+                    <span class="ribbon-stats">[${minStr}/${maxStr}]</span>
+                `;
+                ribbon.appendChild(item);
+            });
+        }
+
+        function updateChannelReadouts(timeSec) {
+            if (!currentTrajectory || currentTrajectory.length === 0 || activeFields.length === 0) return;
+            const sample = getInterpolatedTelemetry(timeSec);
+            if (!sample) return;
+
+            activeFields.forEach(f => {
+                const idSafe = f.name.replace(/[^a-zA-Z0-9]/g, '_');
+                let val = null;
+                let key = FIELD_ALIAS_MAP[f.name];
+                if (key && sample[key] !== undefined) {
+                    val = sample[key];
+                } else {
+                    const parts = f.name.split('.');
+                    const col = (parts.length > 1 ? parts[1] : parts[0]).toLowerCase();
+                    if (sample[col] !== undefined) {
+                        val = sample[col];
+                    } else if (sample[f.name] !== undefined) {
+                        val = sample[f.name];
+                    }
+                }
+                const valStr = (val !== null && typeof val === 'number') ? val.toFixed(2) : '--';
+                const chipVal = document.getElementById(`chip-val-${idSafe}`);
+                if (chipVal) chipVal.textContent = valStr;
+                const ribbonVal = document.getElementById(`ribbon-val-${idSafe}`);
+                if (ribbonVal) ribbonVal.textContent = valStr;
             });
         }
 
@@ -2170,15 +2391,10 @@
                     yData = tele.map(r => (r[f.name] !== undefined ? r[f.name] : (r.tas || 0)));
                 }
 
-                const validY = yData.filter(v => v !== null && !isNaN(v));
-                const minV = validY.length ? Math.min(...validY).toFixed(1) : 0;
-                const maxV = validY.length ? Math.max(...validY).toFixed(1) : 0;
-                const meanV = validY.length ? (validY.reduce((a,b)=>a+b,0) / validY.length).toFixed(1) : 0;
-
                 traces.push({
                     x: timeSeries,
                     y: yData,
-                    name: `${f.name} [Min:${minV} Max:${maxV} Mean:${meanV}]`,
+                    name: f.name,
                     yaxis: f.axis === 1 ? 'y2' : 'y',
                     line: { color: f.color, width: 1.8 },
                     hoverinfo: 'x+y+name'
@@ -2187,17 +2403,17 @@
 
             const shapes = [];
             const modeColors = {
-                'AUTO': 'rgba(34, 197, 94, 0.15)',
-                'FBWA': 'rgba(2, 132, 199, 0.18)',
-                'FBWB': 'rgba(14, 165, 233, 0.18)',
-                'CRUISE': 'rgba(168, 85, 247, 0.18)',
-                'MANUAL': 'rgba(239, 68, 68, 0.18)',
-                'RTL': 'rgba(249, 115, 22, 0.22)'
+                'AUTO': 'rgba(16, 185, 129, 0.14)',
+                'FBWA': 'rgba(2, 132, 199, 0.16)',
+                'FBWB': 'rgba(14, 165, 233, 0.16)',
+                'CRUISE': 'rgba(139, 92, 246, 0.16)',
+                'MANUAL': 'rgba(239, 68, 68, 0.16)',
+                'RTL': 'rgba(245, 158, 11, 0.18)'
             };
 
             if (currentFlightData.mode_segments) {
                 currentFlightData.mode_segments.forEach(seg => {
-                    const c = modeColors[seg.mode] || 'rgba(148, 163, 184, 0.1)';
+                    const c = modeColors[seg.mode] || 'rgba(148, 163, 184, 0.08)';
                     shapes.push({
                         type: 'rect',
                         xref: 'x',
@@ -2214,68 +2430,46 @@
             basePlotShapes = shapes;
 
             const layout = {
-                paper_bgcolor: '#080c14',
-                plot_bgcolor: '#05080f',
-                margin: { l: 48, r: 48, t: 28, b: 34 },
-                font: { family: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif', size: 10, color: 'rgba(255, 255, 255, 0.6)' },
+                paper_bgcolor: '#05080e',
+                plot_bgcolor: '#05080e',
+                margin: { l: 48, r: 48, t: 8, b: 28 },
+                font: { family: "'B612', -apple-system, sans-serif", size: 10, color: '#64748b' },
                 hovermode: 'x unified',
+                hoverdistance: 30,
+                showlegend: false,
                 shapes: shapes,
-                legend: {
-                    orientation: 'h',
-                    y: 1.11,
-                    x: 0.5,
-                    xanchor: 'center',
-                    font: { family: '-apple-system, "SF Mono", Consolas, monospace', size: 10, color: 'rgba(255, 255, 255, 0.85)' }
-                },
                 xaxis: {
-                    title: { text: 'Mission Time (seconds)', font: { size: 11, color: 'rgba(255, 255, 255, 0.45)' } },
+                    title: { text: 'MISSION TIME (SEC)', font: { family: "'B612 Mono', monospace", size: 9.5, color: '#475569' } },
                     gridcolor: 'rgba(255, 255, 255, 0.04)',
                     zerolinecolor: 'rgba(255, 255, 255, 0.08)',
-                    tickfont: { family: '"SF Mono", Consolas, monospace', size: 10, color: 'rgba(255, 255, 255, 0.4)' },
-                    rangeslider: { visible: true, thickness: 0.1, bgcolor: '#070b12', bordercolor: 'rgba(255, 255, 255, 0.08)' }
+                    tickfont: { family: "'B612 Mono', monospace", size: 9.5, color: '#64748b' },
+                    rangeslider: { visible: false }
                 },
                 yaxis: {
-                    title: { text: 'Primary (Y1)', font: { size: 11, color: 'rgba(255, 255, 255, 0.45)' } },
+                    title: { text: 'Y1 PRIMARY', font: { family: "'B612 Mono', monospace", size: 9.5, color: '#00e5ff' } },
                     gridcolor: 'rgba(255, 255, 255, 0.04)',
                     zerolinecolor: 'rgba(255, 255, 255, 0.08)',
-                    tickfont: { family: '"SF Mono", Consolas, monospace', size: 10, color: 'rgba(255, 255, 255, 0.4)' }
+                    tickfont: { family: "'B612 Mono', monospace", size: 9.5, color: '#00e5ff' }
                 },
                 yaxis2: {
-                    title: { text: 'Secondary (Y2)', font: { size: 11, color: 'rgba(255, 255, 255, 0.45)' } },
+                    title: { text: 'Y2 SECONDARY', font: { family: "'B612 Mono', monospace", size: 9.5, color: '#f59e0b' } },
                     overlaying: 'y',
                     side: 'right',
                     gridcolor: 'rgba(255, 255, 255, 0.02)',
-                    zerolinecolor: 'rgba(255, 255, 255, 0.08)',
-                    tickfont: { family: '"SF Mono", Consolas, monospace', size: 10, color: 'rgba(255, 255, 255, 0.4)' }
+                    tickfont: { family: "'B612 Mono', monospace", size: 9.5, color: '#f59e0b' }
                 }
             };
 
-            const config = { responsive: true, displayModeBar: false };
+            const config = {
+                responsive: true,
+                displayModeBar: false
+            };
 
             Plotly.react('main-plot', traces, layout, config);
-
-            // Hook Timeline Hover & Click to Map and 3D plane
-            const plotEl = document.getElementById('main-plot');
-            plotEl.on('plotly_hover', data => {
-                if (data.points && data.points.length > 0) {
-                    syncTelemetryAtTime(data.points[0].x, true);
-                    updatePlotCursor(data.points[0].x);
-                }
-            });
-            plotEl.on('plotly_click', data => {
-                if (data.points && data.points.length > 0) {
-                    syncTelemetryAtTime(data.points[0].x, true);
-                    updatePlotCursor(data.points[0].x);
-                }
-            });
-            plotEl.on('plotly_relayout', () => {
-                updatePlotCursor(currentTimeCursor);
-            });
+            updateChannelRibbon();
+            updateChannelReadouts(currentTimeCursor);
         }
 
-        // ---------------------------------------------------------------------------
-        // Continuous Spline Interpolator (60 FPS Smooth Flight Simulation)
-        // ---------------------------------------------------------------------------
         function getInterpolatedTelemetry(timeSec) {
             if (!currentTrajectory || currentTrajectory.length === 0) return null;
             if (timeSec <= currentTrajectory[0].time) return currentTrajectory[0];
@@ -2376,14 +2570,25 @@
             const sample = getInterpolatedTelemetry(timeSec);
             if (!sample) return;
 
-            // Update Flight Mode Pill (Text & Flight Mode Color)
+            // Update Flight Mode Annunciator (FMA) Panel
+            const modeLabel = document.getElementById('mode-label-text');
+            const modeLed = document.getElementById('mode-led-dot');
             const modePill = document.getElementById('replay-mode-pill');
-            if (modePill && sample.mode) {
-                modePill.textContent = sample.mode;
-                const modeColor = FLIGHT_MODE_COLORS[sample.mode] || '#64748b';
-                modePill.style.backgroundColor = modeColor;
-                modePill.style.borderColor = modeColor;
+            if (sample.mode) {
+                if (modeLabel) modeLabel.textContent = sample.mode;
+                const modeColor = FLIGHT_MODE_COLORS[sample.mode] || '#10b981';
+                if (modeLed) {
+                    modeLed.style.backgroundColor = modeColor;
+                    modeLed.style.boxShadow = `0 0 6px ${modeColor}`;
+                }
+                if (modePill) {
+                    modePill.style.borderColor = `${modeColor}55`;
+                }
             }
+
+            // Update live telemetry readouts on chips and ribbon
+            updateChannelReadouts(timeSec);
+            updatePlotCursor(timeSec);
 
             // Update Leaflet Satellite Map Aircraft Position & Heading
             updatePlaneOnMap(sample.lat, sample.lng, sample.yaw);
