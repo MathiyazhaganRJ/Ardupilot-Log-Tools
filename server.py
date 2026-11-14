@@ -32,72 +32,12 @@ class LogViewerHandler(SimpleHTTPRequestHandler):
         path = parsed.path
         query = urllib.parse.parse_qs(parsed.query)
 
-        # 1. API: List Available Flight Logs
+        # 1. API: List Available Flight Logs (optional ?folder=<path>)
         if path == '/api/logs':
             folder = query.get('folder', [None])[0]
             logs = parser.discover_flight_logs(folder)
             active_folder = parser.get_default_logs_dir(folder)
             self._send_json({'success': True, 'logs': logs[:250], 'folder': active_folder, 'total': len(logs)})
-            return
-
-        # 1b. API: Open Native Windows File Chooser Dialog
-        elif path == '/api/pick_file':
-            try:
-                import tkinter as tk
-                from tkinter import filedialog
-                root = tk.Tk()
-                root.withdraw()
-                root.wm_attributes('-topmost', 1)
-                initial_dir = query.get('current', [None])[0] or parser.get_default_logs_dir()
-                file_path = filedialog.askopenfilename(
-                    master=root,
-                    initialdir=initial_dir if os.path.exists(initial_dir) else None,
-                    title="Select ArduPilot Flight Log (.bin, .log)",
-                    filetypes=[("ArduPilot Logs (*.bin, *.log)", "*.bin;*.BIN;*.log;*.LOG;*.tlog;*.TLOG"), ("All Files (*.*)", "*.*")]
-                )
-                root.destroy()
-                if file_path:
-                    norm_path = os.path.normpath(file_path)
-                    self._send_json({
-                        'success': True,
-                        'file_path': norm_path,
-                        'filename': os.path.basename(norm_path),
-                        'folder': os.path.dirname(norm_path)
-                    })
-                else:
-                    self._send_json({'success': False, 'cancelled': True})
-            except Exception as e:
-                self._send_json({'success': False, 'error': str(e)})
-            return
-
-        # 1c. API: Open Native Windows Folder Chooser Dialog
-        elif path == '/api/pick_folder':
-            try:
-                import tkinter as tk
-                from tkinter import filedialog
-                root = tk.Tk()
-                root.withdraw()
-                root.wm_attributes('-topmost', 1)
-                initial_dir = query.get('current', [None])[0] or parser.get_default_logs_dir()
-                folder_path = filedialog.askdirectory(
-                    master=root,
-                    initialdir=initial_dir if os.path.exists(initial_dir) else None,
-                    title="Select Folder Containing ArduPilot Logs"
-                )
-                root.destroy()
-                if folder_path:
-                    norm_folder = os.path.normpath(folder_path)
-                    logs = parser.discover_flight_logs(norm_folder)
-                    self._send_json({
-                        'success': True,
-                        'folder': norm_folder,
-                        'logs': logs[:250],
-                        'total': len(logs)
-                    })
-                else:
-                    self._send_json({'success': False, 'cancelled': True})
-            except Exception as e:
-                self._send_json({'success': False, 'error': str(e)})
             return
 
         # 2. API: Load and Parse Flight Log Telemetry

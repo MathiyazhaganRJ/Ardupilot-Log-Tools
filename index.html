@@ -744,15 +744,16 @@
             <span class="brand-title">UAV Log Viewer</span>
             <div class="log-selector-container">
                 <!-- Open Single File -->
-                <button class="btn btn-primary" onclick="browseLogFile()" title="Browse and open any ArduPilot .bin log file from your computer">
+                <button class="btn btn-primary" onclick="triggerFilePicker()" title="Browse and open any ArduPilot .bin log file from your computer">
                     Open File
                 </button>
-                <input type="file" id="local-file-picker" accept=".bin,.log,.BIN,.LOG" style="display: none;" onchange="if(this.files[0]) uploadAndLoadFile(this.files[0]);">
+                <input type="file" id="local-file-picker" accept=".bin,.log,.tlog,.BIN,.LOG,.TLOG" style="display: none;" onchange="onFileChosen(this)">
 
                 <!-- Choose Active Logs Folder -->
-                <button class="btn btn-secondary" onclick="browseLogsFolder()" title="Choose a folder containing flight logs">
+                <button class="btn btn-secondary" onclick="triggerFolderPicker()" title="Choose a folder containing flight logs to populate the selector">
                     Folder: <span id="current-folder-label">Desktop\Logs</span>
                 </button>
+                <input type="file" id="local-folder-picker" webkitdirectory directory style="display: none;" onchange="onFolderChosen(this)">
 
                 <!-- Dropdown for logs in currently selected folder -->
                 <select id="log-file-select" class="log-select" onchange="onLogSelectChanged()" title="Select a flight log from current folder">
@@ -1588,67 +1589,96 @@
 
         function loadSelectedLog() {
             const sel = document.getElementById('log-file-select');
-            if (sel && sel.value) {
-                loadLogByPath(sel.value);
+            if (!sel || !sel.value) return;
+            const val = sel.value;
+            if (val.startsWith('BROWSER_FILE:')) {
+                const fname = val.replace('BROWSER_FILE:', '');
+                const file = window.folderFilesMap ? window.folderFilesMap[fname] : null;
+                if (file) {
+                    uploadAndLoadFile(file);
+                    return;
+                }
             }
+            loadLogByPath(val);
         }
 
         function onLogSelectChanged() {
             loadSelectedLog();
         }
 
-        // Open File Picker (Native Windows Dialog with HTML fallback)
-        async function browseLogFile() {
-            try {
-                const currentFolder = localStorage.getItem('ardupilot_current_folder') || '';
-                const res = await fetch(`/api/pick_file?current=${encodeURIComponent(currentFolder)}`);
-                const data = await res.json();
-                if (data.success && data.file_path) {
-                    if (data.folder) {
-                        localStorage.setItem('ardupilot_current_folder', data.folder);
-                        updateCurrentFolderLabel(data.folder);
-                    }
-                    const sel = document.getElementById('log-file-select');
-                    let existing = Array.from(sel.options).find(o => o.value === data.file_path);
-                    if (!existing) {
-                        const opt = document.createElement('option');
-                        opt.value = data.file_path;
-                        opt.textContent = `${data.filename} [Selected]`;
-                        sel.insertBefore(opt, sel.firstChild);
-                        opt.selected = true;
-                    } else {
-                        existing.selected = true;
-                    }
-                    loadLogByPath(data.file_path);
-                    return;
-                }
-                if (data.cancelled) return;
-            } catch (e) {
-                console.warn("Native file dialog unavailable, using fallback:", e);
+        // Direct Native Browser File Picker
+        function triggerFilePicker() {
+            const picker = document.getElementById('local-file-picker');
+            if (picker) {
+                picker.value = '';
+                picker.click();
             }
-            const fileInput = document.getElementById('local-file-picker');
-            if (fileInput) fileInput.click();
         }
 
-        // Open Folder Picker (Native Windows Dialog)
-        async function browseLogsFolder() {
-            try {
-                const currentFolder = localStorage.getItem('ardupilot_current_folder') || '';
-                const res = await fetch(`/api/pick_folder?current=${encodeURIComponent(currentFolder)}`);
-                const data = await res.json();
-                if (data.success && data.folder) {
-                    localStorage.setItem('ardupilot_current_folder', data.folder);
-                    updateCurrentFolderLabel(data.folder);
-                    populateLogsDropdown(data.logs || []);
-                    if (data.logs && data.logs.length > 0) {
-                        loadLogByPath(data.logs[0].path);
-                    }
-                    return;
-                }
-                if (data.cancelled) return;
-            } catch (e) {
-                console.warn("Native folder dialog unavailable:", e);
+        function onFileChosen(input) {
+            if (input && input.files && input.files[0]) {
+                uploadAndLoadFile(input.files[0]);
             }
+        }
+
+        // Direct Native Browser Folder Picker
+        function triggerFolderPicker() {
+            const picker = document.getElementById('local-folder-picker');
+            if (picker) {
+                picker.value = '';
+                picker.click();
+            }
+        }
+
+        function onFolderChosen(input) {
+            if (!input.files || input.files.length === 0) return;
+
+            window.folderFilesMap = {};
+            const binFiles = [];
+            let rootFolderName = 'Selected Folder';
+
+            for (let i = 0; i < input.files.length; i++) {
+                const file = input.files[i];
+                const lowerName = file.name.toLowerCase();
+                if (lowerName.endsWith('.bin') || lowerName.endsWith('.log') || lowerName.endsWith('.tlog')) {
+                    binFiles.push(file);
+                    window.folderFilesMap[file.name] = file;
+                    if (file.webkitRelativePath) {
+                        const parts = file.webkitRelativePath.split('/');
+                        if (parts.length > 1) {
+                            rootFolderName = parts[0];
+                        }
+                    }
+                }
+            }
+
+            if (binFiles.length === 0) {
+                alert("No ArduPilot .bin or .log flight logs found in the selected folder.");
+                return;
+            }
+
+            // Sort by lastModified descending (newest first)
+            binFiles.sort((a, b) => b.lastModified - a.lastModified);
+
+            const lbl = document.getElementById('current-folder-label');
+            if (lbl) {
+                lbl.textContent = rootFolderName;
+                lbl.title = `${rootFolderName} (${binFiles.length} logs found)`;
+            }
+
+            const sel = document.getElementById('log-file-select');
+            sel.innerHTML = '';
+            binFiles.forEach((file, idx) => {
+                const opt = document.createElement('option');
+                opt.value = 'BROWSER_FILE:' + file.name;
+                const sizeMb = (file.size / (1024 * 1024)).toFixed(2);
+                const dateStr = new Date(file.lastModified).toISOString().slice(0, 16).replace('T', ' ');
+                opt.textContent = `${file.name} (${dateStr}, ${sizeMb} MB)`;
+                if (idx === 0) opt.selected = true;
+                sel.appendChild(opt);
+            });
+
+            uploadAndLoadFile(binFiles[0]);
         }
 
         // Direct File Upload (via HTML input or Drag & Drop)
