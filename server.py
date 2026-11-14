@@ -87,7 +87,7 @@ class LogViewerHandler(SimpleHTTPRequestHandler):
                         try:
                             online_url = f"https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
                             req = urllib.request.Request(online_url, headers={'User-Agent': 'Mozilla/5.0'})
-                            with urllib.request.urlopen(req, timeout=0.8) as resp:
+                            with urllib.request.urlopen(req, timeout=4.0) as resp:
                                 if resp.status == 200:
                                     tile_bytes = resp.read()
                                     if os.path.exists(LOCAL_TILE_CACHE):
