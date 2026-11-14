@@ -1,0 +1,2346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UAV Log Viewer - Sharkee Aero Lab</title>
+    
+    <!-- Offline & Local Core Libraries -->
+    <script src="libs/plotly.min.js"></script>
+    <script src="libs/three.min.js"></script>
+    <script src="libs/OrbitControls.js"></script>
+    <script src="libs/GLTFLoader.js"></script>
+
+    <!-- Leaflet Satellite & Tactical Map -->
+    <link rel="stylesheet" href="libs/leaflet.css" />
+    <script src="libs/leaflet.js"></script>
+
+    <style>
+        :root {
+            --bg-dark: #0a0e14;
+            --panel-bg: #121824;
+            --card-bg: #182234;
+            --border: #223048;
+            --accent: #00d2ff;
+            --accent-green: #22c55e;
+            --accent-orange: #f97316;
+            --accent-purple: #a855f7;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --header-h: 46px;
+            --sidebar-w: 320px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Top Header */
+        header {
+            height: var(--header-h);
+            background: #0f1520;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            z-index: 100;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .brand-title {
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: var(--accent);
+            text-transform: uppercase;
+        }
+
+        .log-selector-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        select.log-select {
+            background: var(--card-bg);
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            max-width: 320px;
+            cursor: pointer;
+        }
+
+        .header-meta {
+            font-family: 'Consolas', monospace;
+            font-size: 11px;
+            color: var(--text-muted);
+            display: flex;
+            gap: 12px;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn {
+            background: var(--card-bg);
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            padding: 5px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .btn:hover {
+            background: #1e2c44;
+            border-color: var(--accent);
+        }
+
+        .btn-primary {
+            background: #0284c7;
+            border-color: #0284c7;
+            color: #ffffff;
+        }
+
+        .btn-primary:hover {
+            background: #0369a1;
+        }
+
+        /* Main Workspace Layout */
+        #workspace {
+            display: flex;
+            flex: 1;
+            height: calc(100vh - var(--header-h));
+            overflow: hidden;
+        }
+
+        /* Left Sidebar: Exact UAV Log Viewer Field Picker */
+        #sidebar {
+            width: var(--sidebar-w);
+            min-width: var(--sidebar-w);
+            background: var(--panel-bg);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .sidebar-section {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .sidebar-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Active Plotted Fields List */
+        #active-fields-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            max-height: 175px;
+            overflow-y: auto;
+        }
+
+        .active-field-chip {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 4px 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 11px;
+        }
+
+        .chip-left {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .color-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .chip-label {
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .chip-ctrls {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .axis-btn {
+            background: #25334d;
+            border: 1px solid #364868;
+            color: var(--text-muted);
+            font-size: 10px;
+            padding: 1px 5px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        .axis-btn.active {
+            color: #ffffff;
+            background: #0284c7;
+            border-color: #38bdf8;
+        }
+
+        .chip-del {
+            background: transparent;
+            border: none;
+            color: #ef4444;
+            font-size: 13px;
+            cursor: pointer;
+            padding: 0 4px;
+            font-weight: bold;
+        }
+
+        .chip-del:hover {
+            color: #f87171;
+        }
+
+        .sidebar-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .sidebar-actions .btn {
+            padding: 4px 6px;
+            font-size: 11px;
+            text-align: center;
+        }
+
+        .search-box {
+            width: 100%;
+            background: #0b111a;
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-top: 6px;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        #message-tree {
+            flex: 1;
+            overflow-y: auto;
+            padding: 6px 0;
+        }
+
+        .msg-node {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .msg-header {
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #cbd5e1;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .msg-header:hover {
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--accent);
+        }
+
+        .msg-fields-container {
+            display: none;
+            background: #0b111a;
+            padding: 4px 0 4px 18px;
+        }
+
+        .msg-fields-container.expanded {
+            display: block;
+        }
+
+        .field-item {
+            padding: 4px 12px 4px 6px;
+            font-size: 11px;
+            font-family: 'Consolas', monospace;
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .field-item:hover {
+            background: rgba(0, 210, 255, 0.08);
+            color: var(--accent);
+        }
+
+        /* Center / Right Content Area */
+        #content-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: var(--bg-dark);
+        }
+
+        /* Top Half: UAV Log Viewer Plot */
+        #plot-container {
+            height: 48%;
+            min-height: 240px;
+            width: 100%;
+            background: #0c121c;
+            border-bottom: 2px solid var(--border);
+            position: relative;
+            transition: height 0.22s ease;
+        }
+
+        #plot-container.collapsed {
+            display: none !important;
+            height: 0 !important;
+            min-height: 0 !important;
+            border-bottom: none !important;
+        }
+
+        #main-plot {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Lower Half: Viewport Switcher & Layout */
+        #lower-viewports-wrapper {
+            height: 52%;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            background: #080c14;
+            transition: height 0.22s ease;
+        }
+
+        #lower-viewports-wrapper.fullscreen {
+            height: 100% !important;
+            flex: 1;
+        }
+
+        #lower-viewports-toolbar {
+            height: 38px;
+            background: #0d1420;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 12px;
+            font-size: 11px;
+            gap: 12px;
+        }
+
+        .replay-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+        }
+
+        .replay-btn {
+            background: #182234;
+            color: #38bdf8;
+            border: 1px solid #22344e;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.15s ease;
+        }
+        .replay-btn:hover {
+            background: #0284c7;
+            color: #ffffff;
+            border-color: #38bdf8;
+        }
+        .replay-btn.playing {
+            background: #0284c7;
+            color: #ffffff;
+            border-color: #38bdf8;
+        }
+
+        .replay-scrubber {
+            flex: 1;
+            max-width: 280px;
+            height: 6px;
+            accent-color: #0284c7;
+            cursor: pointer;
+        }
+
+        .replay-time-badge {
+            font-family: 'Consolas', monospace;
+            font-size: 11px;
+            color: #e2e8f0;
+            background: #111a28;
+            padding: 2px 8px;
+            border-radius: 4px;
+            border: 1px solid #1e2c44;
+            min-width: 125px;
+            text-align: center;
+        }
+
+        .replay-speed-select {
+            background: #111a28;
+            color: #38bdf8;
+            border: 1px solid #22344e;
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .flight-mode-pill {
+            font-family: 'Consolas', monospace;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 3px;
+            text-transform: uppercase;
+            background: rgba(2, 132, 199, 0.2);
+            color: #38bdf8;
+            border: 1px solid rgba(56, 189, 248, 0.4);
+        }
+
+        .view-mode-group {
+            display: flex;
+            gap: 4px;
+        }
+
+        .view-mode-btn {
+            background: #182234;
+            color: #94a3b8;
+            border: 1px solid var(--border);
+            padding: 3px 9px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .view-mode-btn.active {
+            background: #0284c7;
+            color: #ffffff;
+            border-color: #38bdf8;
+        }
+
+        #lower-viewports {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Left Lower Pane: Interactive Satellite / Tactical Map */
+        #map-pane {
+            flex: 1;
+            height: 100%;
+            border-right: 1px solid var(--border);
+            position: relative;
+            background: #0a0f18;
+        }
+
+        #leaflet-map {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #060910;
+        }
+
+        /* Custom Map Controls Overlay */
+        .map-overlay-ctrls {
+            position: absolute;
+            top: 10px;
+            right: 12px;
+            z-index: 500;
+            display: flex;
+            gap: 6px;
+        }
+
+        .map-select {
+            background: rgba(18, 24, 36, 0.9);
+            color: #ffffff;
+            border: 1px solid var(--border);
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            cursor: pointer;
+        }
+
+        /* Right Lower Pane: 3D Sharkee Model & Telemetry HUD */
+        #three-hud-pane {
+            width: 480px;
+            min-width: 380px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            background: #0b111a;
+            position: relative;
+        }
+
+        #three-container {
+            height: 55%;
+            position: relative;
+            border-bottom: 1px solid var(--border);
+            background: radial-gradient(circle at center, #111a28 0%, #060910 100%);
+        }
+
+        #three-canvas-container {
+            width: 100%;
+            height: 100%;
+        }
+
+        .viewport-badge {
+            position: absolute;
+            top: 8px;
+            left: 10px;
+            background: rgba(6, 12, 20, 0.85);
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            padding: 3px 6px;
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .three-ctrls {
+            position: absolute;
+            top: 8px;
+            right: 10px;
+            display: flex;
+            gap: 4px;
+            z-index: 10;
+        }
+
+        .three-ctrls .btn {
+            padding: 2px 6px;
+            font-size: 9.5px;
+        }
+
+        /* Telemetry Cards Grid */
+        #hud-telemetry-grid {
+            flex: 1;
+            padding: 6px 10px;
+            overflow-y: auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            background: #0a0e14;
+        }
+
+        .hud-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 6px 8px;
+        }
+
+        .hud-card-title {
+            font-size: 9.5px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .hud-card-val {
+            font-family: 'Consolas', monospace;
+            font-size: 15px;
+            font-weight: 700;
+            color: #ffffff;
+            margin: 1px 0;
+        }
+
+        .hud-card-sub {
+            font-size: 9px;
+            color: #64748b;
+        }
+
+        /* Extraction & Test Results Strip */
+        #extraction-bar {
+            background: #0e1522;
+            border-top: 1px solid var(--border);
+            padding: 6px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 12px;
+            z-index: 50;
+        }
+
+        .ext-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .ext-select {
+            background: var(--card-bg);
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+        }
+
+        /* Aircraft Icon on Leaflet Map */
+        .plane-marker-icon {
+            transition: transform 0.08s linear;
+        }
+
+        /* Modal Dialogs */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-box {
+            background: var(--panel-bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            width: 480px;
+            padding: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+        }
+
+        .modal-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 10px;
+        }
+
+        .modal-input {
+            width: 100%;
+            background: var(--card-bg);
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            padding: 8px 10px;
+            border-radius: 4px;
+            font-size: 13px;
+            margin-bottom: 12px;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <header>
+        <div class="header-left">
+            <span class="brand-title">UAV Log Viewer | Sharkee Lab</span>
+            <div class="log-selector-container">
+                <select id="log-file-select" class="log-select" onchange="onLogSelectChanged()">
+                    <option value="">Loading logs library...</option>
+                </select>
+                <button class="btn btn-primary" onclick="loadSelectedLog()">Load Log</button>
+            </div>
+            <div class="header-meta">
+                <span id="meta-date">Date: ---</span>
+                <span id="meta-board">Board: ---</span>
+                <span id="meta-dur">Duration: ---</span>
+            </div>
+        </div>
+        <div class="header-right">
+            <button class="btn" onclick="openTestTableModal()">Test Results Table (<span id="table-row-count">0</span>)</button>
+        </div>
+    </header>
+
+    <!-- Workspace -->
+    <div id="workspace">
+
+        <!-- Left Sidebar: UAV Log Viewer Message & Field Selector -->
+        <div id="sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-title">
+                    <span>Active Plotted Fields</span>
+                    <span id="active-field-count" style="color:var(--accent);">0 / 8</span>
+                </div>
+                <div id="active-fields-list"></div>
+                <div class="sidebar-actions">
+                    <button class="btn" onclick="openExpressionModal()">+ Add Expression</button>
+                    <button class="btn" onclick="clearAllFields()">Clear All</button>
+                </div>
+            </div>
+
+            <div class="sidebar-section" style="padding: 8px 12px;">
+                <div class="sidebar-title">Flight Presets</div>
+                <select id="preset-select" class="log-select" style="width: 100%;" onchange="applyPreset(this.value)">
+                    <option value="">-- Choose Preset to Plot --</option>
+                    <option value="efficiency">1. Cruise Efficiency & Airspeed (TAS, Power, ThO, AoA)</option>
+                    <option value="atmosphere">2. Atmospheric & Wind Vector (Press, Temp, Rho, Wind)</option>
+                    <option value="altitude">3. Altitude & Climb Performance (Alt, CRt, DemSpd)</option>
+                    <option value="attitude">4. Aircraft Attitude & Dynamic Stability (Roll, Pitch, Yaw)</option>
+                    <option value="power">5. Electrical Power & Battery Health (Volt, Curr, Watts)</option>
+                </select>
+            </div>
+
+            <div class="sidebar-section" style="padding: 8px 12px; flex-shrink: 0;">
+                <div class="sidebar-title">Plot Individual Field</div>
+                <input type="text" id="field-search-input" class="search-box" placeholder="Type here to filter messages..." oninput="filterMessageTree(this.value)">
+            </div>
+
+            <div id="message-tree"></div>
+        </div>
+
+        <!-- Center / Right Content Area -->
+        <div id="content-area">
+
+            <!-- Top Pane: Interactive UAV Log Viewer Multi-Series Plot (Hidden until plotting starts) -->
+            <div id="plot-container" class="collapsed">
+                <div id="main-plot"></div>
+                <div id="plot-cursor-line" style="position: absolute; top: 0; bottom: 0; width: 2px; background: #00e5ff; pointer-events: none; z-index: 100; display: none; box-shadow: 0 0 8px rgba(0, 229, 255, 0.9);">
+                    <div id="plot-cursor-badge" style="position: absolute; top: 2px; left: 4px; font-family: Consolas, monospace; font-size: 10px; font-weight: 700; color: #00e5ff; background: rgba(5,10,18,0.9); padding: 1px 4px; border-radius: 2px; border: 1px solid #00e5ff; white-space: nowrap;">00:00.0</div>
+                </div>
+            </div>
+
+            <!-- Lower Pane: Interactive Satellite Map & 3D Sharkee Model (Fullscreen by default) -->
+            <div id="lower-viewports-wrapper" class="fullscreen">
+                
+                <div id="lower-viewports-toolbar">
+                    <div class="replay-controls">
+                        <button class="replay-btn" id="btn-play-pause" onclick="toggleReplayPlayback()" title="Toggle Play / Pause (Shortcut: Space)">
+                            <span id="play-icon">Play</span>
+                        </button>
+                        <button class="replay-btn" style="padding: 4px 6px;" title="Step Back 5 Seconds (Shortcut: Left Arrow)" onclick="stepReplayTime(-5)">-5s</button>
+                        <button class="replay-btn" style="padding: 4px 6px;" title="Step Forward 5 Seconds (Shortcut: Right Arrow)" onclick="stepReplayTime(5)">+5s</button>
+                        
+                        <input type="range" id="replay-scrubber" class="replay-scrubber" min="0" max="100" step="0.1" value="0" oninput="onScrubberInput(this.value)">
+                        
+                        <div class="replay-time-badge" id="replay-time-text">00:00.0 / 00:00.0</div>
+                        
+                        <select id="replay-speed-sel" class="replay-speed-select" onchange="onReplaySpeedChange(this.value)" title="Playback Speed Multiplier">
+                            <option value="0.5">0.5x</option>
+                            <option value="1.0" selected>1.0x</option>
+                            <option value="2.0">2.0x</option>
+                            <option value="5.0">5.0x</option>
+                            <option value="10.0">10.0x</option>
+                        </select>
+                        
+                        <span id="replay-mode-pill" class="flight-mode-pill">MODE</span>
+                    </div>
+
+                    <div class="view-mode-group">
+                        <button class="view-mode-btn active" id="btn-view-sitl" onclick="setViewMode('sitl')">Visualizer (Shark Hawk & Terrain)</button>
+                        <button class="view-mode-btn" id="btn-view-map" onclick="setViewMode('map')">2D Satellite Map</button>
+                        <button class="view-mode-btn" id="btn-view-split" onclick="setViewMode('split')">Split View</button>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <button class="view-mode-btn" id="btn-toggle-plot-layout" onclick="togglePlotVisibility()" title="Toggle Full Screen View vs Split Plot View" style="border-color: #38bdf8; color: #38bdf8;">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align: middle; margin-right: 3px;">
+                                <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+                            </svg>
+                            <span id="txt-toggle-plot-layout">Full Screen</span>
+                        </button>
+                        <button class="view-mode-btn" id="btn-open-messages-drawer" onclick="toggleMessagesDrawer()" title="View Autopilot Messages Log (MSG)" style="display: inline-flex; align-items: center; gap: 5px;">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                            </svg>
+                            <span>Messages</span>
+                            <span id="main-msg-count-badge" style="background: #0284c7; color: #fff; font-size: 9.5px; font-weight: 700; border-radius: 8px; padding: 1px 5px; min-width: 16px; text-align: center;">0</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Slide-Out Autopilot Messages Drawer -->
+                <div id="messages-drawer" style="display: none; position: absolute; top: 38px; right: 0; bottom: 0; width: 440px; max-width: 90vw; background: #0c121e; border-left: 2px solid var(--border); box-shadow: -8px 0 24px rgba(0,0,0,0.85); z-index: 500; flex-direction: column;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: #080d16; border-bottom: 1px solid var(--border);">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#00e5ff" stroke-width="2.2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                            <span style="font-weight: 700; font-size: 11.5px; color: #f0f6fc; letter-spacing: 0.05em;">AUTOPILOT MESSAGES (MSG)</span>
+                            <span id="drawer-msg-badge" style="background: rgba(0,229,255,0.15); color: #00e5ff; font-size: 10px; font-weight: 700; border-radius: 8px; padding: 1px 6px;">0</span>
+                        </div>
+                        <button onclick="toggleMessagesDrawer()" style="background: transparent; border: none; color: #94a3b8; font-size: 18px; cursor: pointer; padding: 0 4px; line-height: 1;">&times;</button>
+                    </div>
+                    <div style="padding: 8px 12px; background: #0b1019; border-bottom: 1px solid var(--border); display: flex; gap: 8px;">
+                        <input type="text" id="drawer-msg-search" placeholder="Filter messages..." oninput="filterDrawerMessages(this.value)" style="flex: 1; background: #060910; color: #f0f6fc; border: 1px solid var(--border); border-radius: 4px; padding: 4px 8px; font-size: 11px; outline: none;">
+                        <select id="drawer-msg-sev-filter" onchange="filterDrawerMessagesBySeverity(this.value)" style="background: #060910; color: #94a3b8; border: 1px solid var(--border); border-radius: 4px; padding: 4px 6px; font-size: 10.5px; outline: none; cursor: pointer;">
+                            <option value="all">All</option>
+                            <option value="warn">Warnings / Errors</option>
+                            <option value="notice">Notice</option>
+                            <option value="info">Info</option>
+                        </select>
+                    </div>
+                    <div id="drawer-messages-list" style="flex: 1; overflow-y: auto; padding: 8px 10px; display: flex; flex-direction: column; gap: 4px; font-family: 'Consolas', monospace; font-size: 11px;">
+                        <div style="color: #64748b; text-align: center; margin-top: 30px;">No messages loaded</div>
+                    </div>
+                </div>
+
+                <div id="lower-viewports">
+
+                    <!-- Main SITL Digital Twin Visualizer (Shark Hawk + Terrain + PFD Horizon + NAV Compass) -->
+                    <div id="sitl-pane" style="width: 100%; height: 100%; position: relative;">
+                        <iframe id="sitl-viewer-frame" src="sharkee_hud.html" style="width: 100%; height: 100%; border: none; display: block;" onload="onSitlIframeLoaded()"></iframe>
+                    </div>
+
+                    <!-- 2D Leaflet Satellite & Tactical Map -->
+                    <div id="map-pane" style="display: none; flex: 1; height: 100%; border-right: 1px solid var(--border); position: relative; background: #0a0f18;">
+                        <div class="viewport-badge">Flight Track & Satellite Map</div>
+                        <div class="map-overlay-ctrls">
+                            <select id="map-layer-select" class="map-select" onchange="changeMapLayer(this.value)">
+                                <option value="local">Satellite (Airfield Cache)</option>
+                                <option value="esri">Satellite (ESRI)</option>
+                                <option value="carto">Dark Canvas</option>
+                                <option value="osm">Street (OSM)</option>
+                            </select>
+                            <button class="btn" style="padding:2px 8px; font-size:10px;" onclick="recenterMap()">Center Plane</button>
+                            <button class="btn" style="padding:2px 8px; font-size:10px;" onclick="fitFlightBounds()">Fit Track</button>
+                        </div>
+                        <div id="leaflet-map" style="width:100%; height:100%;"></div>
+                    </div>
+
+                    <!-- Standalone 3D Model & Telemetry HUD View -->
+                    <div id="three-hud-pane" style="display: none; width: 480px; min-width: 380px; height: 100%; flex-direction: column; background: #0b111a; position: relative;">
+                        <div id="three-container" style="height: 55%; position: relative; border-bottom: 1px solid var(--border); background: radial-gradient(circle at center, #111a28 0%, #060910 100%);">
+                            <div class="viewport-badge">Sharkee 3D Digital Twin</div>
+                            <div class="three-ctrls">
+                                <button class="btn" id="btn-follow" onclick="toggleCameraMode()">Follow Plane</button>
+                                <button class="btn" onclick="reset3DCamera()">Reset Camera</button>
+                            </div>
+                            <div id="three-canvas-container" style="width:100%; height:100%;"></div>
+                        </div>
+
+                        <div id="hud-telemetry-grid">
+                            <div class="hud-card">
+                                <div class="hud-card-title">Airspeed (TAS / GS)</div>
+                                <div class="hud-card-val" id="hud-tas" style="color:var(--accent);">0.0 <span style="font-size:10px;">m/s</span></div>
+                                <div class="hud-card-sub" id="hud-gs">GS: 0.0 m/s</div>
+                            </div>
+
+                            <div class="hud-card">
+                                <div class="hud-card-title">Electrical Power</div>
+                                <div class="hud-card-val" id="hud-pwr" style="color:#a855f7;">0.0 <span style="font-size:10px;">W</span></div>
+                                <div class="hud-card-sub" id="hud-elec">0.0 V | 0.00 A</div>
+                            </div>
+
+                            <div class="hud-card">
+                                <div class="hud-card-title">Cruise Efficiency</div>
+                                <div class="hud-card-val" id="hud-whkm" style="color:var(--accent-green);">0.00 <span style="font-size:10px;">Wh/km</span></div>
+                                <div class="hud-card-sub">Specific Air Range</div>
+                            </div>
+
+                            <div class="hud-card">
+                                <div class="hud-card-title">Throttle & AoA</div>
+                                <div class="hud-card-val" id="hud-tho" style="color:var(--accent-orange);">0.0 <span style="font-size:10px;">%</span></div>
+                                <div class="hud-card-sub" id="hud-aoa">AoA: 0.00 deg</div>
+                            </div>
+
+                            <div class="hud-card">
+                                <div class="hud-card-title">Air Density (rho)</div>
+                                <div class="hud-card-val" id="hud-rho" style="color:#38bdf8;">1.225 <span style="font-size:10px;">kg/m3</span></div>
+                                <div class="hud-card-sub" id="hud-press">Press: 1013.2 hPa</div>
+                            </div>
+
+                            <div class="hud-card">
+                                <div class="hud-card-title">Wind Vector</div>
+                                <div class="hud-card-val" id="hud-wind" style="color:#fbbf24;">0.0 <span style="font-size:10px;">m/s</span></div>
+                                <div class="hud-card-sub" id="hud-wdir">Direction: 0 deg</div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Bottom Flight Mode Extraction Drawer -->
+            <div id="extraction-bar">
+                <div class="ext-left">
+                    <span style="font-weight:700; color:var(--text-muted); font-size:11px; text-transform:uppercase;">Steady Flight Segment:</span>
+                    <select id="mode-segment-select" class="ext-select" onchange="onSegmentSelect(this.value)">
+                        <option value="">Select Flight Mode Segment...</option>
+                    </select>
+                    <select id="step-segment-select" class="ext-select" onchange="onStepSelect(this.value)">
+                        <option value="">Select Airspeed Test Step (AUTO)...</option>
+                    </select>
+                </div>
+                <div>
+                    <button class="btn btn-primary" onclick="addCurrentSegmentToTable()">+ Add to Test Results Table</button>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Expression Modal -->
+    <div id="expression-modal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-title">Add Custom Math Expression</div>
+            <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px;">
+                Enter arithmetic using logged variable names (e.g. <code>BARO_Press / (287.05 * (BARO_Temp + 273.15))</code> or <code>BAT_Power / (ARSP_Airspeed * 3.6)</code>).
+            </p>
+            <input type="text" id="custom-expr-input" class="modal-input" placeholder="e.g. BARO_Press / (287.05 * (BARO_Temp + 273.15))">
+            <div class="modal-actions">
+                <button class="btn" onclick="closeExpressionModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="addCustomExpression()">Add Curve</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Test Results Table Modal -->
+    <div id="table-modal" class="modal-overlay">
+        <div class="modal-box" style="width: 820px; max-width: 90vw;">
+            <div class="modal-title" style="display:flex; justify-content:space-between; align-items:center;">
+                <span>Flight Test Results Matrix (Propulsive Efficiency)</span>
+                <button class="btn btn-primary" onclick="exportResultsCSV()">Download CSV</button>
+            </div>
+            <div style="max-height: 400px; overflow-y: auto; margin: 12px 0;">
+                <table id="results-table" style="width:100%; border-collapse:collapse; font-size:11px; text-align:left;">
+                    <thead>
+                        <tr style="background:#1e293b; color:#94a3b8; border-bottom:1px solid var(--border);">
+                            <th style="padding:6px;">TAS (m/s)</th>
+                            <th style="padding:6px;">GS (m/s)</th>
+                            <th style="padding:6px;">Throttle (%)</th>
+                            <th style="padding:6px;">Power (W)</th>
+                            <th style="padding:6px;">Wh/km</th>
+                            <th style="padding:6px;">AoA (deg)</th>
+                            <th style="padding:6px;">CL</th>
+                            <th style="padding:6px;">Density</th>
+                            <th style="padding:6px;">Wind</th>
+                            <th style="padding:6px;">Mode</th>
+                        </tr>
+                    </thead>
+                    <tbody id="results-tbody">
+                        <tr><td colspan="10" style="padding:14px; text-align:center; color:#64748b;">No test segments added yet. Select a segment on the graph and click "+ Add to Test Results Table".</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-actions">
+                <button class="btn" onclick="clearResultsTable()">Clear Table</button>
+                <button class="btn" onclick="closeTestTableModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Logic -->
+    <script>
+        // ---------------------------------------------------------------------------
+        // State & Configuration
+        // ---------------------------------------------------------------------------
+        let currentFlightData = null;
+        let activeFields = [];
+        let testTableRows = [];
+        let currentTimeCursor = 0;
+        let currentTrajectory = [];
+        let currentFlightMessages = [];
+        let isPlotVisible = false;
+        let currentDrawerSearch = '';
+        let currentDrawerSeverity = 'all';
+
+        const PALETTE = [
+            '#00d2ff', '#22c55e', '#f97316', '#a855f7',
+            '#ef4444', '#ffd60a', '#38bdf8', '#ec4899'
+        ];
+
+        const FIELD_ALIAS_MAP = {
+            'ARSP.Airspeed': 'tas',
+            'GPS.Spd': 'gs',
+            'BAT.Power': 'power',
+            'BAT.Volt': 'volt',
+            'BAT.Curr': 'curr',
+            'CTUN.ThO': 'tho',
+            'AOA.AOA': 'aoa',
+            'BARO.Press': 'press',
+            'BARO.Temp': 'temp',
+            'BARO.Alt': 'alt',
+            'BARO.CRt': 'crt',
+            'Calc.Density': 'density',
+            'Calc.Wh_km': 'wh_km',
+            'Calc.WindSpd': 'wind_spd',
+            'XKF2.VWN': 'vwn',
+            'XKF2.VWE': 'vwe',
+            'ATT.Roll': 'roll',
+            'ATT.Pitch': 'pitch',
+            'ATT.Yaw': 'yaw',
+            'TECS.spdem': 'spdem'
+        };
+
+        // ---------------------------------------------------------------------------
+        // Initialization
+        // ---------------------------------------------------------------------------
+        window.addEventListener('DOMContentLoaded', async () => {
+            initLeafletMap();
+            initThreeJS();
+            await fetchLogsList();
+            await loadSelectedLog();
+        });
+
+        // ---------------------------------------------------------------------------
+        // Leaflet Interactive Satellite & Tactical Map Engine
+        // ---------------------------------------------------------------------------
+        let mapInstance = null;
+        let mapLayers = {};
+        let trackPolyline = null;
+        let planeMarker = null;
+        let homeMarker = null;
+        let currentPlaneLat = 0, currentPlaneLng = 0;
+
+        function initLeafletMap() {
+            // High-Speed Local & Offline Satellite Tile Layer (Proxy through server)
+            mapLayers.local = L.tileLayer('/tiles/{z}/{x}/{y}.jpg', {
+                maxZoom: 19
+            });
+            mapLayers.esri = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                attribution: 'Tiles &copy; Esri',
+                maxZoom: 19
+            });
+            mapLayers.carto = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; CartoDB',
+                maxZoom: 19
+            });
+            mapLayers.osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap',
+                maxZoom: 19
+            });
+
+            mapInstance = L.map('leaflet-map', {
+                layers: [mapLayers.local],
+                zoomControl: true,
+                attributionControl: false
+            }).setView([18.3385, 83.9322], 15);
+
+            // Plane Icon (SVG Arrow/Airplane)
+            const planeSvg = `
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="#00d2ff" stroke="#060910" stroke-width="1.2" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8));">
+                    <path d="M12 2L15 9L22 11L15 13L13 22L12 17L11 22L9 13L2 11L9 9Z" />
+                </svg>
+            `;
+            const planeCustomIcon = L.divIcon({
+                className: 'plane-marker-icon',
+                html: `<div id="map-plane-icon-wrapper" style="transform-origin: center center; width:28px; height:28px;">${planeSvg}</div>`,
+                iconSize: [28, 28],
+                iconAnchor: [14, 14]
+            });
+
+            planeMarker = L.marker([18.3385, 83.9322], { icon: planeCustomIcon }).addTo(mapInstance);
+        }
+
+        function changeMapLayer(layerKey) {
+            if (!mapInstance) return;
+            Object.values(mapLayers).forEach(layer => mapInstance.removeLayer(layer));
+            if (mapLayers[layerKey]) {
+                mapInstance.addLayer(mapLayers[layerKey]);
+            }
+        }
+
+        function updateMapTrajectory(trajectory) {
+            if (!mapInstance) return;
+
+            // Remove existing track
+            if (trackPolyline) {
+                mapInstance.removeLayer(trackPolyline);
+                trackPolyline = null;
+            }
+            if (homeMarker) {
+                mapInstance.removeLayer(homeMarker);
+                homeMarker = null;
+            }
+
+            if (!trajectory || trajectory.length === 0) return;
+
+            const latlngs = [];
+            trajectory.forEach(pt => {
+                if (pt.lat && pt.lng && Math.abs(pt.lat) > 0.001) {
+                    latlngs.push([pt.lat, pt.lng]);
+                }
+            });
+
+            if (latlngs.length > 0) {
+                // Plot glowing cyan flight track
+                trackPolyline = L.polyline(latlngs, {
+                    color: '#00d2ff',
+                    weight: 3,
+                    opacity: 0.92,
+                    smoothFactor: 1
+                }).addTo(mapInstance);
+
+                // Add Home Marker at start
+                const homeIcon = L.divIcon({
+                    html: '<div style="background:#22c55e; width:12px; height:12px; border-radius:50%; border:2px solid #ffffff; box-shadow:0 0 6px rgba(0,0,0,0.8);"></div>',
+                    iconSize: [12, 12],
+                    iconAnchor: [6, 6]
+                });
+                homeMarker = L.marker(latlngs[0], { icon: homeIcon }).addTo(mapInstance);
+                homeMarker.bindTooltip('TAKEOFF / HOME', { permanent: false, direction: 'top' });
+
+                // Set initial plane position
+                currentPlaneLat = latlngs[0][0];
+                currentPlaneLng = latlngs[0][1];
+                planeMarker.setLatLng(latlngs[0]);
+
+                const mapPaneEl = document.getElementById('map-pane');
+                if (mapPaneEl && mapPaneEl.offsetWidth > 50 && mapPaneEl.offsetHeight > 50) {
+                    try {
+                        mapInstance.fitBounds(trackPolyline.getBounds(), { padding: [30, 30] });
+                    } catch(e) {}
+                }
+            }
+        }
+
+        function updatePlaneOnMap(lat, lng, yawDeg) {
+            if (!mapInstance || !planeMarker) return;
+            if (lat && lng && Math.abs(lat) > 0.001) {
+                currentPlaneLat = lat;
+                currentPlaneLng = lng;
+                planeMarker.setLatLng([lat, lng]);
+
+                const wrapper = document.getElementById('map-plane-icon-wrapper');
+                if (wrapper) {
+                    wrapper.style.transform = `rotate(${yawDeg || 0}deg)`;
+                }
+            }
+        }
+
+        function recenterMap() {
+            if (mapInstance && currentPlaneLat !== 0) {
+                mapInstance.panTo([currentPlaneLat, currentPlaneLng], { animate: true });
+            }
+        }
+
+        function fitFlightBounds() {
+            if (mapInstance && trackPolyline) {
+                try {
+                    mapInstance.fitBounds(trackPolyline.getBounds(), { padding: [30, 30] });
+                } catch(e) {}
+            }
+        }
+
+        // View Mode Switcher (SITL Visualizer vs 2D Map vs Split View)
+        function setViewMode(mode) {
+            const sitlPane = document.getElementById('sitl-pane');
+            const mapPane = document.getElementById('map-pane');
+            const threePane = document.getElementById('three-hud-pane');
+            const btnSitl = document.getElementById('btn-view-sitl');
+            const btnMap = document.getElementById('btn-view-map');
+            const btnSplit = document.getElementById('btn-view-split');
+
+            [btnSitl, btnMap, btnSplit].forEach(b => b && b.classList.remove('active'));
+
+            if (mode === 'sitl') {
+                if (btnSitl) btnSitl.classList.add('active');
+                sitlPane.style.display = 'block';
+                mapPane.style.display = 'none';
+                threePane.style.display = 'none';
+            } else if (mode === 'map') {
+                if (btnMap) btnMap.classList.add('active');
+                sitlPane.style.display = 'none';
+                mapPane.style.display = 'block';
+                mapPane.style.flex = '1';
+                mapPane.style.width = '100%';
+                mapPane.style.height = '100%';
+                threePane.style.display = 'none';
+
+                // Crucial for Leaflet: force container recalculation and fit bounds
+                setTimeout(() => {
+                    if (mapInstance) {
+                        mapInstance.invalidateSize(true);
+                        if (trackPolyline) {
+                            try {
+                                mapInstance.fitBounds(trackPolyline.getBounds(), { padding: [35, 35] });
+                            } catch(e) {}
+                        } else if (currentPlaneLat !== 0) {
+                            mapInstance.setView([currentPlaneLat, currentPlaneLng], 15);
+                        }
+                    }
+                }, 80);
+            } else if (mode === 'split') {
+                if (btnSplit) btnSplit.classList.add('active');
+                sitlPane.style.display = 'none';
+                mapPane.style.display = 'block';
+                mapPane.style.flex = '1';
+                threePane.style.display = 'flex';
+                threePane.style.width = '480px';
+
+                setTimeout(() => {
+                    if (mapInstance) {
+                        mapInstance.invalidateSize(true);
+                        if (trackPolyline) {
+                            try {
+                                mapInstance.fitBounds(trackPolyline.getBounds(), { padding: [25, 25] });
+                            } catch(e) {}
+                        }
+                    }
+                    if (typeof onWindowResize === 'function') onWindowResize();
+                }, 80);
+            }
+        }
+
+        // Full Screen Map vs Split Plot Layout Controller
+        function setPlotVisibility(show) {
+            isPlotVisible = show;
+            const plotContainer = document.getElementById('plot-container');
+            const lowerWrapper = document.getElementById('lower-viewports-wrapper');
+            const toggleBtnText = document.getElementById('txt-toggle-plot-layout');
+            const toggleBtn = document.getElementById('btn-toggle-plot-layout');
+
+            if (show) {
+                if (plotContainer) {
+                    plotContainer.classList.remove('collapsed');
+                    plotContainer.style.display = 'block';
+                    plotContainer.style.height = '48%';
+                }
+                if (lowerWrapper) {
+                    lowerWrapper.classList.remove('fullscreen');
+                    lowerWrapper.style.height = '52%';
+                }
+                if (toggleBtnText) toggleBtnText.textContent = "Full Screen";
+                if (toggleBtn) toggleBtn.classList.remove('active');
+            } else {
+                if (plotContainer) {
+                    plotContainer.classList.add('collapsed');
+                    plotContainer.style.display = 'none';
+                    plotContainer.style.height = '0';
+                }
+                if (lowerWrapper) {
+                    lowerWrapper.classList.add('fullscreen');
+                    lowerWrapper.style.height = '100%';
+                }
+                if (toggleBtnText) toggleBtnText.textContent = "Show Plot";
+                if (toggleBtn) toggleBtn.classList.add('active');
+            }
+
+            // Smoothly relayout & resize all active viewports
+            setTimeout(() => {
+                if (show && typeof Plotly !== 'undefined') {
+                    try { Plotly.Plots.resize('main-plot'); } catch(e) {}
+                }
+                if (mapInstance) {
+                    try {
+                        mapInstance.invalidateSize(true);
+                        if (trackPolyline) {
+                            mapInstance.fitBounds(trackPolyline.getBounds(), { padding: [35, 35] });
+                        }
+                    } catch(e) {}
+                }
+                const sitlIframe = document.getElementById('sitl-viewer-frame');
+                if (sitlIframe && sitlIframe.contentWindow) {
+                    try { sitlIframe.contentWindow.dispatchEvent(new Event('resize')); } catch(e) {}
+                }
+            }, 60);
+        }
+
+        function togglePlotVisibility() {
+            setPlotVisibility(!isPlotVisible);
+        }
+
+        // Autopilot Messages Drawer Controller
+        function populateMessagesDrawer(messages) {
+            currentFlightMessages = messages || [];
+            const countBadge = document.getElementById('main-msg-count-badge');
+            const drawerBadge = document.getElementById('drawer-msg-badge');
+            if (countBadge) countBadge.textContent = currentFlightMessages.length;
+            if (drawerBadge) drawerBadge.textContent = `${currentFlightMessages.length} MSGS`;
+            renderDrawerMessagesList();
+        }
+
+        function renderDrawerMessagesList() {
+            const listEl = document.getElementById('drawer-messages-list');
+            if (!listEl) return;
+            listEl.innerHTML = '';
+
+            const sevMap = {
+                3: { label: 'ERROR', color: '#ff453a', bg: 'rgba(255, 69, 58, 0.15)', border: 'rgba(255, 69, 58, 0.35)', level: 'warn' },
+                4: { label: 'WARN', color: '#ff9f0a', bg: 'rgba(255, 159, 10, 0.15)', border: 'rgba(255, 159, 10, 0.35)', level: 'warn' },
+                5: { label: 'NOTICE', color: '#00e5ff', bg: 'rgba(0, 229, 255, 0.12)', border: 'rgba(0, 229, 255, 0.3)', level: 'notice' },
+                6: { label: 'INFO', color: '#94a3b8', bg: 'rgba(148, 163, 184, 0.08)', border: 'rgba(148, 163, 184, 0.2)', level: 'info' }
+            };
+
+            const filtered = currentFlightMessages.filter(m => {
+                const s = String(m.text || '').toLowerCase();
+                const matchSearch = !currentDrawerSearch || s.includes(currentDrawerSearch);
+                const sevCfg = sevMap[m.severity] || sevMap[6];
+                let matchSev = true;
+                if (currentDrawerSeverity === 'warn') matchSev = sevCfg.level === 'warn';
+                else if (currentDrawerSeverity === 'notice') matchSev = sevCfg.level === 'notice';
+                else if (currentDrawerSeverity === 'info') matchSev = sevCfg.level === 'info';
+                return matchSearch && matchSev;
+            });
+
+            if (filtered.length === 0) {
+                listEl.innerHTML = '<div style="color: #64748b; text-align: center; margin-top: 30px;">No matching messages</div>';
+                return;
+            }
+
+            filtered.forEach(m => {
+                const sevCfg = sevMap[m.severity] || sevMap[6];
+                const mm = String(Math.floor(m.time / 60)).padStart(2, '0');
+                const ss = String(Math.floor(m.time % 60)).padStart(2, '0');
+                const timeStr = `${mm}:${ss}`;
+
+                const row = document.createElement('div');
+                row.style.cssText = `display: flex; align-items: flex-start; gap: 8px; padding: 4px 6px; border-radius: 4px; background: ${sevCfg.bg}; border: 1px solid ${sevCfg.border}; line-height: 1.35;`;
+
+                row.innerHTML = `
+                    <span style="color: #64748b; font-size: 10px; flex-shrink: 0;">[${timeStr}]</span>
+                    <span style="background: ${sevCfg.color}; color: #060910; font-size: 9px; font-weight: 700; border-radius: 3px; padding: 0 4px; flex-shrink: 0; line-height: 14px;">${sevCfg.label}</span>
+                    <span style="color: #f0f6fc; font-size: 11px; word-break: break-word; flex: 1;">${m.text}</span>
+                `;
+                listEl.appendChild(row);
+            });
+        }
+
+        function toggleMessagesDrawer() {
+            const drawer = document.getElementById('messages-drawer');
+            if (!drawer) return;
+            const isOpen = drawer.style.display !== 'none';
+            drawer.style.display = isOpen ? 'none' : 'flex';
+
+            const btn = document.getElementById('btn-open-messages-drawer');
+            if (btn) btn.classList.toggle('active', !isOpen);
+
+            // If in SITL iframe visualizer mode, also toggle HUD messages tab
+            const sitlIframe = document.getElementById('sitl-viewer-frame');
+            if (sitlIframe && sitlIframe.contentWindow && typeof sitlIframe.contentWindow.switchPanelTab === 'function') {
+                sitlIframe.contentWindow.switchPanelTab(isOpen ? 'telemetry' : 'messages');
+            }
+        }
+
+        function filterDrawerMessages(searchVal) {
+            currentDrawerSearch = (searchVal || '').toLowerCase();
+            renderDrawerMessagesList();
+        }
+
+        function filterDrawerMessagesBySeverity(sevVal) {
+            currentDrawerSeverity = sevVal;
+            renderDrawerMessagesList();
+        }
+
+        function onSitlIframeLoaded() {
+            if (currentTrajectory && currentTrajectory.length > 0) {
+                const iframe = document.getElementById('sitl-viewer-frame');
+                if (iframe && iframe.contentWindow) {
+                    iframe.contentWindow.postMessage({
+                        type: 'LOAD_FLIGHT_LOG',
+                        trajectory: currentTrajectory,
+                        messages: currentFlightMessages
+                    }, '*');
+                    const firstValid = currentTrajectory.find(p => p.lat && p.lng && Math.abs(p.lat) > 0.001) || currentTrajectory[0];
+                    if (firstValid) {
+                        iframe.contentWindow.postMessage({
+                            type: 'SYNC_TELEMETRY',
+                            telemetry: firstValid
+                        }, '*');
+                    }
+                    try {
+                        if (typeof iframe.contentWindow.renderLogFlightCorridor === 'function') {
+                            iframe.contentWindow.renderLogFlightCorridor(currentTrajectory);
+                        }
+                        if (typeof iframe.contentWindow.loadFlightLogTrajectory === 'function') {
+                            iframe.contentWindow.loadFlightLogTrajectory(currentTrajectory);
+                        }
+                        if (typeof iframe.contentWindow.loadFlightLogMessages === 'function') {
+                            iframe.contentWindow.loadFlightLogMessages(currentFlightMessages);
+                        }
+                        if (typeof iframe.contentWindow.applyFlightLogTelemetry === 'function' && firstValid) {
+                            iframe.contentWindow.applyFlightLogTelemetry(firstValid, true);
+                        }
+                    } catch(e) {}
+                }
+            }
+        }
+
+        // ---------------------------------------------------------------------------
+        // Logs Library & Loading
+        // ---------------------------------------------------------------------------
+        async function fetchLogsList() {
+            try {
+                const res = await fetch('/api/logs');
+                const data = await res.json();
+                if (data.success && data.logs) {
+                    const sel = document.getElementById('log-file-select');
+                    sel.innerHTML = '';
+                    data.logs.forEach((log, idx) => {
+                        const opt = document.createElement('option');
+                        opt.value = log.path;
+                        opt.textContent = `${log.filename} (${log.date_str}, ${log.size_mb} MB)`;
+                        if (idx === 0) opt.selected = true;
+                        sel.appendChild(opt);
+                    });
+                }
+            } catch (e) {
+                console.error("Failed to fetch logs list:", e);
+            }
+        }
+
+        async function loadSelectedLog() {
+            const sel = document.getElementById('log-file-select');
+            const targetPath = sel.value;
+            if (!targetPath) return;
+
+            document.getElementById('meta-date').textContent = "Parsing flight telemetry...";
+
+            try {
+                const res = await fetch(`/api/load?path=${encodeURIComponent(targetPath)}`);
+                const data = await res.json();
+                if (!data.success) {
+                    alert("Error parsing log: " + data.error);
+                    return;
+                }
+
+                currentFlightData = data;
+                currentTrajectory = data.telemetry || [];
+
+                document.getElementById('meta-date').textContent = "Date: " + data.metadata.date_str;
+                document.getElementById('meta-board').textContent = "Board: " + data.metadata.board;
+                document.getElementById('meta-dur').textContent = `Duration: ${Math.floor(data.metadata.duration_s / 60)}m ${Math.floor(data.metadata.duration_s % 60)}s`;
+
+                buildMessageTree(data.formats);
+                populateSegmentSelectors(data.mode_segments, data.speed_steps);
+
+                // Setup Replay Timeline Extents
+                flightMaxTime = (currentTrajectory[currentTrajectory.length - 1]?.time) || (data.metadata?.duration_s) || 100;
+                currentTimeCursor = 0;
+                isReplaying = false;
+                const playBtn = document.getElementById('btn-play-pause');
+                if (playBtn) playBtn.classList.remove('playing');
+                const playIcon = document.getElementById('play-icon');
+                if (playIcon) playIcon.textContent = "Play";
+                updateReplayScrubberUI(0);
+
+                // Update Leaflet Satellite Map & 3D Visualizer Trajectories
+                updateMapTrajectory(currentTrajectory);
+                load3DTrajectory(currentTrajectory);
+
+                // Extract & load Autopilot Messages
+                currentFlightMessages = data.messages || [];
+                populateMessagesDrawer(currentFlightMessages);
+
+                onSitlIframeLoaded();
+                setTimeout(onSitlIframeLoaded, 400);
+                setTimeout(onSitlIframeLoaded, 1200);
+
+                // Start in Full Screen Map / Visualizer beside Sidebar (Plot stays hidden until user starts plotting)
+                activeFields = [];
+                renderActiveFieldChips();
+                setPlotVisibility(false);
+                const presetSel = document.getElementById('preset-select');
+                if (presetSel) presetSel.value = '';
+
+            } catch (e) {
+                console.error("Error loading log:", e);
+            }
+        }
+
+        function onLogSelectChanged() {
+            loadSelectedLog();
+        }
+
+        // ---------------------------------------------------------------------------
+        // Message Tree Construction (UAV Log Viewer format)
+        // ---------------------------------------------------------------------------
+        function buildMessageTree(formats) {
+            const treeContainer = document.getElementById('message-tree');
+            treeContainer.innerHTML = '';
+
+            const sortedKeys = Object.keys(formats).sort();
+            sortedKeys.forEach(msgName => {
+                const cols = formats[msgName];
+                const node = document.createElement('div');
+                node.className = 'msg-node';
+                node.dataset.msg = msgName;
+
+                const header = document.createElement('div');
+                header.className = 'msg-header';
+                header.innerHTML = `<span>${msgName}</span><span style="font-size:10px; color:#64748b;">${cols.length} fields</span>`;
+                header.onclick = () => {
+                    const fContainer = node.querySelector('.msg-fields-container');
+                    fContainer.classList.toggle('expanded');
+                };
+
+                const fContainer = document.createElement('div');
+                fContainer.className = 'msg-fields-container';
+
+                cols.forEach(col => {
+                    const fItem = document.createElement('div');
+                    fItem.className = 'field-item';
+                    fItem.innerHTML = `<span>${col}</span><span style="color:#475569; font-size:9px;">+ PLOT</span>`;
+                    fItem.onclick = (e) => {
+                        e.stopPropagation();
+                        addFieldToPlot(`${msgName}.${col}`);
+                    };
+                    fContainer.appendChild(fItem);
+                });
+
+                node.appendChild(header);
+                node.appendChild(fContainer);
+                treeContainer.appendChild(node);
+            });
+        }
+
+        function filterMessageTree(query) {
+            const q = query.trim().toUpperCase();
+            const nodes = document.querySelectorAll('.msg-node');
+            nodes.forEach(node => {
+                const msgName = node.dataset.msg.toUpperCase();
+                node.style.display = msgName.includes(q) ? 'block' : 'none';
+            });
+        }
+
+        // ---------------------------------------------------------------------------
+        // Active Plotted Fields Management
+        // ---------------------------------------------------------------------------
+        function addFieldToPlot(fieldName, axis = 0) {
+            if (activeFields.length >= 8) {
+                alert("Maximum 8 simultaneous curves supported.");
+                return;
+            }
+            if (activeFields.some(f => f.name === fieldName)) return;
+
+            const color = PALETTE[activeFields.length % PALETTE.length];
+            activeFields.push({ name: fieldName, axis: axis, color: color });
+
+            renderActiveFieldChips();
+            setPlotVisibility(true);
+            updatePlot();
+        }
+
+        function removeField(fieldName) {
+            activeFields = activeFields.filter(f => f.name !== fieldName);
+            renderActiveFieldChips();
+            if (activeFields.length === 0) {
+                setPlotVisibility(false);
+            }
+            updatePlot();
+        }
+
+        function toggleAxis(fieldName) {
+            const f = activeFields.find(x => x.name === fieldName);
+            if (f) {
+                f.axis = f.axis === 0 ? 1 : 0;
+                renderActiveFieldChips();
+                updatePlot();
+            }
+        }
+
+        function clearAllFields() {
+            activeFields = [];
+            renderActiveFieldChips();
+            setPlotVisibility(false);
+            const presetSel = document.getElementById('preset-select');
+            if (presetSel) presetSel.value = '';
+            updatePlot();
+        }
+
+        function renderActiveFieldChips() {
+            const container = document.getElementById('active-fields-list');
+            container.innerHTML = '';
+            document.getElementById('active-field-count').textContent = `${activeFields.length} / 8`;
+
+            activeFields.forEach(f => {
+                const chip = document.createElement('div');
+                chip.className = 'active-field-chip';
+                chip.innerHTML = `
+                    <div class="chip-left">
+                        <span class="color-dot" style="background:${f.color};"></span>
+                        <span class="chip-label">${f.name}</span>
+                    </div>
+                    <div class="chip-ctrls">
+                        <button class="axis-btn ${f.axis === 0 ? 'active' : ''}" onclick="toggleAxis('${f.name}')">Y${f.axis + 1}</button>
+                        <button class="chip-del" onclick="removeField('${f.name}')">x</button>
+                    </div>
+                `;
+                container.appendChild(chip);
+            });
+        }
+
+        function applyPreset(presetKey) {
+            activeFields = [];
+            if (!presetKey) {
+                renderActiveFieldChips();
+                setPlotVisibility(false);
+                updatePlot();
+                return;
+            }
+            if (presetKey === 'efficiency') {
+                activeFields = [
+                    { name: 'ARSP.Airspeed', axis: 0, color: '#00d2ff' },
+                    { name: 'BAT.Power', axis: 1, color: '#a855f7' },
+                    { name: 'CTUN.ThO', axis: 1, color: '#f97316' },
+                    { name: 'AOA.AOA', axis: 0, color: '#22c55e' }
+                ];
+            } else if (presetKey === 'atmosphere') {
+                activeFields = [
+                    { name: 'BARO.Press', axis: 1, color: '#00d2ff' },
+                    { name: 'BARO.Temp', axis: 0, color: '#f97316' },
+                    { name: 'Calc.Density', axis: 0, color: '#22c55e' },
+                    { name: 'Calc.WindSpd', axis: 0, color: '#ffd60a' }
+                ];
+            } else if (presetKey === 'altitude') {
+                activeFields = [
+                    { name: 'BARO.Alt', axis: 1, color: '#22c55e' },
+                    { name: 'BARO.CRt', axis: 0, color: '#ffd60a' },
+                    { name: 'TECS.spdem', axis: 0, color: '#00d2ff' }
+                ];
+            } else if (presetKey === 'attitude') {
+                activeFields = [
+                    { name: 'ATT.Roll', axis: 0, color: '#ef4444' },
+                    { name: 'ATT.Pitch', axis: 0, color: '#38bdf8' },
+                    { name: 'ATT.Yaw', axis: 1, color: '#ffd60a' }
+                ];
+            } else if (presetKey === 'power') {
+                activeFields = [
+                    { name: 'BAT.Volt', axis: 0, color: '#00d2ff' },
+                    { name: 'BAT.Curr', axis: 1, color: '#f97316' },
+                    { name: 'BAT.Power', axis: 1, color: '#a855f7' }
+                ];
+            }
+            renderActiveFieldChips();
+            setPlotVisibility(true);
+            updatePlot();
+        }
+
+        // ---------------------------------------------------------------------------
+        // High-Performance Plotly Multi-Series Chart with Flight Mode Spans
+        // ---------------------------------------------------------------------------
+        function updatePlot() {
+            if (!currentFlightData || !currentFlightData.telemetry) return;
+            const tele = currentFlightData.telemetry;
+            const timeSeries = tele.map(r => r.time);
+
+            const traces = [];
+            activeFields.forEach(f => {
+                const key = FIELD_ALIAS_MAP[f.name];
+                let yData = [];
+
+                if (key && tele[0][key] !== undefined) {
+                    yData = tele.map(r => r[key]);
+                } else {
+                    yData = tele.map(r => r.tas || 0);
+                }
+
+                const validY = yData.filter(v => v !== null && !isNaN(v));
+                const minV = validY.length ? Math.min(...validY).toFixed(1) : 0;
+                const maxV = validY.length ? Math.max(...validY).toFixed(1) : 0;
+                const meanV = validY.length ? (validY.reduce((a,b)=>a+b,0) / validY.length).toFixed(1) : 0;
+
+                traces.push({
+                    x: timeSeries,
+                    y: yData,
+                    name: `${f.name} [Min:${minV} Max:${maxV} Mean:${meanV}]`,
+                    yaxis: f.axis === 1 ? 'y2' : 'y',
+                    line: { color: f.color, width: 1.8 },
+                    hoverinfo: 'x+y+name'
+                });
+            });
+
+            const shapes = [];
+            const modeColors = {
+                'AUTO': 'rgba(34, 197, 94, 0.15)',
+                'FBWA': 'rgba(2, 132, 199, 0.18)',
+                'FBWB': 'rgba(14, 165, 233, 0.18)',
+                'CRUISE': 'rgba(168, 85, 247, 0.18)',
+                'MANUAL': 'rgba(239, 68, 68, 0.18)',
+                'RTL': 'rgba(249, 115, 22, 0.22)'
+            };
+
+            if (currentFlightData.mode_segments) {
+                currentFlightData.mode_segments.forEach(seg => {
+                    const c = modeColors[seg.mode] || 'rgba(148, 163, 184, 0.1)';
+                    shapes.push({
+                        type: 'rect',
+                        xref: 'x',
+                        yref: 'paper',
+                        x0: seg.start,
+                        x1: seg.end,
+                        y0: 0,
+                        y1: 1,
+                        fillcolor: c,
+                        line: { width: 0 }
+                    });
+                });
+            }
+            basePlotShapes = shapes;
+
+            const layout = {
+                paper_bgcolor: '#0c121c',
+                plot_bgcolor: '#070a10',
+                margin: { l: 45, r: 45, t: 25, b: 35 },
+                font: { family: 'Consolas, Segoe UI, sans-serif', size: 10, color: '#94a3b8' },
+                hovermode: 'x unified',
+                shapes: shapes,
+                legend: { orientation: 'h', y: 1.08, x: 0.5, xanchor: 'center' },
+                xaxis: {
+                    title: 'Mission Time (seconds)',
+                    gridcolor: '#1a2436',
+                    rangeslider: { visible: true, thickness: 0.12, bgcolor: '#0b111a' }
+                },
+                yaxis: {
+                    title: 'Primary Axis',
+                    gridcolor: '#1a2436',
+                    zerolinecolor: '#223048'
+                },
+                yaxis2: {
+                    title: 'Secondary Axis',
+                    overlaying: 'y',
+                    side: 'right',
+                    gridcolor: '#141d2c',
+                    zerolinecolor: '#223048'
+                }
+            };
+
+            const config = { responsive: true, displayModeBar: false };
+
+            Plotly.react('main-plot', traces, layout, config);
+
+            // Hook Timeline Hover & Click to Map and 3D plane
+            const plotEl = document.getElementById('main-plot');
+            plotEl.on('plotly_hover', data => {
+                if (data.points && data.points.length > 0) {
+                    syncTelemetryAtTime(data.points[0].x, true);
+                    updatePlotCursor(data.points[0].x);
+                }
+            });
+            plotEl.on('plotly_click', data => {
+                if (data.points && data.points.length > 0) {
+                    syncTelemetryAtTime(data.points[0].x, true);
+                    updatePlotCursor(data.points[0].x);
+                }
+            });
+            plotEl.on('plotly_relayout', () => {
+                updatePlotCursor(currentTimeCursor);
+            });
+        }
+
+        // ---------------------------------------------------------------------------
+        // Continuous Spline Interpolator (60 FPS Smooth Flight Simulation)
+        // ---------------------------------------------------------------------------
+        function getInterpolatedTelemetry(timeSec) {
+            if (!currentTrajectory || currentTrajectory.length === 0) return null;
+            if (timeSec <= currentTrajectory[0].time) return currentTrajectory[0];
+            const last = currentTrajectory[currentTrajectory.length - 1];
+            if (timeSec >= last.time) return last;
+
+            // Fast Binary Search for surrounding bracket [idx0, idx1]
+            let low = 0, high = currentTrajectory.length - 1;
+            while (low <= high) {
+                const mid = (low + high) >> 1;
+                if (currentTrajectory[mid].time < timeSec) {
+                    low = mid + 1;
+                } else {
+                    high = mid - 1;
+                }
+            }
+
+            const idx0 = Math.max(0, low - 1);
+            const idx1 = Math.min(currentTrajectory.length - 1, low);
+            const p0 = currentTrajectory[idx0];
+            const p1 = currentTrajectory[idx1];
+
+            if (idx0 === idx1 || p1.time <= p0.time) return p0;
+
+            const alpha = Math.max(0, Math.min(1, (timeSec - p0.time) / (p1.time - p0.time)));
+
+            // Shortest angular path interpolation for heading / yaw (handles 0/360 wrap)
+            let dyaw = (p1.yaw - p0.yaw) % 360;
+            if (dyaw > 180) dyaw -= 360;
+            if (dyaw < -180) dyaw += 360;
+            const interpYaw = (p0.yaw + dyaw * alpha + 360) % 360;
+
+            // Guard against interpolating into or out of uninitialized (0, 0) GPS states
+            const hasGps0 = Math.abs(p0.lat || 0) > 0.001 && Math.abs(p0.lng || 0) > 0.001;
+            const hasGps1 = Math.abs(p1.lat || 0) > 0.001 && Math.abs(p1.lng || 0) > 0.001;
+            let interpLat = 0, interpLng = 0, interpAlt = p0.alt || 0;
+            if (hasGps0 && hasGps1) {
+                interpLat = p0.lat + (p1.lat - p0.lat) * alpha;
+                interpLng = p0.lng + (p1.lng - p0.lng) * alpha;
+                interpAlt = p0.alt + (p1.alt - p0.alt) * alpha;
+            } else if (hasGps1) {
+                interpLat = p1.lat;
+                interpLng = p1.lng;
+                interpAlt = p1.alt;
+            } else if (hasGps0) {
+                interpLat = p0.lat;
+                interpLng = p0.lng;
+                interpAlt = p0.alt;
+            }
+
+            // Interpolate 8-channel servo outputs / motor PWMs
+            let interpServos = [1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000];
+            if (p0.servos && p1.servos && p0.servos.length >= 8 && p1.servos.length >= 8) {
+                interpServos = p0.servos.map((s0, idx) => {
+                    const s1 = p1.servos[idx] !== undefined ? p1.servos[idx] : s0;
+                    return Math.round(s0 + (s1 - s0) * alpha);
+                });
+            } else if (p0.servos) {
+                interpServos = p0.servos;
+            }
+
+            return {
+                time: timeSec,
+                lat: interpLat,
+                lng: interpLng,
+                alt: interpAlt,
+                roll: p0.roll + (p1.roll - p0.roll) * alpha,
+                pitch: p0.pitch + (p1.pitch - p0.pitch) * alpha,
+                yaw: interpYaw,
+                tas: p0.tas + (p1.tas - p0.tas) * alpha,
+                gs: p0.gs + (p1.gs - p0.gs) * alpha,
+                crt: p0.crt + (p1.crt - p0.crt) * alpha,
+                power: p0.power + (p1.power - p0.power) * alpha,
+                volt: p0.volt + (p1.volt - p0.volt) * alpha,
+                curr: p0.curr + (p1.curr - p0.curr) * alpha,
+                tho: p0.tho + (p1.tho - p0.tho) * alpha,
+                consumed_mah: (p0.consumed_mah || 0) + ((p1.consumed_mah || 0) - (p0.consumed_mah || 0)) * alpha,
+                rem_pct: (p0.rem_pct !== undefined && p1.rem_pct !== undefined) ? (p0.rem_pct + (p1.rem_pct - p0.rem_pct) * alpha) : 100,
+                wh_km: p0.wh_km + (p1.wh_km - p0.wh_km) * alpha,
+                density: (p0.density || 1.18) + ((p1.density || 1.18) - (p0.density || 1.18)) * alpha,
+                press: (p0.press || 101325) + ((p1.press || 101325) - (p0.press || 101325)) * alpha,
+                temp: (p0.temp || 25) + ((p1.temp || 25) - (p0.temp || 25)) * alpha,
+                aoa: (p0.aoa || 0) + ((p1.aoa || 0) - (p0.aoa || 0)) * alpha,
+                wind_spd: (p0.wind_spd || 0) + ((p1.wind_spd || 0) - (p0.wind_spd || 0)) * alpha,
+                wind_dir: (p0.wind_dir || 0) + ((p1.wind_dir || 0) - (p0.wind_dir || 0)) * alpha,
+                mode: alpha < 0.5 ? p0.mode : p1.mode,
+                servos: interpServos
+            };
+        }
+
+        // ---------------------------------------------------------------------------
+        // Synchronize 3D Model, Map, and Telemetry HUD on Scrub & Playback
+        // ---------------------------------------------------------------------------
+        function syncTelemetryAtTime(timeSec, isJump = false) {
+            currentTimeCursor = timeSec;
+            if (!currentTrajectory || currentTrajectory.length === 0) return;
+
+            const sample = getInterpolatedTelemetry(timeSec);
+            if (!sample) return;
+
+            // Update Telemetry HUD Readouts
+            document.getElementById('hud-tas').innerHTML = `${sample.tas.toFixed(1)} <span style="font-size:10px;">m/s</span>`;
+            document.getElementById('hud-gs').textContent = `GS: ${sample.gs.toFixed(1)} m/s`;
+            document.getElementById('hud-pwr').innerHTML = `${sample.power.toFixed(1)} <span style="font-size:10px;">W</span>`;
+            document.getElementById('hud-elec').textContent = `${sample.volt.toFixed(1)} V | ${sample.curr.toFixed(2)} A`;
+            document.getElementById('hud-whkm').innerHTML = `${sample.wh_km.toFixed(2)} <span style="font-size:10px;">Wh/km</span>`;
+            document.getElementById('hud-tho').innerHTML = `${sample.tho.toFixed(1)} <span style="font-size:10px;">%</span>`;
+            document.getElementById('hud-aoa').textContent = `AoA: ${sample.aoa.toFixed(2)} deg`;
+            document.getElementById('hud-rho').innerHTML = `${sample.density.toFixed(4)} <span style="font-size:10px;">kg/m3</span>`;
+            document.getElementById('hud-press').textContent = `Press: ${(sample.press / 100).toFixed(1)} hPa`;
+            document.getElementById('hud-wind').innerHTML = `${sample.wind_spd.toFixed(1)} <span style="font-size:10px;">m/s</span>`;
+            document.getElementById('hud-wdir').textContent = `Direction: ${sample.wind_dir.toFixed(0)} deg`;
+
+            // Update Flight Mode Pill
+            const modePill = document.getElementById('replay-mode-pill');
+            if (modePill && sample.mode) {
+                modePill.textContent = sample.mode;
+            }
+
+            // Update Leaflet Satellite Map Aircraft Position & Heading
+            updatePlaneOnMap(sample.lat, sample.lng, sample.yaw);
+
+            // Update 3D Sharkee Model Attitude
+            update3DPlaneAttitude(sample.roll, sample.pitch, sample.yaw, sample.lat, sample.lng, sample.alt);
+
+            // Synchronize SITL Digital Twin Frame (Shark Hawk + PFD Horizon + NAV Compass)
+            const sitlIframe = document.getElementById('sitl-viewer-frame');
+            if (sitlIframe && sitlIframe.contentWindow) {
+                if (typeof sitlIframe.contentWindow.applyFlightLogTelemetry === 'function') {
+                    sitlIframe.contentWindow.applyFlightLogTelemetry(sample, isJump);
+                } else {
+                    sitlIframe.contentWindow.postMessage({
+                        type: 'SYNC_TELEMETRY',
+                        telemetry: sample,
+                        isJump: isJump
+                    }, '*');
+                }
+            }
+        }
+
+        // ---------------------------------------------------------------------------
+        // Flight Telemetry Replay Engine (Play / Pause / Scrub / Multiplier)
+        // ---------------------------------------------------------------------------
+        let isReplaying = false;
+        let replaySpeed = 1.0;
+        let lastReplayTimestamp = 0;
+        let flightMaxTime = 0;
+        let basePlotShapes = [];
+        let lastCursorRelayout = 0;
+
+        function toggleReplayPlayback() {
+            if (!currentTrajectory || currentTrajectory.length === 0) return;
+            isReplaying = !isReplaying;
+            const btn = document.getElementById('btn-play-pause');
+            const icon = document.getElementById('play-icon');
+            if (isReplaying) {
+                if (btn) btn.classList.add('playing');
+                if (icon) icon.textContent = "Pause";
+                lastReplayTimestamp = performance.now();
+                requestAnimationFrame(replayAnimationLoop);
+            } else {
+                if (btn) btn.classList.remove('playing');
+                if (icon) icon.textContent = "Play";
+            }
+        }
+
+        function stepReplayTime(deltaSec) {
+            if (!flightMaxTime) return;
+            currentTimeCursor = Math.max(0, Math.min(flightMaxTime, currentTimeCursor + deltaSec));
+            updateReplayScrubberUI(currentTimeCursor);
+            syncTelemetryAtTime(currentTimeCursor, true);
+            updatePlotCursor(currentTimeCursor);
+        }
+
+        function onScrubberInput(valPercent) {
+            if (!flightMaxTime) return;
+            const t = (parseFloat(valPercent) / 100.0) * flightMaxTime;
+            currentTimeCursor = t;
+            updateReplayScrubberUI(currentTimeCursor);
+            syncTelemetryAtTime(currentTimeCursor, true);
+            updatePlotCursor(currentTimeCursor);
+        }
+
+        function onReplaySpeedChange(spd) {
+            replaySpeed = parseFloat(spd) || 1.0;
+        }
+
+        function replayAnimationLoop(now) {
+            if (!isReplaying) return;
+            const dtSec = Math.min((now - lastReplayTimestamp) / 1000.0, 0.05);
+            lastReplayTimestamp = now;
+
+            if (flightMaxTime > 0) {
+                currentTimeCursor += dtSec * replaySpeed;
+                if (currentTimeCursor > flightMaxTime) {
+                    currentTimeCursor = 0;
+                }
+                updateReplayScrubberUI(currentTimeCursor);
+                syncTelemetryAtTime(currentTimeCursor, false);
+                updatePlotCursor(currentTimeCursor);
+            }
+
+            requestAnimationFrame(replayAnimationLoop);
+        }
+
+        function formatFlightClock(sec) {
+            const m = Math.floor(sec / 60);
+            const s = (sec % 60).toFixed(1);
+            return `${m.toString().padStart(2, '0')}:${s.padStart(4, '0')}`;
+        }
+
+        function updateReplayScrubberUI(curT) {
+            const scrubber = document.getElementById('replay-scrubber');
+            const timeTxt = document.getElementById('replay-time-text');
+            if (flightMaxTime > 0) {
+                const pct = (curT / flightMaxTime) * 100.0;
+                if (scrubber && document.activeElement !== scrubber) {
+                    scrubber.value = pct.toFixed(1);
+                }
+                if (timeTxt) {
+                    timeTxt.textContent = `${formatFlightClock(curT)} / ${formatFlightClock(flightMaxTime)}`;
+                }
+            }
+        }
+
+        function updatePlotCursor(t) {
+            const cursor = document.getElementById('plot-cursor-line');
+            const badge = document.getElementById('plot-cursor-badge');
+            const plotEl = document.getElementById('main-plot');
+            if (!cursor || !plotEl || !plotEl._fullLayout || !plotEl._fullLayout.xaxis) return;
+
+            const xa = plotEl._fullLayout.xaxis;
+            const ya = plotEl._fullLayout.yaxis;
+            if (!xa || !ya || !xa.range) return;
+
+            const minX = Math.min(xa.range[0], xa.range[1]);
+            const maxX = Math.max(xa.range[0], xa.range[1]);
+            if (t < minX || t > maxX) {
+                cursor.style.display = 'none';
+                return;
+            }
+
+            const xPx = xa.d2p(t) + xa._offset;
+            const topPx = ya._offset;
+            const heightPx = ya._length;
+
+            cursor.style.left = `${xPx}px`;
+            cursor.style.top = `${topPx}px`;
+            cursor.style.height = `${heightPx}px`;
+            cursor.style.display = 'block';
+
+            if (badge) {
+                badge.textContent = formatFlightClock(t);
+            }
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT')) return;
+            if (e.code === 'Space') {
+                e.preventDefault();
+                toggleReplayPlayback();
+            } else if (e.code === 'ArrowLeft') {
+                e.preventDefault();
+                stepReplayTime(-2);
+            } else if (e.code === 'ArrowRight') {
+                e.preventDefault();
+                stepReplayTime(2);
+            }
+        });
+
+        // ---------------------------------------------------------------------------
+        // Three.js 3D Sharkee Aircraft Model & Trajectory Engine
+        // ---------------------------------------------------------------------------
+        let scene, camera, renderer, controls;
+        let sharkeeModelGroup, trajectoryLine;
+        let followCamera = true;
+
+        function initThreeJS() {
+            const container = document.getElementById('three-canvas-container');
+            const w = container.clientWidth || 400;
+            const h = container.clientHeight || 200;
+
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x080e18);
+
+            camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 20000);
+            camera.position.set(2.5, 1.8, 3.5);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(w, h);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.shadowMap.enabled = true;
+            container.appendChild(renderer.domElement);
+
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+
+            const ambLight = new THREE.AmbientLight(0xffffff, 0.7);
+            scene.add(ambLight);
+
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.9);
+            dirLight.position.set(10, 20, 15);
+            scene.add(dirLight);
+
+            const grid = new THREE.GridHelper(500, 50, 0x00d2ff, 0x1e293b);
+            grid.position.y = -2;
+            scene.add(grid);
+
+            sharkeeModelGroup = new THREE.Group();
+            scene.add(sharkeeModelGroup);
+
+            loadSharkeeCAD();
+
+            window.addEventListener('resize', onWindowResize);
+            animateThree();
+        }
+
+        function loadSharkeeCAD() {
+            const loader = new THREE.GLTFLoader();
+            loader.load('models/Sharkee.glb', (gltf) => {
+                const model = gltf.scene;
+                model.scale.set(0.001, 0.001, 0.001);
+                model.rotation.set(0, THREE.MathUtils.degToRad(90), THREE.MathUtils.degToRad(180));
+                sharkeeModelGroup.add(model);
+            }, undefined, (err) => {
+                const bodyGeo = new THREE.ConeGeometry(0.3, 2.0, 8);
+                bodyGeo.rotateX(Math.PI / 2);
+                const wingGeo = new THREE.BoxGeometry(3.0, 0.04, 0.5);
+                const mat = new THREE.MeshPhongMaterial({ color: 0x00d2ff });
+                const planeMesh = new THREE.Group();
+                planeMesh.add(new THREE.Mesh(bodyGeo, mat));
+                planeMesh.add(new THREE.Mesh(wingGeo, mat));
+                sharkeeModelGroup.add(planeMesh);
+            });
+        }
+
+        function load3DTrajectory(trajectory) {
+            if (trajectoryLine) scene.remove(trajectoryLine);
+            if (!trajectory || trajectory.length === 0) return;
+
+            const points = [];
+            const refLat = trajectory[0].lat;
+            const refLng = trajectory[0].lng;
+            const refAlt = trajectory[0].alt;
+
+            trajectory.forEach(pt => {
+                if (pt.lat !== 0 && pt.lng !== 0) {
+                    const x = (pt.lng - refLng) * 111320 * Math.cos(refLat * Math.PI / 180);
+                    const z = (refLat - pt.lat) * 110540;
+                    const y = (pt.alt - refAlt) * 0.2;
+                    points.push(new THREE.Vector3(x * 0.05, y, z * 0.05));
+                }
+            });
+
+            if (points.length > 1) {
+                const geom = new THREE.BufferGeometry().setFromPoints(points);
+                const mat = new THREE.LineBasicMaterial({ color: 0x22c55e, linewidth: 2 });
+                trajectoryLine = new THREE.Line(geom, mat);
+                scene.add(trajectoryLine);
+            }
+        }
+
+        function update3DPlaneAttitude(rollDeg, pitchDeg, yawDeg) {
+            if (!sharkeeModelGroup) return;
+            const r = THREE.MathUtils.degToRad(rollDeg);
+            const p = THREE.MathUtils.degToRad(pitchDeg);
+            const y = THREE.MathUtils.degToRad(-yawDeg);
+
+            sharkeeModelGroup.rotation.set(p, y, -r);
+
+            if (followCamera) {
+                camera.position.x = sharkeeModelGroup.position.x + 2.5;
+                camera.position.y = sharkeeModelGroup.position.y + 1.8;
+                camera.position.z = sharkeeModelGroup.position.z + 3.5;
+                controls.target.copy(sharkeeModelGroup.position);
+            }
+        }
+
+        function toggleCameraMode() {
+            followCamera = !followCamera;
+            document.getElementById('btn-follow').textContent = followCamera ? "Follow Plane" : "Free Camera";
+        }
+
+        function reset3DCamera() {
+            camera.position.set(2.5, 1.8, 3.5);
+            controls.target.set(0, 0, 0);
+            followCamera = true;
+            document.getElementById('btn-follow').textContent = "Follow Plane";
+        }
+
+        function onWindowResize() {
+            const container = document.getElementById('three-canvas-container');
+            if (!container || !renderer) return;
+            const w = container.clientWidth;
+            const h = container.clientHeight;
+            camera.aspect = w / h;
+            camera.updateProjectionMatrix();
+            renderer.setSize(w, h);
+        }
+
+        function animateThree() {
+            requestAnimationFrame(animateThree);
+            const threePane = document.getElementById('three-hud-pane');
+            if (!threePane || threePane.style.display === 'none' || !renderer || !scene || !camera) return;
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        // ---------------------------------------------------------------------------
+        // Segment Extraction & Results Table
+        // ---------------------------------------------------------------------------
+        function populateSegmentSelectors(modeSegs, speedSteps) {
+            const modeSel = document.getElementById('mode-segment-select');
+            modeSel.innerHTML = '<option value="">Select Flight Mode Segment...</option>';
+            if (modeSegs) {
+                modeSegs.forEach(seg => {
+                    const opt = document.createElement('option');
+                    opt.value = `${seg.start},${seg.end}`;
+                    opt.textContent = `Mode ${seg.mode}: ${seg.start}s - ${seg.end}s (${seg.dur}s)`;
+                    modeSel.appendChild(opt);
+                });
+            }
+
+            const stepSel = document.getElementById('step-segment-select');
+            stepSel.innerHTML = '<option value="">Select Airspeed Test Step (AUTO)...</option>';
+            if (speedSteps) {
+                speedSteps.forEach(step => {
+                    const opt = document.createElement('option');
+                    opt.value = `${step.start},${step.end}`;
+                    opt.textContent = `Target ${step.target_eas} m/s: ${step.start}s - ${step.end}s (${step.dur}s)`;
+                    stepSel.appendChild(opt);
+                });
+            }
+        }
+
+        function onSegmentSelect(val) {
+            if (!val) return;
+            const [t0, t1] = val.split(',').map(Number);
+            zoomPlotToRange(t0, t1);
+            syncTelemetryAtTime((t0 + t1) / 2);
+        }
+
+        function onStepSelect(val) {
+            if (!val) return;
+            const [t0, t1] = val.split(',').map(Number);
+            zoomPlotToRange(t0, t1);
+            syncTelemetryAtTime((t0 + t1) / 2);
+        }
+
+        function zoomPlotToRange(t0, t1) {
+            Plotly.relayout('main-plot', {
+                'xaxis.range': [t0, t1]
+            });
+        }
+
+        async function addCurrentSegmentToTable() {
+            if (!currentFlightData) return;
+            const plotEl = document.getElementById('main-plot');
+            let t0 = 0, t1 = currentFlightData.metadata.duration_s;
+            if (plotEl && plotEl.layout && plotEl.layout.xaxis && plotEl.layout.xaxis.range) {
+                t0 = plotEl.layout.xaxis.range[0];
+                t1 = plotEl.layout.xaxis.range[1];
+            }
+
+            try {
+                const res = await fetch('/api/calculate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        path: currentFlightData.metadata.path,
+                        start: t0,
+                        end: t1,
+                        weight: 5.1,
+                        wing_area: 0.45
+                    })
+                });
+                const data = await res.json();
+                if (data.success && data.metrics) {
+                    testTableRows.push(data.metrics);
+                    updateResultsTableUI();
+                    alert(`Added test point: TAS ${data.metrics.tas} m/s | Power ${data.metrics.power} W | Wh/km ${data.metrics.wh_km_air}`);
+                }
+            } catch (e) {
+                console.error("Failed to compute regime metrics:", e);
+            }
+        }
+
+        function updateResultsTableUI() {
+            document.getElementById('table-row-count').textContent = testTableRows.length;
+            const tbody = document.getElementById('results-tbody');
+            if (testTableRows.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="10" style="padding:14px; text-align:center; color:#64748b;">No test segments added yet.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = '';
+            testTableRows.sort((a,b) => a.tas - b.tas);
+
+            testTableRows.forEach(r => {
+                const tr = document.createElement('tr');
+                tr.style.borderBottom = '1px solid #1e293b';
+                tr.innerHTML = `
+                    <td style="padding:6px; color:#00d2ff; font-weight:bold;">${r.tas}</td>
+                    <td style="padding:6px;">${r.gs}</td>
+                    <td style="padding:6px; color:#f97316;">${r.throttle}%</td>
+                    <td style="padding:6px; color:#a855f7; font-weight:bold;">${r.power}</td>
+                    <td style="padding:6px; color:#22c55e;">${r.wh_km_air}</td>
+                    <td style="padding:6px;">${r.aoa}</td>
+                    <td style="padding:6px; color:#c084fc;">${r.cl}</td>
+                    <td style="padding:6px;">${r.density}</td>
+                    <td style="padding:6px;">${r.wind_spd} m/s @ ${r.wind_dir}°</td>
+                    <td style="padding:6px; font-weight:bold;">${r.mode}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function exportResultsCSV() {
+            if (testTableRows.length === 0) {
+                alert("Test table is empty.");
+                return;
+            }
+            const keys = Object.keys(testTableRows[0]);
+            let csv = keys.join(',') + '\n';
+            testTableRows.forEach(r => {
+                csv += keys.map(k => r[k]).join(',') + '\n';
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Sharkee_Flight_Test_Results_${new Date().toISOString().slice(0,10)}.csv`;
+            a.click();
+        }
+
+        function clearResultsTable() {
+            testTableRows = [];
+            updateResultsTableUI();
+        }
+
+        function openExpressionModal() { document.getElementById('expression-modal').style.display = 'flex'; }
+        function closeExpressionModal() { document.getElementById('expression-modal').style.display = 'none'; }
+        function openTestTableModal() { document.getElementById('table-modal').style.display = 'flex'; }
+        function closeTestTableModal() { document.getElementById('table-modal').style.display = 'none'; }
+
+        function addCustomExpression() {
+            const expr = document.getElementById('custom-expr-input').value.trim();
+            if (expr) {
+                addFieldToPlot(`Expr: ${expr}`, 0);
+                closeExpressionModal();
+            }
+        }
+    </script>
+</body>
+</html>

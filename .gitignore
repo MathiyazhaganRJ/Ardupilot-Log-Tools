@@ -1,3 +1,8 @@
 __pycache__/
+*.py[cod]
+*$py.class
 *.bin
+*.log
 .DS_Store
+Thumbs.db
+verify_*.png

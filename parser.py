@@ -1,0 +1,490 @@
+"""
+ArduPilot DataFlash Binary Log Parser
+Extracts synchronized flight telemetry, message formats, and aerodynamic performance.
+"""
+
+import os
+import math
+import datetime
+import numpy as np
+from pymavlink import mavutil
+
+GPS_EPOCH = datetime.datetime(1980, 1, 6, tzinfo=datetime.timezone.utc)
+MODE_MAP = {
+    0: 'MANUAL', 1: 'CIRCLE', 2: 'STABILIZE', 3: 'TRAINING',
+    5: 'FBWA', 6: 'FBWB', 7: 'CRUISE', 10: 'AUTO',
+    11: 'RTL', 12: 'LOITER', 15: 'GUIDED'
+}
+
+def discover_flight_logs(base_dir=None):
+    """Finds all .bin flight logs in the logs directory, sorted by date."""
+    candidate_dirs = []
+    if base_dir:
+        candidate_dirs.append(base_dir)
+    env_dir = os.environ.get("ARDUPILOT_LOGS_DIR")
+    if env_dir:
+        candidate_dirs.append(env_dir)
+    candidate_dirs.append(r"C:\Users\KARSHAK_Tamal\Desktop\Logs")
+    user_desktop_logs = os.path.join(os.path.expanduser("~"), "Desktop", "Logs")
+    if user_desktop_logs not in candidate_dirs:
+        candidate_dirs.append(user_desktop_logs)
+    local_logs = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs")
+    candidate_dirs.append(local_logs)
+
+    valid_dir = None
+    for d in candidate_dirs:
+        if d and os.path.exists(d):
+            valid_dir = d
+            break
+
+    logs = []
+    if valid_dir and os.path.exists(valid_dir):
+        for root, dirs, files in os.walk(valid_dir):
+            for f in files:
+                if f.lower().endswith('.bin'):
+                    full_p = os.path.join(root, f)
+                    try:
+                        mtime = os.path.getmtime(full_p)
+                        size_mb = os.path.getsize(full_p) / (1024 * 1024)
+                        rel_p = os.path.relpath(full_p, valid_dir)
+                        logs.append({
+                            'path': full_p,
+                            'rel_path': rel_p,
+                            'filename': f,
+                            'size_mb': round(size_mb, 2),
+                            'mtime': mtime,
+                            'date_str': datetime.datetime.fromtimestamp(mtime).strftime('%Y-%m-%d %H:%M')
+                        })
+                    except Exception:
+                        pass
+    logs.sort(key=lambda x: x['mtime'], reverse=True)
+    return logs
+
+
+def get_log_formats(file_path):
+    """
+    Quickly scans the beginning of the .bin log to extract FMT message formats.
+    Returns a dictionary of all available message types and their field names.
+    """
+    formats = {}
+    mlog = mavutil.mavlink_connection(file_path)
+    count = 0
+    while count < 4000:
+        msg = mlog.recv_match(blocking=False)
+        if not msg:
+            break
+        count += 1
+        if msg.get_type() == 'FMT':
+            name = getattr(msg, 'Name', '')
+            cols = [c.strip() for c in getattr(msg, 'Columns', '').split(',')]
+            if name and cols:
+                formats[name] = cols
+    mlog.close()
+    return formats
+
+
+def parse_flight_telemetry(file_path, target_samples=6000):
+    """
+    Parses ArduPilot .bin log into a synchronized timeline of flight telemetry.
+    Returns:
+      - metadata: dict of flight information
+      - formats: dict of all message types and fields discovered
+      - telemetry: dict of synchronized time series arrays
+      - mode_segments: list of flight mode intervals
+      - speed_steps: list of detected airspeed test steps in AUTO mode
+    """
+    mlog = mavutil.mavlink_connection(file_path)
+    target_types = ['FMT', 'MODE', 'ATT', 'BARO', 'BAT', 'ARSP', 'XKF1', 'XKF2', 'AHR2', 'CTUN', 'GPS', 'POS', 'AOA', 'TECS', 'MSG', 'RCOU']
+
+    formats = {}
+    raw_records = []
+    
+    cur_mode = 'MANUAL'
+    cur_roll = cur_pitch = cur_yaw = 0.0
+    cur_alt = cur_crt = 0.0
+    cur_amsl = 0.0
+    home_elevation = 0.0
+    cur_rel_alt = 0.0
+    cur_press = 101325.0
+    cur_temp = 25.0
+    cur_baro_temp = 25.0
+    cur_arsp_temp = None
+    cur_tas = cur_gs = cur_tho = cur_spdem = 0.0
+    cur_vwn = cur_vwe = cur_aoa = cur_ssa = 0.0
+    cur_lat = cur_lng = 0.0
+    cur_servos = [1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000]
+    
+    true_flight_date = None
+    gps_week = 0
+    gps_ms = 0
+    firmware = "ArduPlane"
+    board = "Autopilot Board"
+    flight_messages = []
+
+    while True:
+        msg = mlog.recv_match(type=target_types, blocking=False)
+        if not msg:
+            break
+        mtype = msg.get_type()
+
+        if mtype == 'FMT':
+            name = getattr(msg, 'Name', '')
+            cols = [c.strip() for c in getattr(msg, 'Columns', '').split(',')]
+            if name and cols:
+                formats[name] = cols
+
+        elif mtype == 'GPS':
+            status = getattr(msg, 'Status', 0)
+            gwk = getattr(msg, 'GWk', 0)
+            gms = getattr(msg, 'GMS', 0)
+            if status >= 3 and gwk > 1500 and gps_week == 0:
+                gps_week = gwk
+                gps_ms = gms
+            cur_gs = getattr(msg, 'Spd', cur_gs)
+            lat_raw = getattr(msg, 'Lat', 0)
+            lng_raw = getattr(msg, 'Lng', 0)
+            if abs(lat_raw) > 1000:
+                cur_lat = lat_raw / 1e7
+                cur_lng = lng_raw / 1e7
+            if status >= 3:
+                gps_a = getattr(msg, 'Alt', None)
+                if gps_a is not None and abs(gps_a) > 0.001:
+                    cur_amsl = float(gps_a)
+                    if home_elevation == 0.0:
+                        home_elevation = float(gps_a)
+
+        elif mtype == 'POS':
+            lat_p = getattr(msg, 'Lat', 0)
+            lng_p = getattr(msg, 'Lng', 0)
+            if abs(lat_p) > 0.01:
+                cur_lat = lat_p
+                cur_lng = lng_p
+            pos_alt = getattr(msg, 'Alt', None)
+            if pos_alt is not None and abs(pos_alt) > 0.001 and cur_amsl == 0.0:
+                cur_amsl = float(pos_alt)
+                if home_elevation == 0.0:
+                    home_elevation = float(pos_alt)
+            rel_home = getattr(msg, 'RelHomeAlt', None)
+            if rel_home is not None:
+                cur_rel_alt = float(rel_home)
+
+        elif mtype == 'MODE':
+            m_val = getattr(msg, 'Mode', 'MANUAL')
+            cur_mode = MODE_MAP.get(m_val, str(m_val)) if isinstance(m_val, int) else str(m_val)
+
+        elif mtype == 'ATT':
+            cur_roll = getattr(msg, 'Roll', cur_roll)
+            cur_pitch = getattr(msg, 'Pitch', cur_pitch)
+            cur_yaw = getattr(msg, 'Yaw', cur_yaw)
+
+        elif mtype == 'BARO':
+            cur_press = getattr(msg, 'Press', cur_press)
+            b_temp = getattr(msg, 'Temp', None)
+            if b_temp is not None:
+                cur_baro_temp = b_temp
+                cur_temp = b_temp
+            if cur_crt == 0.0:
+                cur_crt = getattr(msg, 'CRt', cur_crt)
+            if cur_alt == 0.0:
+                cur_alt = getattr(msg, 'Alt', cur_alt)
+
+        elif mtype == 'XKF1':
+            pd = getattr(msg, 'PD', None)
+            if pd is not None and getattr(msg, 'C', 0) == 0:
+                cur_rel_alt = -pd
+                if home_elevation != 0.0:
+                    cur_amsl = home_elevation + cur_rel_alt
+                elif cur_alt != 0.0:
+                    cur_amsl = cur_alt
+                else:
+                    cur_amsl = cur_rel_alt
+                cur_alt = cur_amsl
+            vd = getattr(msg, 'VD', None)
+            if vd is not None:
+                cur_crt = -vd
+
+        elif mtype == 'AHR2':
+            lat_a = getattr(msg, 'Lat', 0)
+            lng_a = getattr(msg, 'Lng', 0)
+            if abs(lat_a) > 0.01:
+                cur_lat = lat_a
+                cur_lng = lng_a
+            if cur_alt == 0.0:
+                alt_a = getattr(msg, 'Alt', None)
+                if alt_a is not None:
+                    cur_alt = alt_a
+
+        elif mtype == 'ARSP':
+            cur_tas = getattr(msg, 'Airspeed', cur_tas)
+            arsp_t = getattr(msg, 'Temp', None)
+            if arsp_t is not None:
+                cur_arsp_temp = arsp_t
+
+        elif mtype == 'CTUN':
+            raw_tho = getattr(msg, 'ThO', cur_tho)
+            if 0 < raw_tho <= 1.0:
+                raw_tho *= 100.0
+            cur_tho = raw_tho
+
+        elif mtype == 'AOA':
+            cur_aoa = getattr(msg, 'AOA', getattr(msg, 'Aoa', cur_aoa))
+            cur_ssa = getattr(msg, 'SSA', getattr(msg, 'Ssa', cur_ssa))
+
+        elif mtype == 'XKF2':
+            cur_vwn = getattr(msg, 'VWN', cur_vwn)
+            cur_vwe = getattr(msg, 'VWE', cur_vwe)
+
+        elif mtype == 'TECS':
+            cur_spdem = getattr(msg, 'spdem', cur_spdem)
+
+        elif mtype == 'MSG':
+            txt = getattr(msg, 'Message', '').strip()
+            t_s = getattr(msg, 'TimeUS', 0) / 1e6
+            if 'Ardu' in txt:
+                firmware = txt.split('(')[0].strip()
+            if 'Matek' in txt: board = 'Matek F405/H743'
+            elif 'Cube' in txt: board = 'Cube Orange/Black'
+            elif 'Speedy' in txt: board = 'SpeedyBee'
+            elif 'Pixhawk' in txt: board = 'Pixhawk'
+
+            if txt:
+                txt_lower = txt.lower()
+                if any(w in txt_lower for w in ['fail', 'error', 'bad', 'fatal', 'panic', 'crash']):
+                    sev = 3  # ERROR
+                elif any(w in txt_lower for w in ['warn', 'glitch', 'drift', 'high', 'low', 'denied']):
+                    sev = 4  # WARN
+                elif any(w in txt_lower for w in ['calibrat', 'init', 'arm', 'mode', 'ready', 'complete', 'active']):
+                    sev = 5  # NOTICE
+                else:
+                    sev = 6  # INFO
+
+                flight_messages.append({
+                    'time': round(t_s, 2),
+                    'text': txt,
+                    'severity': sev
+                })
+
+        elif mtype == 'RCOU':
+            cur_servos = [
+                int(getattr(msg, f'C{ch}', 1000) or 1000) for ch in range(1, 9)
+            ]
+
+        elif mtype == 'BAT':
+            t_s = getattr(msg, 'TimeUS', 0) / 1e6
+            v = getattr(msg, 'Volt', 0.0)
+            i = getattr(msg, 'Curr', 0.0)
+            curr_tot = getattr(msg, 'CurrTot', 0.0)
+            rem_pct = getattr(msg, 'RemPct', 100)
+            bat_temp = getattr(msg, 'Temp', None)
+            if bat_temp is not None and bat_temp > 0.0:
+                cur_temp = bat_temp
+            if v > 10.0 and t_s > 0:
+                # Calculate instantaneous density: rho = P / (R * T) using ambient/airspeed sensor temp
+                amb_temp = cur_arsp_temp if cur_arsp_temp is not None else cur_baro_temp
+                tk = amb_temp + 273.15
+                rho = cur_press / (287.05 * tk) if tk > 0 else 1.225
+                
+                # Wind speed & direction
+                w_spd = math.sqrt(cur_vwn**2 + cur_vwe**2)
+                w_dir = (math.degrees(math.atan2(-cur_vwe, -cur_vwn)) + 360.0) % 360.0 if w_spd > 0.05 else 0.0
+
+                pwr = v * i
+                wh_km = (pwr / (cur_tas * 3.6)) if cur_tas > 2.0 else 0.0
+
+                raw_records.append({
+                    'time': round(t_s, 2),
+                    'mode': cur_mode,
+                    'roll': round(cur_roll, 1),
+                    'pitch': round(cur_pitch, 1),
+                    'yaw': round(cur_yaw, 1),
+                    'lat': round(cur_lat, 7),
+                    'lng': round(cur_lng, 7),
+                    'alt': round(cur_amsl if cur_amsl != 0.0 else cur_alt, 1),
+                    'rel_alt': round(cur_rel_alt, 1),
+                    'field_elev': round(home_elevation, 1),
+                    'crt': round(cur_crt, 2),
+                    'tas': round(cur_tas, 2),
+                    'gs': round(cur_gs, 2),
+                    'spdem': round(cur_spdem, 1),
+                    'tho': round(cur_tho, 1),
+                    'volt': round(v, 2),
+                    'curr': round(i, 2),
+                    'power': round(pwr, 1),
+                    'consumed_mah': round(curr_tot, 1),
+                    'rem_pct': int(rem_pct) if rem_pct is not None else 100,
+                    'wh_km': round(wh_km, 2),
+                    'aoa': round(cur_aoa, 2),
+                    'ssa': round(cur_ssa, 2),
+                    'press': round(cur_press, 1),
+                    'press_hpa': round(cur_press / 100.0, 1) if cur_press > 2000 else round(cur_press, 1),
+                    'qnh_hpa': round((cur_press / 100.0 if cur_press > 2000 else cur_press) * (max(0.001, 1.0 - ((cur_amsl if cur_amsl != 0.0 else cur_alt) / 44330.77)) ** -5.25588), 1),
+                    'temp': round(cur_temp, 1),
+                    'baro_temp': round(cur_baro_temp, 1),
+                    'arsp_temp': round(cur_arsp_temp, 1) if cur_arsp_temp is not None else round(cur_baro_temp, 1),
+                    'density': round(rho, 4),
+                    'wind_spd': round(w_spd, 1),
+                    'wind_dir': round(w_dir, 0),
+                    'vwn': round(cur_vwn, 2),
+                    'vwe': round(cur_vwe, 2),
+                    'servos': cur_servos[:]
+                })
+
+    mlog.close()
+
+    if gps_week > 1500:
+        true_flight_date = GPS_EPOCH + datetime.timedelta(weeks=gps_week, milliseconds=gps_ms)
+    else:
+        true_flight_date = datetime.datetime.fromtimestamp(os.path.getmtime(file_path), tz=datetime.timezone.utc)
+
+    # Downsample evenly for high-speed web plotting if records are huge
+    total_recs = len(raw_records)
+    if total_recs > target_samples:
+        step = int(math.ceil(total_recs / target_samples))
+        downsampled = raw_records[::step]
+    else:
+        downsampled = raw_records
+
+    # Identify Flight Mode Segments
+    mode_segments = []
+    if raw_records:
+        cur_m = raw_records[0]['mode']
+        t0 = raw_records[0]['time']
+        for r in raw_records:
+            if r['mode'] != cur_m:
+                dur = r['time'] - t0
+                if dur >= 3.0:
+                    mode_segments.append({
+                        'id': len(mode_segments) + 1,
+                        'mode': cur_m,
+                        'start': round(t0, 1),
+                        'end': round(r['time'], 1),
+                        'dur': round(dur, 1)
+                    })
+                cur_m = r['mode']
+                t0 = r['time']
+        dur = raw_records[-1]['time'] - t0
+        if dur >= 3.0:
+            mode_segments.append({
+                'id': len(mode_segments) + 1,
+                'mode': cur_m,
+                'start': round(t0, 1),
+                'end': round(raw_records[-1]['time'], 1),
+                'dur': round(dur, 1)
+            })
+
+    # Identify Discrete Airspeed Test Steps in AUTO mode
+    speed_steps = []
+    auto_recs = [r for r in raw_records if r['mode'] == 'AUTO']
+    if auto_recs:
+        cur_dem = round(auto_recs[0]['spdem'], 0)
+        t_start = auto_recs[0]['time']
+        for r in auto_recs:
+            r_dem = round(r['spdem'], 0)
+            if r_dem != cur_dem:
+                dur = r['time'] - t_start
+                if dur >= 12.0 and cur_dem > 10:
+                    speed_steps.append({
+                        'id': len(speed_steps) + 1,
+                        'target_eas': cur_dem,
+                        'start': round(t_start, 1),
+                        'end': round(r['time'], 1),
+                        'dur': round(dur, 1)
+                    })
+                cur_dem = r_dem
+                t_start = r['time']
+        dur = auto_recs[-1]['time'] - t_start
+        if dur >= 12.0 and cur_dem > 10:
+            speed_steps.append({
+                'id': len(speed_steps) + 1,
+                'target_eas': cur_dem,
+                'start': round(t_start, 1),
+                'end': round(auto_recs[-1]['time'], 1),
+                'dur': round(dur, 1)
+            })
+
+    duration_s = (raw_records[-1]['time'] - raw_records[0]['time']) if raw_records else 0.0
+
+    metadata = {
+        'filename': os.path.basename(file_path),
+        'path': file_path,
+        'date_str': true_flight_date.strftime("%Y-%m-%d %H:%M:%S UTC"),
+        'firmware': firmware,
+        'board': board,
+        'duration_s': round(duration_s, 1),
+        'field_elevation': round(home_elevation, 1),
+        'total_samples': total_recs,
+        'plotted_samples': len(downsampled)
+    }
+
+    return {
+        'metadata': metadata,
+        'formats': formats,
+        'telemetry': downsampled,
+        'messages': flight_messages,
+        'mode_segments': mode_segments,
+        'speed_steps': speed_steps
+    }
+
+
+def compute_regime_metrics(raw_telemetry, t_start, t_end, weight_kg=5.1, wing_area_m2=0.45):
+    """Calculates all aerodynamic and propulsive parameters for a given time window."""
+    sub = [r for r in raw_telemetry if t_start <= r['time'] <= t_end]
+    if not sub:
+        return None
+
+    tas = np.mean([r['tas'] for r in sub])
+    gs = np.mean([r['gs'] for r in sub])
+    tho = np.mean([r['tho'] for r in sub])
+    pwr = np.mean([r['power'] for r in sub])
+    volt = np.mean([r['volt'] for r in sub])
+    curr = np.mean([r['curr'] for r in sub])
+    aoa = np.mean([r['aoa'] for r in sub])
+    press = np.mean([r['press'] for r in sub])
+    temp = np.mean([r['temp'] for r in sub])
+    roll = np.mean([r['roll'] for r in sub])
+    crt = np.mean([r['crt'] for r in sub])
+    vwn = np.mean([r['vwn'] for r in sub])
+    vwe = np.mean([r['vwe'] for r in sub])
+
+    # Air density: rho = P / (R * T)
+    tk = temp + 273.15
+    rho = press / (287.05 * tk) if tk > 0 else 1.225
+
+    # Lift Coefficient: CL = (2 * m * g) / (rho * V^2 * S)
+    g = 9.80665
+    q = 0.5 * rho * (tas ** 2) if tas > 2.0 else 0.0
+    cl = (weight_kg * g) / (q * wing_area_m2) if q > 0 and wing_area_m2 > 0 else 0.0
+
+    wh_km_air = (pwr / (tas * 3.6)) if tas > 1.0 else 0.0
+    wh_km_gnd = (pwr / (gs * 3.6)) if gs > 1.0 else 0.0
+
+    w_spd = math.sqrt(vwn**2 + vwe**2)
+    w_dir = (math.degrees(math.atan2(-vwe, -vwn)) + 360.0) % 360.0 if w_spd > 0.05 else 0.0
+
+    modes = [r['mode'] for r in sub]
+    main_mode = max(set(modes), key=modes.count) if modes else 'UNKNOWN'
+
+    return {
+        'start': round(t_start, 1),
+        'end': round(t_end, 1),
+        'duration': round(t_end - t_start, 1),
+        'mode': main_mode,
+        'tas': round(tas, 2),
+        'gs': round(gs, 2),
+        'throttle': round(tho, 1),
+        'power': round(pwr, 1),
+        'volt': round(volt, 2),
+        'curr': round(curr, 2),
+        'wh_km_air': round(wh_km_air, 2),
+        'wh_km_gnd': round(wh_km_gnd, 2),
+        'aoa': round(aoa, 2),
+        'cl': round(cl, 4),
+        'density': round(rho, 4),
+        'temp': round(temp, 1),
+        'press_hpa': round(press / 100.0, 1),
+        'wind_spd': round(w_spd, 1),
+        'wind_dir': round(w_dir, 0),
+        'roll': round(roll, 1),
+        'crt': round(crt, 2)
+    }
+
