@@ -20,18 +20,71 @@
     <script src="libs/leaflet.js"></script>
 
             <style>
-        :root {
-            /* Aeronautical Cockpit Palette (Garmin / Airbus B612 Design System) */
-            --av-bg-dark: #070a10;
-            --av-panel-bg: #0d121c;
-            --av-panel-surface: #121824;
-            --av-border: #1e2838;
+        :root, [data-theme="macos-pro"] {
+            /* Theme 1: Apple macOS Pro Space Gray (Studio Dark - Default) */
+            --av-bg-dark: #121316;
+            --av-header-bg: #18191d;
+            --av-panel-bg: #131417;
+            --av-panel-surface: #1e1f24;
+            --av-surface-hover: #27282f;
+            --av-border: rgba(255, 255, 255, 0.08);
+            --av-border-strong: rgba(255, 255, 255, 0.16);
+            --av-border-light: rgba(255, 255, 255, 0.05);
+            --av-border-subtle: rgba(255, 255, 255, 0.025);
+            
+            --av-accent: #0a84ff;         /* Apple System Blue */
+            --av-accent-dim: #0071e3;
+            --av-accent-hover: #2997ff;
+            --av-green: #30d158;          /* Apple / Status Green */
+            --av-amber: #ff9f0a;          /* Apple Amber */
+            --av-red: #ff453a;            /* Apple Red */
+            --av-purple: #bf5af2;
+            
+            --av-text-primary: #f5f5f7;   /* Apple Off-White */
+            --av-text-secondary: #98989d; /* Apple Silver */
+            --av-text-muted: #636366;     /* Apple Muted Slate */
+            --av-title-color: #86868b;    /* Refined Muted Section Title */
+
+            --av-btn-bg: #222328;
+            --av-btn-hover: #2c2d33;
+            --av-capsule-bg: #111215;
+            --av-plot-bg: #0f1013;
+            --av-footer-bg: #16171a;
+            --av-glow: none;
+            --av-logo-glow: none;
+
+            --header-h: 46px;
+            --footer-h: 48px;
+            --sidebar-w: 290px;
+
+            /* Backward compatibility aliases */
+            --av-cyan: var(--av-accent);
+            --av-cyan-dim: var(--av-accent-dim);
+            --bg-dark: var(--av-bg-dark);
+            --panel-bg: var(--av-panel-bg);
+            --card-bg: var(--av-panel-surface);
+            --border: var(--av-border);
+            --accent: var(--av-accent);
+            --text-main: var(--av-text-primary);
+            --text-muted: var(--av-text-secondary);
+        }
+
+        [data-theme="garmin-slate"] {
+            /* Theme 2: Garmin Aviation Cockpit Slate */
+            --av-bg-dark: #080b11;
+            --av-header-bg: #0d121b;
+            --av-panel-bg: #0b1018;
+            --av-panel-surface: #131a26;
+            --av-surface-hover: #1a2434;
+            --av-border: #1c2738;
+            --av-border-strong: #2a3b54;
             --av-border-light: rgba(255, 255, 255, 0.08);
             --av-border-subtle: rgba(255, 255, 255, 0.04);
             
-            --av-cyan: #00e5ff;
-            --av-cyan-dim: #0284c7;
-            --av-green: #10b981;
+            --av-accent: #38bdf8;         /* Garmin Flight Ice Blue */
+            --av-accent-dim: #0284c7;
+            --av-accent-hover: #7dd3fc;
+            --av-green: #30d158;
             --av-amber: #f59e0b;
             --av-red: #ef4444;
             --av-purple: #c084fc;
@@ -39,17 +92,67 @@
             --av-text-primary: #f8fafc;
             --av-text-secondary: #94a3b8;
             --av-text-muted: #64748b;
-            
-            --header-h: 46px;
-            --footer-h: 48px;
-            --sidebar-w: 290px;
+            --av-title-color: #38bdf8;
 
-            /* Backward compatibility aliases */
+            --av-btn-bg: #101622;
+            --av-btn-hover: #162030;
+            --av-capsule-bg: #070a10;
+            --av-plot-bg: #05080e;
+            --av-footer-bg: #090d14;
+            --av-glow: 0 0 8px rgba(56, 189, 248, 0.25);
+            --av-logo-glow: drop-shadow(0 0 6px rgba(56, 189, 248, 0.4));
+
+            --av-cyan: var(--av-accent);
+            --av-cyan-dim: var(--av-accent-dim);
             --bg-dark: var(--av-bg-dark);
             --panel-bg: var(--av-panel-bg);
             --card-bg: var(--av-panel-surface);
             --border: var(--av-border);
-            --accent: var(--av-cyan);
+            --accent: var(--av-accent);
+            --text-main: var(--av-text-primary);
+            --text-muted: var(--av-text-secondary);
+        }
+
+        [data-theme="tactical-titanium"] {
+            /* Theme 3: Tactical TOC Dark Titanium */
+            --av-bg-dark: #0c0d0f;
+            --av-header-bg: #121316;
+            --av-panel-bg: #0f1012;
+            --av-panel-surface: #17181c;
+            --av-surface-hover: #202227;
+            --av-border: #222429;
+            --av-border-strong: #32353c;
+            --av-border-light: rgba(255, 255, 255, 0.06);
+            --av-border-subtle: rgba(255, 255, 255, 0.03);
+            
+            --av-accent: #30d158;         /* Tactical Green */
+            --av-accent-dim: #229940;
+            --av-accent-hover: #40e068;
+            --av-green: #30d158;
+            --av-amber: #f59e0b;
+            --av-red: #ef4444;
+            --av-purple: #a855f7;
+            
+            --av-text-primary: #ececed;
+            --av-text-secondary: #9ca3af;
+            --av-text-muted: #52525b;
+            --av-title-color: #a1a1aa;
+
+            --av-btn-bg: #16171b;
+            --av-btn-hover: #1f2025;
+            --av-capsule-bg: #090a0c;
+            --av-plot-bg: #08090b;
+            --av-footer-bg: #0f1012;
+            --av-glow: none;
+            --av-logo-glow: none;
+
+            --av-cyan: var(--av-accent);
+            --av-cyan-dim: var(--av-accent-dim);
+            --bg-dark: var(--av-bg-dark);
+            --panel-bg: var(--av-panel-bg);
+            --card-bg: var(--av-panel-surface);
+            --border: var(--av-border);
+            --accent: var(--av-accent);
             --text-main: var(--av-text-primary);
             --text-muted: var(--av-text-secondary);
         }
@@ -100,14 +203,14 @@
         /* ------------------------------------------------------------- */
         header {
             height: var(--header-h);
-            background: #0b0f17;
+            background: var(--av-header-bg);
             border-bottom: 1px solid var(--av-border);
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 0 14px;
             z-index: 1000;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
             flex-shrink: 0;
         }
 
@@ -127,7 +230,7 @@
 
         .aero-logo-icon {
             color: var(--av-cyan);
-            filter: drop-shadow(0 0 6px rgba(0, 229, 255, 0.5));
+            filter: var(--av-logo-glow, none);
             display: flex;
             align-items: center;
         }
@@ -151,15 +254,15 @@
             font-size: 8.5px;
             font-weight: 700;
             letter-spacing: 0.8px;
-            color: var(--av-cyan);
+            color: var(--av-text-muted);
             text-transform: uppercase;
         }
 
         /* Tactile Aeronautical Switch Button */
         .aero-btn-switch {
-            background: #101622;
+            background: var(--av-btn-bg);
             border: 1px solid var(--av-border);
-            color: #94a3b8;
+            color: var(--av-text-secondary);
             padding: 5px 11px;
             border-radius: 4px;
             font-size: 11px;
@@ -172,21 +275,21 @@
             transition: all 0.14s ease;
         }
         .aero-btn-switch:hover {
-            background: #162030;
-            color: #ffffff;
-            border-color: #2b3a50;
+            background: var(--av-surface-hover);
+            color: var(--av-text-primary);
+            border-color: var(--av-border-strong);
         }
         .aero-btn-switch.active {
-            background: rgba(0, 229, 255, 0.12);
-            border-color: var(--av-cyan);
-            color: var(--av-cyan);
-            box-shadow: 0 0 8px rgba(0, 229, 255, 0.25);
+            background: var(--av-panel-surface);
+            border-color: var(--av-accent);
+            color: var(--av-accent);
+            box-shadow: var(--av-glow, none);
         }
 
         /* Primary Action: Import Log */
         .aero-btn-primary {
-            background: #0284c7;
-            border: 1px solid #38bdf8;
+            background: var(--av-accent-dim);
+            border: 1px solid var(--av-accent);
             color: #ffffff;
             padding: 5px 12px;
             border-radius: 4px;
@@ -201,17 +304,17 @@
             box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
         }
         .aero-btn-primary:hover {
-            background: #0369a1;
-            border-color: #7dd3fc;
-            box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+            background: var(--av-accent-hover);
+            border-color: var(--av-accent-hover);
+            box-shadow: var(--av-glow, none);
         }
 
         /* Aeronautical FDR Log Identifier Capsule */
         .aero-log-capsule {
             display: inline-flex;
             align-items: center;
-            background: #080c14;
-            border: 1px solid #1a2434;
+            background: var(--av-capsule-bg);
+            border: 1px solid var(--av-border);
             border-radius: 4px;
             height: 27px;
             overflow: hidden;
@@ -219,8 +322,8 @@
         }
 
         .aero-log-tag {
-            background: #1e293b;
-            color: #38bdf8;
+            background: var(--av-panel-surface);
+            color: var(--av-accent);
             font-family: 'B612 Mono', monospace;
             font-size: 9.5px;
             font-weight: 700;
@@ -229,7 +332,7 @@
             display: inline-flex;
             align-items: center;
             letter-spacing: 0.5px;
-            border-right: 1px solid #1a2434;
+            border-right: 1px solid var(--av-border);
         }
 
         .aero-log-name {
@@ -256,10 +359,10 @@
             font-family: 'B612 Mono', monospace;
             font-size: 10.5px;
             color: var(--av-text-muted);
-            background: #080c14;
+            background: var(--av-capsule-bg);
             padding: 3px 8px;
             border-radius: 4px;
-            border: 1px solid #141c28;
+            border: 1px solid var(--av-border);
         }
         .aero-meta-item {
             color: #cbd5e1;
@@ -278,11 +381,11 @@
         .aero-rocker-group {
             display: inline-flex;
             align-items: center;
-            background: #080c14;
+            background: var(--av-capsule-bg);
             padding: 2px;
             border-radius: 4px;
             border: 1px solid var(--av-border);
-            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.7);
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.4);
         }
 
         .aero-rocker-btn {
@@ -301,16 +404,17 @@
             color: #cbd5e1;
         }
         .aero-rocker-btn.active {
-            background: #0284c7;
-            color: #ffffff;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+            background: var(--av-btn-bg);
+            border: 1px solid var(--av-border-strong);
+            color: var(--av-text-primary);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
         }
 
         /* Oscillograph Graph Toggle */
         .aero-btn-graph {
-            background: #101622;
+            background: var(--av-btn-bg);
             border: 1px solid var(--av-border);
-            color: var(--av-cyan);
+            color: var(--av-text-secondary);
             padding: 5px 12px;
             border-radius: 4px;
             font-size: 11px;
@@ -323,15 +427,15 @@
             transition: all 0.14s ease;
         }
         .aero-btn-graph:hover {
-            background: #162030;
-            border-color: var(--av-cyan);
-            box-shadow: 0 0 10px rgba(0, 229, 255, 0.25);
+            background: var(--av-surface-hover);
+            border-color: var(--av-border-strong);
+            color: var(--av-text-primary);
         }
         .aero-btn-graph.active {
-            background: #0284c7;
-            border-color: #38bdf8;
-            color: #ffffff;
-            box-shadow: 0 1px 6px rgba(2, 132, 199, 0.5);
+            background: var(--av-panel-surface);
+            border-color: var(--av-accent);
+            color: var(--av-accent);
+            box-shadow: var(--av-glow, none);
         }
 
         /* ------------------------------------------------------------- */
@@ -368,7 +472,7 @@
         .sidebar-title {
             font-size: 10px;
             font-weight: 700;
-            color: var(--av-cyan);
+            color: var(--av-text-muted);
             text-transform: uppercase;
             letter-spacing: 0.8px;
             margin-bottom: 6px;
@@ -380,11 +484,11 @@
         .sidebar-title-badge {
             font-family: 'B612 Mono', monospace;
             font-size: 9.5px;
-            color: #cbd5e1;
-            background: #172030;
+            color: var(--av-text-secondary);
+            background: var(--av-panel-surface);
             padding: 1px 6px;
             border-radius: 3px;
-            border: 1px solid #233148;
+            border: 1px solid var(--av-border);
         }
 
         /* Active Channel Cards */
@@ -397,8 +501,8 @@
         }
 
         .active-field-chip {
-            background: #090d15;
-            border: 1px solid #1a2436;
+            background: var(--av-panel-surface);
+            border: 1px solid var(--av-border);
             border-radius: 4px;
             padding: 4px 6px;
             display: flex;
@@ -408,8 +512,8 @@
             transition: border-color 0.12s ease;
         }
         .active-field-chip:hover {
-            border-color: #2a3c58;
-            background: #0d131e;
+            border-color: var(--av-border-strong);
+            background: var(--av-surface-hover);
         }
 
         .chip-color-bar {
@@ -517,10 +621,10 @@
         /* Tactical Presets Dropdown */
         .log-select {
             width: 100%;
-            background: #090d15;
+            background: var(--av-panel-surface);
             border: 1px solid var(--av-border);
             border-radius: 4px;
-            color: #f1f5f9;
+            color: var(--av-text-primary);
             padding: 5px 8px;
             font-size: 11px;
             font-family: 'B612', sans-serif;
@@ -539,9 +643,9 @@
         /* Signal Search Box */
         .search-box {
             width: 100%;
-            background: #080c14;
+            background: var(--av-capsule-bg);
             border: 1px solid var(--av-border);
-            color: #f8fafc;
+            color: var(--av-text-primary);
             padding: 5px 8px;
             border-radius: 4px;
             font-size: 11px;
@@ -585,8 +689,8 @@
             transition: background 0.1s ease;
         }
         .msg-header:hover {
-            background: #141c2b;
-            color: var(--av-cyan);
+            background: var(--av-surface-hover);
+            color: var(--av-text-primary);
         }
 
         .msg-name {
@@ -597,20 +701,20 @@
         .msg-pill {
             font-family: 'B612 Mono', monospace;
             font-size: 9px;
-            color: #64748b;
-            background: #090d15;
+            color: var(--av-text-muted);
+            background: var(--av-capsule-bg);
             padding: 1px 5px;
             border-radius: 3px;
-            border: 1px solid #141c28;
+            border: 1px solid var(--av-border);
         }
 
         .msg-fields-container {
             display: none;
-            background: #060910;
+            background: var(--av-capsule-bg);
             border-radius: 3px;
             margin: 2px 0 4px 4px;
             padding: 2px 0 2px 6px;
-            border-left: 2px solid #1b2638;
+            border-left: 2px solid var(--av-border-strong);
         }
         .msg-fields-container.expanded {
             display: block;
@@ -664,8 +768,8 @@
             height: 48%;
             min-height: 240px;
             width: 100%;
-            background: #05080f;
-            border-bottom: 2px solid var(--av-border);
+            background: var(--av-plot-bg);
+            border-bottom: 1px solid var(--av-border);
             position: relative;
             display: flex;
             flex-direction: column;
@@ -682,8 +786,8 @@
         .plot-channel-ribbon {
             height: 26px;
             min-height: 26px;
-            background: #080c14;
-            border-bottom: 1px solid #141c28;
+            background: var(--av-header-bg);
+            border-bottom: 1px solid var(--av-border);
             display: flex;
             align-items: center;
             gap: 12px;
@@ -696,8 +800,8 @@
             display: inline-flex;
             align-items: center;
             gap: 5px;
-            background: #0d121c;
-            border: 1px solid #1c2738;
+            background: var(--av-panel-surface);
+            border: 1px solid var(--av-border);
             border-radius: 3px;
             padding: 2px 7px;
             font-size: 10px;
@@ -790,7 +894,7 @@
         /* ------------------------------------------------------------- */
         #bottom-playback-bar {
             height: var(--footer-h);
-            background: #090d15;
+            background: var(--av-footer-bg);
             border-top: 1px solid var(--av-border);
             display: flex;
             align-items: center;
@@ -817,9 +921,9 @@
         }
 
         .replay-btn {
-            background: #111724;
-            color: #cbd5e1;
-            border: 1px solid #1f2a3a;
+            background: var(--av-btn-bg);
+            color: var(--av-text-secondary);
+            border: 1px solid var(--av-border);
             padding: 4px 10px;
             border-radius: 3px;
             font-size: 11px;
@@ -833,15 +937,15 @@
             transition: all 0.12s ease;
         }
         .replay-btn:hover {
-            background: #182236;
-            color: #ffffff;
-            border-color: #2e3e56;
+            background: var(--av-surface-hover);
+            color: var(--av-text-primary);
+            border-color: var(--av-border-strong);
         }
         .replay-btn.playing {
-            background: #0284c7;
-            border-color: #38bdf8;
+            background: var(--av-accent-dim);
+            border-color: var(--av-accent);
             color: #ffffff;
-            box-shadow: 0 0 8px rgba(56, 189, 248, 0.4);
+            box-shadow: var(--av-glow, none);
         }
 
         /* Flight Mode Annunciator (FMA) Panel */
@@ -1044,7 +1148,7 @@
             padding: 3px 8px;
             font-size: 9.5px;
             font-weight: 700;
-            color: var(--av-cyan);
+            color: var(--av-text-muted);
             text-transform: uppercase;
             letter-spacing: 0.6px;
             pointer-events: none;
@@ -1102,8 +1206,66 @@
             justify-content: flex-end;
             gap: 8px;
         }
+    
+        /* Aeronautical / macOS Theme Layout Selector */
+        .aero-theme-picker {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--av-capsule-bg);
+            border: 1px solid var(--av-border);
+            padding: 3px 8px;
+            border-radius: 4px;
+            color: var(--av-text-secondary);
+            font-size: 10.5px;
+            transition: all 0.14s ease;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.4);
+        }
+        .aero-theme-picker:hover {
+            border-color: var(--av-border-strong);
+            color: var(--av-text-primary);
+        }
+        .aero-theme-select {
+            background: transparent;
+            border: none;
+            color: var(--av-text-primary);
+            font-size: 10.5px;
+            font-weight: 700;
+            font-family: 'B612', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            cursor: pointer;
+            outline: none;
+            padding: 1px 0;
+        }
+        .aero-theme-select option {
+            background: var(--av-panel-surface);
+            color: var(--av-text-primary);
+        }
+
     </style>
-    <script>window.onSitlIframeLoaded = function(){};</script>
+    <script>
+        window.onSitlIframeLoaded = function(){};
+
+        function setWorkstationTheme(themeName) {
+            document.documentElement.setAttribute('data-theme', themeName);
+            localStorage.setItem('sharkee_workstation_theme', themeName);
+            var sel = document.getElementById('theme-layout-select');
+            if (sel && sel.value !== themeName) {
+                sel.value = themeName;
+            }
+            if (window.plotFields && window.plotFields.length > 0 && typeof updatePlotlyChart === 'function') {
+                updatePlotlyChart();
+            }
+        }
+
+        (function initWorkstationTheme() {
+            var savedTheme = localStorage.getItem('sharkee_workstation_theme') || 'macos-pro';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            window.addEventListener('DOMContentLoaded', function() {
+                var sel = document.getElementById('theme-layout-select');
+                if (sel) sel.value = savedTheme;
+            });
+        })();
+    </script></script>
 </head>
 <body>
 
@@ -1174,6 +1336,26 @@
         </div>
 
         <div class="header-right">
+            <!-- Workstation Layout Theme Selector (macOS Style) -->
+            <div class="aero-theme-picker" title="Workstation Outer Layout Color Theme">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="4"></circle>
+                    <path d="M12 2v2"></path>
+                    <path d="M12 20v2"></path>
+                    <path d="M4.93 4.93l1.41 1.41"></path>
+                    <path d="M17.66 17.66l1.41 1.41"></path>
+                    <path d="M2 12h2"></path>
+                    <path d="M20 12h2"></path>
+                    <path d="M4.93 19.07l1.41-1.41"></path>
+                    <path d="M17.66 6.34l1.41-1.41"></path>
+                </svg>
+                <select id="theme-layout-select" class="aero-theme-select" onchange="setWorkstationTheme(this.value)">
+                    <option value="macos-pro" selected>macOS Space Gray</option>
+                    <option value="garmin-slate">Garmin Cockpit Slate</option>
+                    <option value="tactical-titanium">Tactical Dark Titanium</option>
+                </select>
+            </div>
+
             <!-- Avionic Rocker Switcher (3D Spatial vs 2D Tactical) -->
             <div class="aero-rocker-group view-mode-group">
                 <button class="aero-rocker-btn view-mode-btn active" id="btn-view-sitl" onclick="setViewMode('sitl')" title="3D Digital Twin Spatial Visualizer">3D SPATIAL TWIN</button>
@@ -2430,8 +2612,8 @@
             basePlotShapes = shapes;
 
             const layout = {
-                paper_bgcolor: '#05080e',
-                plot_bgcolor: '#05080e',
+                paper_bgcolor: (getComputedStyle(document.documentElement).getPropertyValue('--av-plot-bg').trim() || '#0f1013'),
+                plot_bgcolor: (getComputedStyle(document.documentElement).getPropertyValue('--av-plot-bg').trim() || '#0f1013'),
                 margin: { l: 48, r: 48, t: 8, b: 28 },
                 font: { family: "'B612', -apple-system, sans-serif", size: 10, color: '#64748b' },
                 hovermode: 'x unified',
