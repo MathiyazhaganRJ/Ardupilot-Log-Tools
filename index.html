@@ -1361,10 +1361,10 @@
             'FBWB': '#0ea5e9',
             'CRUISE': '#a855f7',
             'AUTOTUNE': '#00b4d8',
-            'AUTO': '#00ff66',
+            'AUTO': '#00e676',
             'RTL': '#f59e0b',
             'LOITER': '#06b6d4',
-            'TAKEOFF': '#14b8a6',
+            'TAKEOFF': '#00e676',
             'AVOID_ADSB': '#f43f5e',
             'GUIDED': '#3b82f6',
             'INITIALISING': '#64748b',
@@ -2403,7 +2403,7 @@
 
             const shapes = [];
             const modeColors = {
-                'AUTO': 'rgba(0, 255, 102, 0.18)',
+                'AUTO': 'rgba(0, 230, 118, 0.20)',
                 'FBWA': 'rgba(0, 210, 255, 0.18)',
                 'FBWB': 'rgba(14, 165, 233, 0.16)',
                 'CRUISE': 'rgba(168, 85, 247, 0.18)',
@@ -2576,7 +2576,7 @@
             const modePill = document.getElementById('replay-mode-pill');
             if (sample.mode) {
                 if (modeLabel) modeLabel.textContent = sample.mode;
-                const modeColor = FLIGHT_MODE_COLORS[sample.mode] || '#00ff66';
+                const modeColor = FLIGHT_MODE_COLORS[sample.mode] || '#00e676';
                 if (modeLed) {
                     modeLed.style.backgroundColor = modeColor;
                     modeLed.style.boxShadow = `0 0 6px ${modeColor}`;
@@ -2832,7 +2832,7 @@
 
             if (points.length > 1) {
                 const geom = new THREE.BufferGeometry().setFromPoints(points);
-                const mat = new THREE.LineBasicMaterial({ color: 0x00ff66, linewidth: 2 });
+                const mat = new THREE.LineBasicMaterial({ color: 0x00e676, linewidth: 2 });
                 trajectoryLine = new THREE.Line(geom, mat);
                 scene.add(trajectoryLine);
             }
