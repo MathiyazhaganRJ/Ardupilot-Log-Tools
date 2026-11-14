@@ -899,6 +899,9 @@
     <!-- Header Navigation -->
     <header>
         <div class="header-left">
+            <button class="view-mode-btn active" id="btn-toggle-sidebar" onclick="toggleSidebar()" title="Toggle Plotting Parameters Sidebar">
+                Parameters
+            </button>
             <span class="brand-title">UAV Log Viewer</span>
             <div class="log-selector-container">
                 <!-- Open Single File -->
@@ -924,31 +927,89 @@
                 <button class="view-mode-btn active" id="btn-view-sitl" onclick="setViewMode('sitl')" title="3D Digital Twin Visualizer with Terrain, Horizon & Compass">3D Flight Visualizer</button>
                 <button class="view-mode-btn" id="btn-view-map" onclick="setViewMode('map')" title="2D Satellite Map with Flight Track">2D Satellite Map</button>
             </div>
+            <button class="view-mode-btn" id="btn-toggle-plot-layout" onclick="togglePlotVisibility()" title="Toggle Multi-Series Plot View" style="border-color: #38bdf8; color: #38bdf8;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align: middle; margin-right: 4px;">
+                    <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+                </svg>
+                <span id="txt-toggle-plot-layout">Show Plot</span>
+            </button>
         </div>
     </header>
 
-    <!-- Main Workspace (Full-bleed: 3D Visualizer or 2D Satellite Map) -->
+    <!-- Main Workspace Layout -->
     <div id="workspace">
-        <!-- 3D Flight Visualizer View (3D Terrain + PFD Horizon + NAV Compass + Atmosphere Panel) -->
-        <div id="sitl-pane" style="width: 100%; height: 100%; position: absolute; top: 0; left: 0; right: 0; bottom: 0;">
-                        <iframe id="sitl-viewer-frame" src="sharkee_hud.html?v=20261114_03" style="width: 100%; height: 100%; border: none; display: block;" onload="onSitlIframeLoaded()"></iframe>
-                    </div>
 
-        <!-- 2D Leaflet Satellite Map View -->
-        <div id="map-pane" style="display: none; width: 100%; height: 100%; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: #0a0f18;">
-            <div class="viewport-badge">Flight Track & Satellite Map</div>
-            <div class="map-overlay-ctrls">
-                <select id="map-layer-select" class="map-select" onchange="changeMapLayer(this.value)">
-                    <option value="esri" selected>Satellite (ESRI World Imagery)</option>
-                    <option value="local">Satellite (Airfield Cache)</option>
-                    <option value="carto">Dark Canvas</option>
-                    <option value="osm">Street (OSM)</option>
-                </select>
-                <button class="btn" style="padding:2px 8px; font-size:10px;" onclick="recenterMap()">Center Plane</button>
-                <button class="btn" style="padding:2px 8px; font-size:10px;" onclick="fitFlightBounds()">Fit Track</button>
+        <!-- Left Sidebar: UAV Log Viewer Message & Field Selector -->
+        <div id="sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-title">
+                    <span>Active Plotted Fields</span>
+                    <span id="active-field-count" style="color:var(--accent);">0 / 8</span>
+                </div>
+                <div id="active-fields-list"></div>
+                <div class="sidebar-actions">
+                    <button class="btn" onclick="openExpressionModal()">+ Add Expression</button>
+                    <button class="btn" onclick="clearAllFields()">Clear All</button>
+                </div>
             </div>
-            <div id="leaflet-map" style="width:100%; height:100%;"></div>
+
+            <div class="sidebar-section" style="padding: 8px 12px;">
+                <div class="sidebar-title">Flight Presets</div>
+                <select id="preset-select" class="log-select" style="width: 100%;" onchange="applyPreset(this.value)">
+                    <option value="">-- Choose Preset to Plot --</option>
+                    <option value="efficiency">1. Cruise Efficiency & Airspeed (TAS, Power, ThO, AoA)</option>
+                    <option value="atmosphere">2. Atmospheric & Wind Vector (Press, Temp, Rho, Wind)</option>
+                    <option value="altitude">3. Altitude & Climb Performance (Alt, CRt, DemSpd)</option>
+                    <option value="attitude">4. Aircraft Attitude & Dynamic Stability (Roll, Pitch, Yaw)</option>
+                    <option value="power">5. Electrical Power & Battery Health (Volt, Curr, Watts)</option>
+                </select>
+            </div>
+
+            <div class="sidebar-section" style="padding: 8px 12px; flex-shrink: 0;">
+                <div class="sidebar-title">Plot Individual Field</div>
+                <input type="text" id="field-search-input" class="search-box" placeholder="Type here to filter messages..." oninput="filterMessageTree(this.value)">
+            </div>
+
+            <div id="message-tree"></div>
         </div>
+
+        <!-- Center / Right Content Area -->
+        <div id="content-area">
+
+            <!-- Top Pane: Interactive Multi-Series Plot (Collapsed until plotting starts) -->
+            <div id="plot-container" class="collapsed">
+                <div id="main-plot"></div>
+                <div id="plot-cursor-line" style="position: absolute; top: 0; bottom: 0; width: 2px; background: #00e5ff; pointer-events: none; z-index: 100; display: none; box-shadow: 0 0 8px rgba(0, 229, 255, 0.9);">
+                    <div id="plot-cursor-badge" style="position: absolute; top: 2px; left: 4px; font-family: Consolas, monospace; font-size: 10px; font-weight: 700; color: #00e5ff; background: rgba(5,10,18,0.9); padding: 1px 4px; border-radius: 2px; border: 1px solid #00e5ff; white-space: nowrap;">00:00.0</div>
+                </div>
+            </div>
+
+            <!-- Lower Pane: 3D Flight Visualizer or 2D Satellite Map -->
+            <div id="lower-viewports-wrapper" class="fullscreen" style="flex: 1; position: relative; width: 100%; height: 100%; min-height: 0;">
+                <!-- 3D Flight Visualizer View (3D Terrain + PFD Horizon + NAV Compass + Atmosphere Panel) -->
+                <div id="sitl-pane" style="width: 100%; height: 100%; position: absolute; top: 0; left: 0; right: 0; bottom: 0;">
+                    <iframe id="sitl-viewer-frame" src="sharkee_hud.html?v=20261114_03" style="width: 100%; height: 100%; border: none; display: block;" onload="onSitlIframeLoaded()"></iframe>
+                </div>
+
+                <!-- 2D Leaflet Satellite Map View -->
+                <div id="map-pane" style="display: none; width: 100%; height: 100%; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: #0a0f18;">
+                    <div class="viewport-badge">Flight Track & Satellite Map</div>
+                    <div class="map-overlay-ctrls">
+                        <select id="map-layer-select" class="map-select" onchange="changeMapLayer(this.value)">
+                            <option value="esri" selected>Satellite (ESRI World Imagery)</option>
+                            <option value="local">Satellite (Airfield Cache)</option>
+                            <option value="carto">Dark Canvas</option>
+                            <option value="osm">Street (OSM)</option>
+                        </select>
+                        <button class="btn" style="padding:2px 8px; font-size:10px;" onclick="recenterMap()">Center Plane</button>
+                        <button class="btn" style="padding:2px 8px; font-size:10px;" onclick="fitFlightBounds()">Fit Track</button>
+                    </div>
+                    <div id="leaflet-map" style="width:100%; height:100%;"></div>
+                </div>
+            </div>
+
+        </div>
+
     </div>
 
     <!-- Bottom Playback Control Bar with Colored Flight Mode Timeline -->
@@ -1331,7 +1392,7 @@
                     lowerWrapper.style.height = '52%';
                 }
                 if (toggleBtnText) toggleBtnText.textContent = "Full Screen";
-                if (toggleBtn) toggleBtn.classList.remove('active');
+                if (toggleBtn) toggleBtn.classList.add('active');
             } else {
                 if (plotContainer) {
                     plotContainer.classList.add('collapsed');
@@ -1343,7 +1404,7 @@
                     lowerWrapper.style.height = '100%';
                 }
                 if (toggleBtnText) toggleBtnText.textContent = "Show Plot";
-                if (toggleBtn) toggleBtn.classList.add('active');
+                if (toggleBtn) toggleBtn.classList.remove('active');
             }
 
             // Smoothly relayout & resize all active viewports
@@ -1367,7 +1428,34 @@
         }
 
         function togglePlotVisibility() {
-            setPlotVisibility(!isPlotVisible);
+            if (!isPlotVisible && activeFields.length === 0) {
+                applyPreset('efficiency');
+                const presetSel = document.getElementById('preset-select');
+                if (presetSel) presetSel.value = 'efficiency';
+            } else {
+                setPlotVisibility(!isPlotVisible);
+            }
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const btn = document.getElementById('btn-toggle-sidebar');
+            if (!sidebar) return;
+            const isHidden = sidebar.style.display === 'none';
+            sidebar.style.display = isHidden ? 'flex' : 'none';
+            if (btn) btn.classList.toggle('active', isHidden);
+            setTimeout(() => {
+                if (isPlotVisible && typeof Plotly !== 'undefined') {
+                    try { Plotly.Plots.resize('main-plot'); } catch(e) {}
+                }
+                if (mapInstance) {
+                    try { mapInstance.invalidateSize(true); } catch(e) {}
+                }
+                const sitlIframe = document.getElementById('sitl-viewer-frame');
+                if (sitlIframe && sitlIframe.contentWindow) {
+                    try { sitlIframe.contentWindow.dispatchEvent(new Event('resize')); } catch(e) {}
+                }
+            }, 60);
         }
 
         // Autopilot Messages Drawer Controller
@@ -1583,6 +1671,16 @@
 
             // Update Leaflet Satellite Map
             updateMapTrajectory(currentTrajectory);
+
+            // Build UAV Log Viewer message & field tree for plotting
+            buildMessageTree(data.formats || {});
+
+            // Reset active plotted fields on initial log load
+            activeFields = [];
+            renderActiveFieldChips();
+            setPlotVisibility(false);
+            const presetSel = document.getElementById('preset-select');
+            if (presetSel) presetSel.value = '';
 
             // Extract & load Autopilot Messages
             currentFlightMessages = data.messages || [];
@@ -1929,13 +2027,22 @@
 
             const traces = [];
             activeFields.forEach(f => {
-                const key = FIELD_ALIAS_MAP[f.name];
+                let key = FIELD_ALIAS_MAP[f.name];
+                if (!key) {
+                    const parts = f.name.split('.');
+                    const col = (parts.length > 1 ? parts[1] : parts[0]).toLowerCase();
+                    if (tele[0] && tele[0][col] !== undefined) {
+                        key = col;
+                    } else if (tele[0] && tele[0][f.name] !== undefined) {
+                        key = f.name;
+                    }
+                }
                 let yData = [];
 
                 if (key && tele[0][key] !== undefined) {
                     yData = tele.map(r => r[key]);
                 } else {
-                    yData = tele.map(r => r.tas || 0);
+                    yData = tele.map(r => (r[f.name] !== undefined ? r[f.name] : (r.tas || 0)));
                 }
 
                 const validY = yData.filter(v => v !== null && !isNaN(v));
@@ -2247,6 +2354,9 @@
                 if (timeTxt) {
                     timeTxt.textContent = `${formatFlightClock(curT)} / ${formatFlightClock(flightMaxTime)}`;
                 }
+            }
+            if (isPlotVisible) {
+                updatePlotCursor(curT);
             }
         }
 
