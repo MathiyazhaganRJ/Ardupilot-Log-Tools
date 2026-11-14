@@ -914,7 +914,7 @@
             color: rgba(255, 255, 255, 0.95);
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
             border-right: 1px solid rgba(0, 0, 0, 0.4);
-            opacity: 0.85;
+            opacity: 1.0;
             transition: opacity 0.12s ease;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -1243,7 +1243,7 @@
             <div id="lower-viewports-wrapper" class="fullscreen" style="flex: 1; position: relative; width: 100%; height: 100%; min-height: 0;">
                 <!-- 3D Flight Visualizer View (3D Terrain + PFD Horizon + NAV Compass + Atmosphere Panel) -->
                 <div id="sitl-pane" style="width: 100%; height: 100%; position: absolute; top: 0; left: 0; right: 0; bottom: 0;">
-                    <iframe id="sitl-viewer-frame" src="sharkee_hud.html?v=20261114_REV7_EIS_SYNC" style="width: 100%; height: 100%; border: none; display: block;" onload="onSitlIframeLoaded()"></iframe>
+                    <iframe id="sitl-viewer-frame" src="sharkee_hud.html?v=20261114_REV8_APPLE_GREEN" style="width: 100%; height: 100%; border: none; display: block;" onload="onSitlIframeLoaded()"></iframe>
                 </div>
 
                 <!-- 2D Leaflet Satellite Map View -->
@@ -1361,10 +1361,10 @@
             'FBWB': '#0ea5e9',
             'CRUISE': '#a855f7',
             'AUTOTUNE': '#00b4d8',
-            'AUTO': '#00e600',
+            'AUTO': '#30d158',
             'RTL': '#f59e0b',
             'LOITER': '#06b6d4',
-            'TAKEOFF': '#00e600',
+            'TAKEOFF': '#30d158',
             'AVOID_ADSB': '#f43f5e',
             'GUIDED': '#3b82f6',
             'INITIALISING': '#64748b',
@@ -2602,7 +2602,7 @@
             const modePill = document.getElementById('replay-mode-pill');
             if (sample.mode) {
                 if (modeLabel) modeLabel.textContent = sample.mode;
-                const modeColor = FLIGHT_MODE_COLORS[sample.mode] || '#00e600';
+                const modeColor = FLIGHT_MODE_COLORS[sample.mode] || '#30d158';
                 if (modeLed) {
                     modeLed.style.backgroundColor = modeColor;
                     modeLed.style.boxShadow = `0 0 6px ${modeColor}`;
@@ -2858,7 +2858,7 @@
 
             if (points.length > 1) {
                 const geom = new THREE.BufferGeometry().setFromPoints(points);
-                const mat = new THREE.LineBasicMaterial({ color: 0x00e600, linewidth: 2 });
+                const mat = new THREE.LineBasicMaterial({ color: 0x30d158, linewidth: 2 });
                 trajectoryLine = new THREE.Line(geom, mat);
                 scene.add(trajectoryLine);
             }
