@@ -921,7 +921,7 @@
         </div>
         <div class="header-right">
             <div class="view-mode-group">
-                <button class="view-mode-btn active" id="btn-view-sitl" onclick="setViewMode('sitl')" title="3D Digital Twin Visualizer with Terrain, Horizon & Compass">Visualizer (Shark Hawk & Terrain)</button>
+                <button class="view-mode-btn active" id="btn-view-sitl" onclick="setViewMode('sitl')" title="3D Digital Twin Visualizer with Terrain, Horizon & Compass">3D Flight Visualizer</button>
                 <button class="view-mode-btn" id="btn-view-map" onclick="setViewMode('map')" title="2D Satellite Map with Flight Track">2D Satellite Map</button>
             </div>
         </div>
@@ -929,9 +929,9 @@
 
     <!-- Main Workspace (Full-bleed: 3D Visualizer or 2D Satellite Map) -->
     <div id="workspace">
-        <!-- 3D SITL Visualizer View (Shark Hawk + Terrain + PFD Horizon + NAV Compass + Atmosphere Panel) -->
+        <!-- 3D Flight Visualizer View (3D Terrain + PFD Horizon + NAV Compass + Atmosphere Panel) -->
         <div id="sitl-pane" style="width: 100%; height: 100%; position: absolute; top: 0; left: 0; right: 0; bottom: 0;">
-                        <iframe id="sitl-viewer-frame" src="sharkee_hud.html?v=20261114_02" style="width: 100%; height: 100%; border: none; display: block;" onload="onSitlIframeLoaded()"></iframe>
+                        <iframe id="sitl-viewer-frame" src="sharkee_hud.html?v=20261114_03" style="width: 100%; height: 100%; border: none; display: block;" onload="onSitlIframeLoaded()"></iframe>
                     </div>
 
         <!-- 2D Leaflet Satellite Map View -->
@@ -1026,33 +1026,33 @@
         };
 
         const FLIGHT_MODE_COLORS = {
-            'MANUAL': '#64748b',
-            'CIRCLE': '#0284c7',
-            'STABILIZE': '#ea580c',
-            'TRAINING': '#f97316',
-            'ACRO': '#d97706',
-            'FBWA': '#0284c7',
-            'FBWB': '#2563eb',
-            'CRUISE': '#06b6d4',
-            'AUTOTUNE': '#0891b2',
-            'AUTO': '#10b981',
-            'RTL': '#ec4899',
-            'LOITER': '#eab308',
-            'TAKEOFF': '#8b5cf6',
-            'LAND': '#ef4444',
-            'GUIDED': '#9333ea',
-            'INITIALISING': '#64748b',
-            'QSTABILIZE': '#f97316',
-            'QHOVER': '#14b8a6',
-            'QLOITER': '#eab308',
-            'QLAND': '#dc2626',
-            'QRTL': '#db2777',
-            'QAUTOTUNE': '#0891b2',
-            'QACRO': '#b45309',
-            'THERMAL': '#059669',
-            'ALT_HOLD': '#0284c7',
-            'POSHOLD': '#eab308',
-            'BRAKE': '#ef4444'
+            'MANUAL': '#94a3b8',
+            'CIRCLE': '#00d2ff',
+            'STABILIZE': '#ff7300',
+            'TRAINING': '#ff9100',
+            'ACRO': '#ffab00',
+            'FBWA': '#00d2ff',
+            'FBWB': '#2979ff',
+            'CRUISE': '#00e5ff',
+            'AUTOTUNE': '#00b4d8',
+            'AUTO': '#00ff88',
+            'RTL': '#ff2d87',
+            'LOITER': '#ffcc00',
+            'TAKEOFF': '#a855f7',
+            'LAND': '#ff3344',
+            'GUIDED': '#b5179e',
+            'INITIALISING': '#94a3b8',
+            'QSTABILIZE': '#ff7300',
+            'QHOVER': '#00f5d4',
+            'QLOITER': '#ffcc00',
+            'QLAND': '#ff2a4b',
+            'QRTL': '#ff2d87',
+            'QAUTOTUNE': '#00b4d8',
+            'QACRO': '#ffab00',
+            'THERMAL': '#00ff88',
+            'ALT_HOLD': '#00d2ff',
+            'POSHOLD': '#ffcc00',
+            'BRAKE': '#ff3344'
         };
 
         function renderFlightModeTimeline(modeSegs) {
@@ -1209,11 +1209,11 @@
                 // Plot each flight mode segment in its authentic mode color
                 modeSegments.forEach(seg => {
                     if (seg.pts.length >= 2) {
-                        const color = FLIGHT_MODE_COLORS[seg.mode] || '#0284c7';
+                        const color = FLIGHT_MODE_COLORS[seg.mode] || '#00d2ff';
                         const poly = L.polyline(seg.pts, {
                             color: color,
-                            weight: 4,
-                            opacity: 0.95,
+                            weight: 6,
+                            opacity: 0.98,
                             smoothFactor: 1
                         }).addTo(mapInstance);
                         poly.bindTooltip(`Mode: ${seg.mode}`, { sticky: true });

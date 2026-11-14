@@ -3362,14 +3362,6 @@
                 <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
             </svg>
         </button>
-        <button class="toolbar-btn active" id="btn-toggle-eis" title="Toggle Engine & EIS Instrument (GI 275)" onclick="toggleEisWidget()">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="9"></circle>
-                <path d="M12 7v5l3 3"></path>
-                <path d="M7 12h1"></path>
-                <path d="M16 12h1"></path>
-            </svg>
-        </button>
         <button class="toolbar-btn" id="btn-toggle-messages" title="Toggle Autopilot Messages Log (Hotkey 'M')">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
@@ -3387,8 +3379,8 @@
     <div id="ui-panel">
         <div class="header">
             <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                <img src="app_icon.png?v=4" alt="ArduPilot Mascot" onerror="this.onerror=null; this.src='favicon.png';" style="width: 22px; height: 22px; border-radius: 6px; box-shadow: 0 2px 6px rgba(0,0,0,0.18); object-fit: cover; flex-shrink: 0;">
-                <span class="panel-brand-title">Shark Hawk Digital Twin</span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                <span class="panel-brand-title" style="font-size: 13px; font-weight: 700; letter-spacing: 0.5px; color: #f1f5f9; text-transform: uppercase;">Flight Telemetry</span>
             </div>
             <div style="display: flex; gap: 4px; align-items: center; flex-shrink: 0;">
                 <button id="btn-messages-hdr" class="icon-btn" title="Toggle Autopilot Messages Log (Hotkey 'M')" style="width: 26px; height: 26px; font-size: 12px; position: relative;">
@@ -3425,10 +3417,6 @@
             <button id="tab-airspace" class="panel-nav-tab">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>
                 <span>AIRSPACE</span>
-            </button>
-            <button id="tab-engine" class="panel-nav-tab active" title="Toggle Engine Data & EIS Instrument" onclick="toggleEisWidget()">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
-                <span>ENGINE</span>
             </button>
             <button id="tab-messages" class="panel-nav-tab" title="Autopilot Messages Log (Hotkey 'M')">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
@@ -12836,7 +12824,8 @@
         const eisBtnSingle = document.getElementById('eis-btn-single');
         const eisBtnTwin = document.getElementById('eis-btn-twin');
         const eisBtnCh = document.getElementById('eis-btn-ch');
-        var eisWidgetVisible = localStorage.getItem('eis_widget_visible') !== '0';
+        var eisWidgetVisible = false;
+        if (eisWidget) eisWidget.style.display = 'none';
 
         function toggleEisWidget() {
             const isVisible = eisWidget && (eisWidget.style.display !== 'none' && window.getComputedStyle(eisWidget).display !== 'none');
@@ -14186,8 +14175,6 @@
 
             const rawPoints = [];
             const pointModes = [];
-            let lastValidAlt = null;
-            let lastValidTime = null;
             for (let i = 0; i < traj.length; i++) {
                 const p = traj[i];
                 if (!p.lat || !p.lng || Math.abs(p.lat) < 0.001) continue;
@@ -14195,137 +14182,189 @@
                 const dLon = p.lng - homeLon;
                 const sx = dLon * mPerDegLon;
                 const sz = -(dLat * mPerDegLat);
-                let relAlt = (typeof p.rel_alt === 'number') ? p.rel_alt : ((typeof p.alt === 'number') ? (p.alt - (homeAlt || 0)) : 2.0);
-                
-                // Aeronautical vertical rate limiter: filter out sensor datum step jumps (> 25 m/s climb/descent)
-                if (lastValidAlt !== null && typeof p.time === 'number' && lastValidTime !== null) {
-                    const dt = Math.max(0.05, p.time - lastValidTime);
-                    const maxDelta = 25.0 * dt;
-                    if (Math.abs(relAlt - lastValidAlt) > maxDelta) {
-                        relAlt = lastValidAlt + Math.sign(relAlt - lastValidAlt) * maxDelta;
-                    }
-                }
-                lastValidAlt = relAlt;
-                if (typeof p.time === 'number') lastValidTime = p.time;
+                const relAlt = (typeof p.rel_alt === 'number') ? p.rel_alt : ((typeof p.alt === 'number') ? (p.alt - (homeAlt || 0)) : 2.0);
+                const groundY = (typeof getTerrainElevationAt === 'function') ? getTerrainElevationAt(sx, sz) : 0;
+                const sy = Math.max(groundY + 1.8, relAlt);
 
-                const sy = Math.max(1.8, relAlt);
+                if (rawPoints.length > 0) {
+                    const prev = rawPoints[rawPoints.length - 1];
+                    const distSq = (sx - prev.x) * (sx - prev.x) + (sy - prev.y) * (sy - prev.y) + (sz - prev.z) * (sz - prev.z);
+                    if (distSq < 0.04) continue;
+                }
                 rawPoints.push(new THREE.Vector3(sx, sy, sz));
                 pointModes.push(p.mode || 'MANUAL');
             }
             if (rawPoints.length < 2) return;
 
-            // Decimate stationary ground clutter while preserving smooth flight curvature (min 1.8m spacing)
-            const controlKnots = [rawPoints[0]];
-            const knotModes = [pointModes[0]];
-            for (let i = 1; i < rawPoints.length; i++) {
-                const prev = controlKnots[controlKnots.length - 1];
-                const curr = rawPoints[i];
-                if (prev.distanceToSquared(curr) >= 3.24 || i === rawPoints.length - 1) {
-                    controlKnots.push(curr);
-                    knotModes.push(pointModes[i]);
+            // Vibrant Neon Aeronautical Flight Mode Color Palette
+            const MODE_THREE_COLORS = {
+                'MANUAL': new THREE.Color(0x94a3b8),
+                'STABILIZE': new THREE.Color(0xff7300),
+                'TRAINING': new THREE.Color(0xff9100),
+                'ACRO': new THREE.Color(0xffab00),
+                'FBWA': new THREE.Color(0x00d2ff),
+                'FBWB': new THREE.Color(0x2979ff),
+                'CRUISE': new THREE.Color(0x00e5ff),
+                'AUTOTUNE': new THREE.Color(0x00b4d8),
+                'AUTO': new THREE.Color(0x00ff88),
+                'RTL': new THREE.Color(0xff2d87),
+                'LOITER': new THREE.Color(0xffcc00),
+                'TAKEOFF': new THREE.Color(0xa855f7),
+                'LAND': new THREE.Color(0xff3344),
+                'GUIDED': new THREE.Color(0xb5179e),
+                'QSTABILIZE': new THREE.Color(0xff7300),
+                'QHOVER': new THREE.Color(0x00f5d4),
+                'QLOITER': new THREE.Color(0xffcc00),
+                'QLAND': new THREE.Color(0xff2a4b),
+                'QRTL': new THREE.Color(0xff2d87),
+                'QAUTOTUNE': new THREE.Color(0x00b4d8),
+                'QACRO': new THREE.Color(0xffab00)
+            };
+            const defaultModeColor = new THREE.Color(0x00d2ff);
+
+            const N = rawPoints.length;
+            const ribbonWidth = 2.4;
+            const halfW = ribbonWidth * 0.5;
+
+            const ribbonVertices = new Float32Array(N * 2 * 3);
+            const ribbonColors = new Float32Array(N * 2 * 3);
+            const spineVertices = new Float32Array(N * 3);
+            const spineColors = new Float32Array(N * 3);
+            const ribbonIndices = [];
+
+            for (let i = 0; i < N; i++) {
+                const p = rawPoints[i];
+                const mode = pointModes[i] || 'MANUAL';
+                const col = MODE_THREE_COLORS[mode] || defaultModeColor;
+
+                spineVertices[i * 3] = p.x;
+                spineVertices[i * 3 + 1] = p.y;
+                spineVertices[i * 3 + 2] = p.z;
+                spineColors[i * 3] = col.r;
+                spineColors[i * 3 + 1] = col.g;
+                spineColors[i * 3 + 2] = col.b;
+
+                let tx, tz;
+                if (i === 0) {
+                    tx = rawPoints[1].x - p.x;
+                    tz = rawPoints[1].z - p.z;
+                } else if (i === N - 1) {
+                    tx = p.x - rawPoints[N - 2].x;
+                    tz = p.z - rawPoints[N - 2].z;
+                } else {
+                    tx = rawPoints[i + 1].x - rawPoints[i - 1].x;
+                    tz = rawPoints[i + 1].z - rawPoints[i - 1].z;
+                }
+                const len = Math.hypot(tx, tz);
+                let nx = 0, nz = 1;
+                if (len > 1e-4) {
+                    nx = -tz / len;
+                    nz = tx / len;
+                }
+
+                const vL = i * 2;
+                ribbonVertices[vL * 3] = p.x + nx * halfW;
+                ribbonVertices[vL * 3 + 1] = p.y;
+                ribbonVertices[vL * 3 + 2] = p.z + nz * halfW;
+                ribbonColors[vL * 3] = col.r;
+                ribbonColors[vL * 3 + 1] = col.g;
+                ribbonColors[vL * 3 + 2] = col.b;
+
+                const vR = i * 2 + 1;
+                ribbonVertices[vR * 3] = p.x - nx * halfW;
+                ribbonVertices[vR * 3 + 1] = p.y;
+                ribbonVertices[vR * 3 + 2] = p.z - nz * halfW;
+                ribbonColors[vR * 3] = col.r;
+                ribbonColors[vR * 3 + 1] = col.g;
+                ribbonColors[vR * 3 + 2] = col.b;
+
+                if (i < N - 1) {
+                    const i0 = vL;
+                    const i1 = vR;
+                    const i2 = (i + 1) * 2;
+                    const i3 = (i + 1) * 2 + 1;
+                    ribbonIndices.push(i0, i1, i2);
+                    ribbonIndices.push(i1, i3, i2);
                 }
             }
 
-            if (controlKnots.length >= 2) {
-                // Fit a centripetal Catmull-Rom 3D spline for continuous C1 curvilinear ribbon
-                const curve = new THREE.CatmullRomCurve3(controlKnots, false, 'centripetal', 0.5);
-                const numSamples = Math.min(8000, Math.max(1000, controlKnots.length * 6));
-                const smoothPoints = curve.getPoints(numSamples);
+            // 1. Wide 3D Flight Mode Ribbon Mesh (High visibility, thick path width)
+            const ribbonGeo = new THREE.BufferGeometry();
+            ribbonGeo.setAttribute('position', new THREE.BufferAttribute(ribbonVertices, 3));
+            ribbonGeo.setAttribute('color', new THREE.BufferAttribute(ribbonColors, 3));
+            ribbonGeo.setIndex(ribbonIndices);
+            ribbonGeo.computeVertexNormals();
 
-                // Map flight modes to Three.js colors
-                const MODE_THREE_COLORS = {
-                    'MANUAL': new THREE.Color(0x64748b),
-                    'STABILIZE': new THREE.Color(0xea580c),
-                    'TRAINING': new THREE.Color(0xf97316),
-                    'ACRO': new THREE.Color(0xd97706),
-                    'FBWA': new THREE.Color(0x0284c7),
-                    'FBWB': new THREE.Color(0x2563eb),
-                    'CRUISE': new THREE.Color(0x06b6d4),
-                    'AUTOTUNE': new THREE.Color(0x0891b2),
-                    'AUTO': new THREE.Color(0x10b981),
-                    'RTL': new THREE.Color(0xec4899),
-                    'LOITER': new THREE.Color(0xeab308),
-                    'TAKEOFF': new THREE.Color(0x8b5cf6),
-                    'LAND': new THREE.Color(0xef4444),
-                    'GUIDED': new THREE.Color(0xa855f7),
-                    'QSTABILIZE': new THREE.Color(0xf97316),
-                    'QHOVER': new THREE.Color(0x14b8a6),
-                    'QLOITER': new THREE.Color(0xeab308),
-                    'QLAND': new THREE.Color(0xdc2626),
-                    'QRTL': new THREE.Color(0xdb2777),
-                    'QAUTOTUNE': new THREE.Color(0x0891b2),
-                    'QACRO': new THREE.Color(0xb45309)
-                };
-                const defaultModeColor = new THREE.Color(0x0284c7);
+            const ribbonMat = new THREE.MeshBasicMaterial({
+                vertexColors: true,
+                side: THREE.DoubleSide,
+                transparent: true,
+                opacity: 0.92,
+                depthTest: false,
+                depthWrite: false
+            });
+            const ribbonMesh = new THREE.Mesh(ribbonGeo, ribbonMat);
+            ribbonMesh.renderOrder = 8990;
+            ribbonMesh.frustumCulled = false;
+            window.logCorridorGroup.add(ribbonMesh);
 
-                const colors = [];
-                for (let i = 0; i < smoothPoints.length; i++) {
-                    const u = i / (smoothPoints.length - 1);
-                    const knotIdx = Math.min(knotModes.length - 1, Math.max(0, Math.round(u * (knotModes.length - 1))));
-                    const m = knotModes[knotIdx] || 'MANUAL';
-                    const c = MODE_THREE_COLORS[m] || defaultModeColor;
-                    colors.push(c.r, c.g, c.b);
-                }
+            // 2. High-Visibility Spine Vector Line
+            const spineGeo = new THREE.BufferGeometry();
+            spineGeo.setAttribute('position', new THREE.BufferAttribute(spineVertices, 3));
+            spineGeo.setAttribute('color', new THREE.BufferAttribute(spineColors, 3));
+            const spineMat = new THREE.LineBasicMaterial({
+                vertexColors: true,
+                linewidth: 2,
+                transparent: true,
+                opacity: 0.98,
+                depthTest: false,
+                depthWrite: false
+            });
+            const spineLine = new THREE.Line(spineGeo, spineMat);
+            spineLine.renderOrder = 8995;
+            spineLine.frustumCulled = false;
+            window.logCorridorGroup.add(spineLine);
 
-                // 1. High-Visibility Flight Mode Color-Coded Path Ribbon
-                const lineGeo = new THREE.BufferGeometry().setFromPoints(smoothPoints);
-                lineGeo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-                const lineMat = new THREE.LineBasicMaterial({
-                    vertexColors: true,
-                    linewidth: 3,
+            // 3. Periodic vertical drop pins colored by active flight mode
+            const dropStep = Math.max(25, Math.floor(N / 50));
+            for (let i = 0; i < N; i += dropStep) {
+                const pt = rawPoints[i];
+                const m = pointModes[i] || 'MANUAL';
+                const c = MODE_THREE_COLORS[m] || defaultModeColor;
+
+                const dropGeo = new THREE.BufferGeometry().setFromPoints([
+                    pt,
+                    new THREE.Vector3(pt.x, 0.1, pt.z)
+                ]);
+                const dropMat = new THREE.LineDashedMaterial({
+                    color: c,
+                    dashSize: 3,
+                    gapSize: 2,
                     transparent: true,
-                    opacity: 0.95,
-                    depthTest: false,
-                    depthWrite: false
+                    opacity: 0.45,
+                    depthTest: false
                 });
-                const flightLine = new THREE.Line(lineGeo, lineMat);
-                flightLine.renderOrder = 8990;
-                flightLine.frustumCulled = false;
-                window.logCorridorGroup.add(flightLine);
-
-                // 2. Periodic vertical drop pins colored by active flight mode
-                const dropStep = Math.max(25, Math.floor(smoothPoints.length / 50));
-                for (let i = 0; i < smoothPoints.length; i += dropStep) {
-                    const pt = smoothPoints[i];
-                    const u = i / (smoothPoints.length - 1);
-                    const knotIdx = Math.min(knotModes.length - 1, Math.max(0, Math.round(u * (knotModes.length - 1))));
-                    const m = knotModes[knotIdx] || 'MANUAL';
-                    const c = MODE_THREE_COLORS[m] || defaultModeColor;
-
-                    const dropGeo = new THREE.BufferGeometry().setFromPoints([
-                        pt,
-                        new THREE.Vector3(pt.x, 0.1, pt.z)
-                    ]);
-                    const dropMat = new THREE.LineDashedMaterial({
-                        color: c,
-                        dashSize: 3,
-                        gapSize: 2,
-                        transparent: true,
-                        opacity: 0.45,
-                        depthTest: false
-                    });
-                    const dropLine = new THREE.Line(dropGeo, dropMat);
-                    dropLine.computeLineDistances();
-                    dropLine.renderOrder = 8980;
-                    dropLine.frustumCulled = false;
-                    window.logCorridorGroup.add(dropLine);
-                }
-
-                // 3. Takeoff / Home marker
-                const homeGeo = new THREE.RingGeometry(2, 6, 32);
-                homeGeo.rotateX(-Math.PI / 2);
-                const homeMat = new THREE.MeshBasicMaterial({
-                    color: 0xffb300,
-                    side: THREE.DoubleSide,
-                    transparent: true,
-                    opacity: 0.85
-                });
-                const homeMesh = new THREE.Mesh(homeGeo, homeMat);
-                homeMesh.position.set(smoothPoints[0].x, 0.15, smoothPoints[0].z);
-                window.logCorridorGroup.add(homeMesh);
-
-                scene.add(window.logCorridorGroup);
+                const dropLine = new THREE.Line(dropGeo, dropMat);
+                dropLine.computeLineDistances();
+                dropLine.renderOrder = 8980;
+                dropLine.frustumCulled = false;
+                window.logCorridorGroup.add(dropLine);
             }
+
+            // 4. Takeoff / Home marker
+            const homeGeo = new THREE.RingGeometry(2, 6, 32);
+            homeGeo.rotateX(-Math.PI / 2);
+            const homeMat = new THREE.MeshBasicMaterial({
+                color: 0xffb300,
+                side: THREE.DoubleSide,
+                transparent: true,
+                opacity: 0.85
+            });
+            const homeMesh = new THREE.Mesh(homeGeo, homeMat);
+            homeMesh.position.set(rawPoints[0].x, 0.15, rawPoints[0].z);
+            window.logCorridorGroup.add(homeMesh);
+
+            scene.add(window.logCorridorGroup);
         }
 
         function applyFlightLogTelemetry(pt, isJump = false) {
@@ -14575,6 +14614,8 @@
             const windVals = [];
             const windDirs = [];
 
+            window._hasArspInLog = traj.some(p => (p.has_arsp === true) || (typeof p.tas === 'number' && p.tas > 1.0) || (typeof p.arsp_temp === 'number' && Math.abs(p.arsp_temp) > 0.05));
+
             for (let i = 0; i < traj.length; i++) {
                 const pt = traj[i];
                 if (typeof pt.baro_temp === 'number' && pt.baro_temp > -40 && pt.baro_temp < 100) {
@@ -14583,8 +14624,11 @@
                     baroVals.push(pt.temp);
                 }
 
-                if (typeof pt.arsp_temp === 'number' && Math.abs(pt.arsp_temp) > 0.05 && pt.arsp_temp < 100) {
-                    arspVals.push(pt.arsp_temp);
+                if (window._hasArspInLog) {
+                    const at = (typeof pt.arsp_temp === 'number' && Math.abs(pt.arsp_temp) > 0.05) ? pt.arsp_temp : pt.baro_temp;
+                    if (typeof at === 'number' && at > -40 && at < 100) {
+                        arspVals.push(at);
+                    }
                 }
 
                 if (typeof pt.qnh_hpa === 'number' && pt.qnh_hpa > 800) {
@@ -14622,7 +14666,7 @@
             };
 
             const bStats = calcStats(baroVals);
-            const aStats = arspVals.length > 0 ? calcStats(arspVals) : { min: '0.0', max: '0.0', avg: '0.0' };
+            const aStats = (window._hasArspInLog && arspVals.length > 0) ? calcStats(arspVals) : { min: '--', max: '--', avg: '--' };
             const qStats = calcStats(qnhVals);
             const pStats = calcStats(pressVals);
             const dStats = calcStats(densVals);
@@ -14727,8 +14771,17 @@
             setTxt('env-press-val', pressHpa !== null ? pressHpa.toFixed(1) : '--');
 
             // 4. Airspeed / Pitot Temp (keep 0.0 if no airspeed sensor data available)
-            const aTemp = (typeof pt.arsp_temp === 'number') ? pt.arsp_temp : 0.0;
-            setTxt('env-arsp-temp-val', aTemp.toFixed(1));
+            let aTemp = 0.0;
+            if (window._hasArspInLog || pt.has_arsp === true || (typeof pt.tas === 'number' && pt.tas > 1.0)) {
+                if (typeof pt.arsp_temp === 'number' && Math.abs(pt.arsp_temp) > 0.05) {
+                    aTemp = pt.arsp_temp;
+                } else if (typeof pt.baro_temp === 'number' && Math.abs(pt.baro_temp) > 0.05) {
+                    aTemp = pt.baro_temp;
+                } else if (typeof pt.temp === 'number') {
+                    aTemp = pt.temp;
+                }
+            }
+            setTxt('env-arsp-temp-val', aTemp > 0 ? aTemp.toFixed(1) : '0.0');
 
             // 5. Air Density (rho)
             let rhoVal = pt.density;

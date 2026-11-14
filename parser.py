@@ -313,7 +313,7 @@ def parse_flight_telemetry(file_path, target_samples=6000):
         elif mtype == 'ARSP':
             cur_tas = getattr(msg, 'Airspeed', cur_tas)
             arsp_t = getattr(msg, 'Temp', None)
-            if arsp_t is not None:
+            if arsp_t is not None and abs(arsp_t) > 0.05:
                 cur_arsp_temp = arsp_t
 
         elif mtype == 'CTUN':
@@ -439,6 +439,39 @@ def parse_flight_telemetry(file_path, target_samples=6000):
             if r['field_elev'] == 0.0 or r['alt'] == 0.0:
                 r['field_elev'] = round(home_elevation, 1)
                 r['alt'] = round(home_elevation + r['rel_alt'], 1)
+
+    # Backfill and harmonize airspeed temperature across records
+    first_valid_arsp_temp = None
+    has_any_arsp = False
+    for r in raw_records:
+        if r.get('arsp_temp', 0.0) != 0.0:
+            first_valid_arsp_temp = r['arsp_temp']
+            has_any_arsp = True
+            break
+        elif r.get('tas', 0.0) > 1.0 or r.get('has_arsp'):
+            has_any_arsp = True
+
+    if has_any_arsp:
+        # If pitot sensor did not report independent temp, fallback to first valid baro_temp
+        if first_valid_arsp_temp is None:
+            for r in raw_records:
+                if r.get('baro_temp', 0.0) != 0.0:
+                    first_valid_arsp_temp = r['baro_temp']
+                    break
+
+        if first_valid_arsp_temp is not None:
+            last_known_arsp_t = first_valid_arsp_temp
+            for r in raw_records:
+                r['has_arsp'] = True
+                if r.get('arsp_temp', 0.0) == 0.0:
+                    r['arsp_temp'] = last_known_arsp_t
+                else:
+                    last_known_arsp_t = r['arsp_temp']
+    else:
+        # Truly no airspeed sensor present in flight
+        for r in raw_records:
+            r['arsp_temp'] = 0.0
+            r['has_arsp'] = False
 
     # Downsample evenly for high-speed web plotting if records are huge
     total_recs = len(raw_records)
