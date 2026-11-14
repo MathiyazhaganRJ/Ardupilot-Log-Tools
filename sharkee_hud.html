@@ -937,8 +937,8 @@
         /* LXNAV Circular Glass Cockpit MFD Widget (Classic Frosted White with Aviation B612) */
         #lxnav-mfd-widget {
             position: absolute;
-            bottom: 593px;
-            right: 58px;
+            bottom: 618px;
+            right: 20px;
             width: 244px;
             min-width: 244px;
             max-width: 244px;
@@ -1761,7 +1761,7 @@
         /* ========================================================= */
         #eis-widget {
             position: absolute;
-            bottom: 161px;
+            bottom: 190px;
             right: 20px;
             width: 320px;
             min-width: 320px;
@@ -2523,16 +2523,26 @@
             letter-spacing: 0.5px;
         }
 
-        @media (max-height: 865px) {
+        @media (max-height: 920px) {
             #lxnav-mfd-widget {
-                bottom: 600px;
+                bottom: 615px;
+                transform: scale(0.92);
+                transform-origin: bottom right;
             }
             #eis-widget {
                 bottom: 188px;
             }
-            #terrain-graph-container {
-                height: 172px !important;
-                bottom: 10px !important;
+        }
+        @media (max-height: 840px) {
+            #lxnav-mfd-widget {
+                bottom: 575px;
+                transform: scale(0.82);
+                transform-origin: bottom right;
+            }
+            #eis-widget {
+                bottom: 184px;
+                transform: scale(0.92);
+                transform-origin: bottom right;
             }
         }
 
@@ -3360,6 +3370,14 @@
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+            </svg>
+        </button>
+        <button class="toolbar-btn active" id="btn-toggle-eis" title="Toggle Engine & EIS Instrument (GI 275)" onclick="toggleEisWidget()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="9"></circle>
+                <path d="M12 7v5l3 3"></path>
+                <path d="M7 12h1"></path>
+                <path d="M16 12h1"></path>
             </svg>
         </button>
         <button class="toolbar-btn" id="btn-toggle-messages" title="Toggle Autopilot Messages Log (Hotkey 'M')">
@@ -12824,8 +12842,9 @@
         const eisBtnSingle = document.getElementById('eis-btn-single');
         const eisBtnTwin = document.getElementById('eis-btn-twin');
         const eisBtnCh = document.getElementById('eis-btn-ch');
-        var eisWidgetVisible = false;
-        if (eisWidget) eisWidget.style.display = 'none';
+        var eisWidgetVisible = localStorage.getItem('eis_widget_visible') !== '0';
+        if (eisWidget) eisWidget.style.display = eisWidgetVisible ? 'flex' : 'none';
+        if (btnToggleEis) btnToggleEis.classList.toggle('active', eisWidgetVisible);
 
         function toggleEisWidget() {
             const isVisible = eisWidget && (eisWidget.style.display !== 'none' && window.getComputedStyle(eisWidget).display !== 'none');
