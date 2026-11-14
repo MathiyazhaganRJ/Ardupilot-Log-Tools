@@ -106,36 +106,20 @@
             user-select: none;
         }
 
-        select.log-select-clean {
-            background: transparent;
+        .log-name-display {
             color: #f1f5f9;
-            border: none;
-            padding: 0 24px 0 10px;
+            padding: 0 12px;
             font-size: 11.5px;
             font-weight: 600;
             font-family: 'Consolas', monospace;
-            cursor: pointer;
-            outline: none;
+            display: inline-flex;
+            align-items: center;
             height: 100%;
+            user-select: text;
             max-width: 320px;
-            -webkit-appearance: none;
-            appearance: none;
-            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2338bdf8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
-            background-repeat: no-repeat;
-            background-position: right 6px center;
-            background-size: 12px;
-            transition: color 0.15s ease;
-        }
-
-        select.log-select-clean:hover {
-            color: #38bdf8;
-        }
-
-        select.log-select-clean option {
-            background: #0f172a;
-            color: #f1f5f9;
-            font-family: 'Consolas', monospace;
-            padding: 4px 8px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .header-meta {
@@ -923,12 +907,10 @@
                 </button>
                 <input type="file" id="local-file-picker" accept=".bin,.log,.tlog,.BIN,.LOG,.TLOG" style="display: none;" onchange="onFileChosen(this)">
 
-                <!-- Loaded Flight Log Name Badge & Selector -->
-                <div class="log-badge-wrapper" title="Loaded flight log">
+                <!-- Loaded Flight Log Name Badge (No dropdown) -->
+                <div class="log-badge-wrapper" title="Current loaded flight log">
                     <span class="log-badge-tag">LOG</span>
-                    <select id="log-file-select" class="log-select-clean" onchange="onLogSelectChanged()" title="Loaded flight log">
-                        <option value="">No log loaded</option>
-                    </select>
+                    <span id="loaded-log-name" class="log-name-display">Loading log...</span>
                 </div>
             </div>
             <div class="header-meta">
@@ -1101,8 +1083,7 @@
             if (document.getElementById('three-canvas-container')) {
                 initThreeJS();
             }
-            await fetchLogsList();
-            await loadSelectedLog();
+            await loadLogByPath();
 
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('view') === 'map') {
@@ -1534,25 +1515,12 @@
             if (metaBoard) metaBoard.textContent = "Board: " + (data.metadata?.board || "---");
             if (metaDur) metaDur.textContent = data.metadata ? `Duration: ${Math.floor(data.metadata.duration_s / 60)}m ${Math.floor(data.metadata.duration_s % 60)}s` : "---";
 
-            // Sync active log name in the header badge
-            const sel = document.getElementById('log-file-select');
+            // Display active log name in the header badge (no dropdown)
+            const logNameEl = document.getElementById('loaded-log-name');
             const fname = data.metadata?.filename || (data.metadata?.path ? data.metadata.path.replace(/\\/g, '/').split('/').pop() : 'flight.bin');
-            if (sel) {
-                let matched = false;
-                for (let i = 0; i < sel.options.length; i++) {
-                    if (sel.options[i].textContent === fname || sel.options[i].value === (data.metadata?.path || '')) {
-                        sel.selectedIndex = i;
-                        matched = true;
-                        break;
-                    }
-                }
-                if (!matched) {
-                    const opt = document.createElement('option');
-                    opt.value = data.metadata?.path || fname;
-                    opt.textContent = fname;
-                    sel.insertBefore(opt, sel.firstChild);
-                    sel.selectedIndex = 0;
-                }
+            if (logNameEl) {
+                logNameEl.textContent = fname;
+                logNameEl.title = fname;
             }
 
             // Setup Replay Timeline Extents
@@ -1581,10 +1549,11 @@
         }
 
         async function loadLogByPath(targetPath) {
-            if (!targetPath) return;
-            document.getElementById('meta-date').textContent = "Parsing flight telemetry...";
+            const metaDate = document.getElementById('meta-date');
+            if (metaDate) metaDate.textContent = "Parsing flight telemetry...";
             try {
-                const res = await fetch(`/api/load?path=${encodeURIComponent(targetPath)}`);
+                const url = targetPath ? `/api/load?path=${encodeURIComponent(targetPath)}` : '/api/load';
+                const res = await fetch(url);
                 const data = await res.json();
                 applyParsedFlightData(data);
             } catch (e) {
@@ -1702,14 +1671,6 @@
                 });
                 const data = await res.json();
                 if (data.success) {
-                    const sel = document.getElementById('log-file-select');
-                    if (sel) {
-                        const opt = document.createElement('option');
-                        opt.value = data.path;
-                        opt.textContent = file.name;
-                        sel.insertBefore(opt, sel.firstChild);
-                        sel.selectedIndex = 0;
-                    }
                     applyParsedFlightData(data);
                 } else {
                     alert("Upload error: " + (data.error || "Unknown"));
