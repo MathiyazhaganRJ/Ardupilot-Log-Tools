@@ -1243,7 +1243,7 @@
             <div id="lower-viewports-wrapper" class="fullscreen" style="flex: 1; position: relative; width: 100%; height: 100%; min-height: 0;">
                 <!-- 3D Flight Visualizer View (3D Terrain + PFD Horizon + NAV Compass + Atmosphere Panel) -->
                 <div id="sitl-pane" style="width: 100%; height: 100%; position: absolute; top: 0; left: 0; right: 0; bottom: 0;">
-                    <iframe id="sitl-viewer-frame" src="sharkee_hud.html?v=20261114_03" style="width: 100%; height: 100%; border: none; display: block;" onload="onSitlIframeLoaded()"></iframe>
+                    <iframe id="sitl-viewer-frame" src="sharkee_hud.html?v=20261114_REV7_EIS_SYNC" style="width: 100%; height: 100%; border: none; display: block;" onload="onSitlIframeLoaded()"></iframe>
                 </div>
 
                 <!-- 2D Leaflet Satellite Map View -->
@@ -1361,10 +1361,10 @@
             'FBWB': '#0ea5e9',
             'CRUISE': '#a855f7',
             'AUTOTUNE': '#00b4d8',
-            'AUTO': '#00e676',
+            'AUTO': '#00e600',
             'RTL': '#f59e0b',
             'LOITER': '#06b6d4',
-            'TAKEOFF': '#00e676',
+            'TAKEOFF': '#00e600',
             'AVOID_ADSB': '#f43f5e',
             'GUIDED': '#3b82f6',
             'INITIALISING': '#64748b',
@@ -2531,11 +2531,37 @@
                 interpServos = p0.servos;
             }
 
+            const p0RelAlt = (typeof p0.rel_alt === 'number') ? p0.rel_alt : ((p0.alt || 0) - (currentFlightData?.metadata?.field_elevation || 0));
+            const p1RelAlt = (typeof p1.rel_alt === 'number') ? p1.rel_alt : ((p1.alt || 0) - (currentFlightData?.metadata?.field_elevation || 0));
+            const interpRelAlt = p0RelAlt + (p1RelAlt - p0RelAlt) * alpha;
+
+            const p0FieldElev = p0.field_elev || currentFlightData?.metadata?.field_elevation || 0;
+            const p1FieldElev = p1.field_elev || currentFlightData?.metadata?.field_elevation || 0;
+            const interpFieldElev = p0FieldElev + (p1FieldElev - p0FieldElev) * alpha;
+
+            const p0BaroTemp = (typeof p0.baro_temp === 'number' && Math.abs(p0.baro_temp) > 0.05) ? p0.baro_temp : (p0.temp || 0);
+            const p1BaroTemp = (typeof p1.baro_temp === 'number' && Math.abs(p1.baro_temp) > 0.05) ? p1.baro_temp : (p1.temp || 0);
+            const interpBaroTemp = p0BaroTemp + (p1BaroTemp - p0BaroTemp) * alpha;
+
+            const p0ArspTemp = (typeof p0.arsp_temp === 'number' && Math.abs(p0.arsp_temp) > 0.05) ? p0.arsp_temp : p0BaroTemp;
+            const p1ArspTemp = (typeof p1.arsp_temp === 'number' && Math.abs(p1.arsp_temp) > 0.05) ? p1.arsp_temp : p1BaroTemp;
+            const interpArspTemp = p0ArspTemp + (p1ArspTemp - p0ArspTemp) * alpha;
+
+            const interpQnh = (p0.qnh_hpa || 1013.25) + ((p1.qnh_hpa || p0.qnh_hpa || 1013.25) - (p0.qnh_hpa || 1013.25)) * alpha;
+            const interpPress = (p0.press_hpa || 1013.25) + ((p1.press_hpa || p0.press_hpa || 1013.25) - (p0.press_hpa || 1013.25)) * alpha;
+
             return {
                 time: timeSec,
                 lat: interpLat,
                 lng: interpLng,
                 alt: interpAlt,
+                rel_alt: interpRelAlt,
+                field_elev: interpFieldElev,
+                arsp_temp: interpArspTemp,
+                baro_temp: interpBaroTemp,
+                has_arsp: p0.has_arsp || p1.has_arsp || false,
+                qnh_hpa: interpQnh,
+                press_hpa: interpPress,
                 roll: p0.roll + (p1.roll - p0.roll) * alpha,
                 pitch: p0.pitch + (p1.pitch - p0.pitch) * alpha,
                 yaw: interpYaw,
@@ -2576,7 +2602,7 @@
             const modePill = document.getElementById('replay-mode-pill');
             if (sample.mode) {
                 if (modeLabel) modeLabel.textContent = sample.mode;
-                const modeColor = FLIGHT_MODE_COLORS[sample.mode] || '#00e676';
+                const modeColor = FLIGHT_MODE_COLORS[sample.mode] || '#00e600';
                 if (modeLed) {
                     modeLed.style.backgroundColor = modeColor;
                     modeLed.style.boxShadow = `0 0 6px ${modeColor}`;
@@ -2832,7 +2858,7 @@
 
             if (points.length > 1) {
                 const geom = new THREE.BufferGeometry().setFromPoints(points);
-                const mat = new THREE.LineBasicMaterial({ color: 0x00e676, linewidth: 2 });
+                const mat = new THREE.LineBasicMaterial({ color: 0x00e600, linewidth: 2 });
                 trajectoryLine = new THREE.Line(geom, mat);
                 scene.add(trajectoryLine);
             }

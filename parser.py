@@ -112,6 +112,9 @@ def discover_flight_logs(base_dir=None):
     candidate_dirs = []
     if base_dir and os.path.exists(base_dir):
         candidate_dirs.append(base_dir)
+    uploads_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "uploads")
+    if os.path.exists(uploads_dir):
+        candidate_dirs.append(uploads_dir)
     env_dir = os.environ.get("ARDUPILOT_LOGS_DIR")
     if env_dir and os.path.exists(env_dir):
         candidate_dirs.append(env_dir)
