@@ -16,13 +16,28 @@ MODE_MAP = {
     11: 'RTL', 12: 'LOITER', 15: 'GUIDED'
 }
 
+def get_default_logs_dir(base_dir=None):
+    if base_dir and os.path.exists(base_dir):
+        return os.path.normpath(base_dir)
+    candidate_dirs = [
+        os.environ.get("ARDUPILOT_LOGS_DIR"),
+        r"C:\Users\KARSHAK_Tamal\Desktop\Logs",
+        os.path.join(os.path.expanduser("~"), "Desktop", "Logs"),
+        os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs")
+    ]
+    for d in candidate_dirs:
+        if d and os.path.exists(d):
+            return os.path.normpath(d)
+    return os.path.normpath(r"C:\Users\KARSHAK_Tamal\Desktop\Logs")
+
+
 def discover_flight_logs(base_dir=None):
     """Finds all .bin flight logs in the logs directory, sorted by date."""
     candidate_dirs = []
-    if base_dir:
+    if base_dir and os.path.exists(base_dir):
         candidate_dirs.append(base_dir)
     env_dir = os.environ.get("ARDUPILOT_LOGS_DIR")
-    if env_dir:
+    if env_dir and os.path.exists(env_dir):
         candidate_dirs.append(env_dir)
     candidate_dirs.append(r"C:\Users\KARSHAK_Tamal\Desktop\Logs")
     user_desktop_logs = os.path.join(os.path.expanduser("~"), "Desktop", "Logs")
@@ -34,14 +49,14 @@ def discover_flight_logs(base_dir=None):
     valid_dir = None
     for d in candidate_dirs:
         if d and os.path.exists(d):
-            valid_dir = d
+            valid_dir = os.path.normpath(d)
             break
 
     logs = []
     if valid_dir and os.path.exists(valid_dir):
         for root, dirs, files in os.walk(valid_dir):
             for f in files:
-                if f.lower().endswith('.bin'):
+                if f.lower().endswith(('.bin', '.log')):
                     full_p = os.path.join(root, f)
                     try:
                         mtime = os.path.getmtime(full_p)

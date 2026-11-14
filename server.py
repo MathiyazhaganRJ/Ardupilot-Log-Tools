@@ -34,8 +34,70 @@ class LogViewerHandler(SimpleHTTPRequestHandler):
 
         # 1. API: List Available Flight Logs
         if path == '/api/logs':
-            logs = parser.discover_flight_logs()
-            self._send_json({'success': True, 'logs': logs[:80]})
+            folder = query.get('folder', [None])[0]
+            logs = parser.discover_flight_logs(folder)
+            active_folder = parser.get_default_logs_dir(folder)
+            self._send_json({'success': True, 'logs': logs[:250], 'folder': active_folder, 'total': len(logs)})
+            return
+
+        # 1b. API: Open Native Windows File Chooser Dialog
+        elif path == '/api/pick_file':
+            try:
+                import tkinter as tk
+                from tkinter import filedialog
+                root = tk.Tk()
+                root.withdraw()
+                root.wm_attributes('-topmost', 1)
+                initial_dir = query.get('current', [None])[0] or parser.get_default_logs_dir()
+                file_path = filedialog.askopenfilename(
+                    master=root,
+                    initialdir=initial_dir if os.path.exists(initial_dir) else None,
+                    title="Select ArduPilot Flight Log (.bin, .log)",
+                    filetypes=[("ArduPilot Logs (*.bin, *.log)", "*.bin;*.BIN;*.log;*.LOG;*.tlog;*.TLOG"), ("All Files (*.*)", "*.*")]
+                )
+                root.destroy()
+                if file_path:
+                    norm_path = os.path.normpath(file_path)
+                    self._send_json({
+                        'success': True,
+                        'file_path': norm_path,
+                        'filename': os.path.basename(norm_path),
+                        'folder': os.path.dirname(norm_path)
+                    })
+                else:
+                    self._send_json({'success': False, 'cancelled': True})
+            except Exception as e:
+                self._send_json({'success': False, 'error': str(e)})
+            return
+
+        # 1c. API: Open Native Windows Folder Chooser Dialog
+        elif path == '/api/pick_folder':
+            try:
+                import tkinter as tk
+                from tkinter import filedialog
+                root = tk.Tk()
+                root.withdraw()
+                root.wm_attributes('-topmost', 1)
+                initial_dir = query.get('current', [None])[0] or parser.get_default_logs_dir()
+                folder_path = filedialog.askdirectory(
+                    master=root,
+                    initialdir=initial_dir if os.path.exists(initial_dir) else None,
+                    title="Select Folder Containing ArduPilot Logs"
+                )
+                root.destroy()
+                if folder_path:
+                    norm_folder = os.path.normpath(folder_path)
+                    logs = parser.discover_flight_logs(norm_folder)
+                    self._send_json({
+                        'success': True,
+                        'folder': norm_folder,
+                        'logs': logs[:250],
+                        'total': len(logs)
+                    })
+                else:
+                    self._send_json({'success': False, 'cancelled': True})
+            except Exception as e:
+                self._send_json({'success': False, 'error': str(e)})
             return
 
         # 2. API: Load and Parse Flight Log Telemetry
@@ -180,6 +242,35 @@ class LogViewerHandler(SimpleHTTPRequestHandler):
                     self._send_json({'success': True, 'metrics': metrics})
                 else:
                     self._send_json({'success': False, 'error': 'No data in interval'})
+            except Exception as e:
+                self._send_json({'success': False, 'error': str(e)})
+            return
+
+        elif path == '/api/upload':
+            try:
+                content_length = int(self.headers.get('Content-Length', 0))
+                if content_length <= 0:
+                    self._send_json({'success': False, 'error': 'Empty upload payload'})
+                    return
+                query = urllib.parse.parse_qs(parsed.query)
+                filename = query.get('filename', [None])[0] or self.headers.get('X-File-Name', 'uploaded_log.bin')
+                filename = os.path.basename(filename)
+                upload_dir = os.path.join(BASE_DIR, 'uploads')
+                os.makedirs(upload_dir, exist_ok=True)
+                save_path = os.path.join(upload_dir, filename)
+
+                bytes_left = content_length
+                with open(save_path, 'wb') as f:
+                    while bytes_left > 0:
+                        chunk = self.rfile.read(min(bytes_left, 65536))
+                        if not chunk:
+                            break
+                        f.write(chunk)
+                        bytes_left -= len(chunk)
+
+                res = parser.parse_flight_telemetry(save_path)
+                LOG_CACHE[save_path] = res
+                self._send_json({'success': True, 'path': save_path, 'filename': filename, 'cached': False, **res})
             except Exception as e:
                 self._send_json({'success': False, 'error': str(e)})
             return

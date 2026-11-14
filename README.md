@@ -112,3 +112,4 @@ The server automatically starts at `http://localhost:8085` and opens the viewer 
 1. Place ArduPilot `.bin` log files in `~/Desktop/Logs` or configure the directory via the `ARDUPILOT_LOGS_DIR` environment variable.
 2. Select a flight log from the left sidebar or click the log browser to inspect metadata, duration, autopilot board, and firmware version.
 3. Use the timeline slider, playback controls, or keyboard shortcuts to scrub through the mission.
+
