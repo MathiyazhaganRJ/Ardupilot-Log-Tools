@@ -15,65 +15,148 @@
     <link rel="stylesheet" href="libs/leaflet.css" />
     <script src="libs/leaflet.js"></script>
 
-    <style>
+        <style>
         :root {
-            --bg-dark: #0a0e14;
-            --panel-bg: #121824;
-            --card-bg: #182234;
-            --border: #223048;
-            --accent: #00d2ff;
-            --accent-green: #22c55e;
-            --accent-orange: #f97316;
-            --accent-purple: #a855f7;
-            --text-main: #f1f5f9;
-            --text-muted: #94a3b8;
+            --mac-bg: #0b0f17;
+            --mac-glass-header: rgba(18, 24, 34, 0.85);
+            --mac-glass-sidebar: rgba(15, 20, 29, 0.92);
+            --mac-glass-bottom: rgba(15, 20, 29, 0.90);
+            --mac-border: rgba(255, 255, 255, 0.08);
+            --mac-border-subtle: rgba(255, 255, 255, 0.05);
+            --mac-accent: #38bdf8;
+            --mac-accent-blue: #0284c7;
+            --mac-text-main: #f8fafc;
+            --mac-text-muted: rgba(255, 255, 255, 0.55);
             --header-h: 46px;
-            --footer-h: 52px;
-            --sidebar-w: 320px;
+            --footer-h: 50px;
+            --sidebar-w: 300px;
+
+            /* Backward compatibility aliases */
+            --bg-dark: var(--mac-bg);
+            --panel-bg: var(--mac-glass-sidebar);
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --border: var(--mac-border);
+            --accent: var(--mac-accent);
+            --text-main: var(--mac-text-main);
+            --text-muted: var(--mac-text-muted);
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             -webkit-user-select: none;
             user-select: none;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
         body {
-            background-color: var(--bg-dark);
-            color: var(--text-main);
+            background-color: var(--mac-bg);
+            color: var(--mac-text-main);
             height: 100vh;
             display: flex;
             flex-direction: column;
             overflow: hidden;
         }
 
-        /* Top Header */
+        /* macOS Custom Thin Scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        /* macOS Window Titlebar Header */
         header {
             height: var(--header-h);
-            background: #0f1520;
-            border-bottom: 1px solid var(--border);
+            background: var(--mac-glass-header);
+            backdrop-filter: blur(25px) saturate(190%);
+            -webkit-backdrop-filter: blur(25px) saturate(190%);
+            border-bottom: 1px solid var(--mac-border);
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 0 16px;
-            z-index: 100;
+            z-index: 1000;
+            box-shadow: 0 1px 12px rgba(0, 0, 0, 0.35);
         }
 
         .header-left {
             display: flex;
             align-items: center;
-            gap: 14px;
+            gap: 12px;
+        }
+
+        /* macOS Traffic Light Window Controls */
+        .mac-window-dots {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            margin-right: 4px;
+            padding-right: 12px;
+            border-right: 1px solid var(--mac-border);
+        }
+
+        .mac-dot {
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            transition: opacity 0.15s ease;
+        }
+        .mac-dot:hover {
+            opacity: 0.85;
+        }
+        .mac-dot-close { background: #ff5f57; border: 1px solid #e0443e; }
+        .mac-dot-minimize { background: #febc2e; border: 1px solid #d89e24; }
+        .mac-dot-maximize { background: #28c840; border: 1px solid #1aab29; }
+
+        /* macOS Toolbar Toggle Button */
+        .mac-btn-toggle, .view-mode-btn {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.85);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11.5px;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.15s ease;
+            backdrop-filter: blur(8px);
+        }
+        .mac-btn-toggle:hover, .view-mode-btn:hover {
+            background: rgba(255, 255, 255, 0.12);
+            color: #ffffff;
+            border-color: rgba(255, 255, 255, 0.18);
+        }
+        .mac-btn-toggle.active, .view-mode-btn.active {
+            background: rgba(56, 189, 248, 0.18);
+            border-color: rgba(56, 189, 248, 0.45);
+            color: #38bdf8;
+            box-shadow: 0 1px 4px rgba(56, 189, 248, 0.2);
         }
 
         .brand-title {
-            font-size: 15px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            color: var(--accent);
-            text-transform: uppercase;
+            font-size: 13.5px;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            color: rgba(255, 255, 255, 0.92);
         }
 
         .log-selector-container {
@@ -82,52 +165,77 @@
             gap: 8px;
         }
 
+        /* macOS Accent Button */
+        .mac-btn-primary, .btn-primary {
+            background: linear-gradient(180deg, #0284c7 0%, #0369a1 100%) !important;
+            border: 1px solid #38bdf8 !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.22) !important;
+            color: #ffffff !important;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 11.5px;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.15s ease;
+        }
+        .mac-btn-primary:hover, .btn-primary:hover {
+            background: linear-gradient(180deg, #0369a1 0%, #075985 100%) !important;
+            box-shadow: 0 2px 8px rgba(2, 132, 199, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+        }
+        .mac-btn-primary:active, .btn-primary:active {
+            transform: translateY(1px);
+        }
+
+        /* macOS Document Capsule Badge */
         .log-badge-wrapper {
             display: inline-flex;
             align-items: center;
-            background: #0f1726;
-            border: 1px solid #1e2c40;
-            border-radius: 4px;
-            overflow: hidden;
-            height: 28px;
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.09);
+            border-radius: 6px;
+            height: 26px;
+            padding: 0 3px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
         }
 
         .log-badge-tag {
-            background: #0284c7;
-            color: #ffffff;
-            font-size: 10px;
-            font-weight: 800;
-            padding: 0 8px;
-            height: 100%;
-            display: inline-flex;
-            align-items: center;
-            letter-spacing: 0.5px;
+            background: rgba(56, 189, 248, 0.18);
+            color: #38bdf8;
+            font-size: 9.5px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            letter-spacing: 0.04em;
             user-select: none;
         }
 
         .log-name-display {
-            color: #f1f5f9;
-            padding: 0 12px;
+            color: rgba(255, 255, 255, 0.88);
+            padding: 0 8px;
             font-size: 11.5px;
-            font-weight: 600;
-            font-family: 'Consolas', monospace;
-            display: inline-flex;
-            align-items: center;
-            height: 100%;
-            user-select: text;
-            max-width: 320px;
+            font-family: -apple-system, "SF Mono", Menlo, Consolas, monospace;
+            font-weight: 500;
+            max-width: 280px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+            user-select: text;
         }
 
         .header-meta {
-            font-family: 'Consolas', monospace;
+            font-family: -apple-system, "SF Mono", Menlo, Consolas, monospace;
             font-size: 11px;
-            color: var(--text-muted);
+            color: rgba(255, 255, 255, 0.45);
             display: flex;
             gap: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 4px 10px;
+            border-radius: 6px;
+            border: 1px solid var(--mac-border-subtle);
         }
 
         .header-right {
@@ -136,31 +244,82 @@
             gap: 10px;
         }
 
+        /* macOS Segmented Control */
+        .mac-segmented-control, .view-mode-group {
+            display: inline-flex;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.45);
+            padding: 2px;
+            border-radius: 7px;
+            border: 1px solid var(--mac-border);
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.6);
+            gap: 2px;
+        }
+
+        .mac-segmented-btn {
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.65);
+            padding: 4px 12px;
+            border-radius: 5px;
+            font-size: 11.5px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .mac-segmented-btn:hover {
+            color: rgba(255, 255, 255, 0.95);
+        }
+        .mac-segmented-btn.active {
+            background: rgba(255, 255, 255, 0.14);
+            color: #ffffff;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+        }
+
+        /* macOS Glass Action Button (Show Plot) */
+        .mac-btn-glass {
+            background: rgba(56, 189, 248, 0.08);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            color: #38bdf8;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 11.5px;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.15s ease;
+        }
+        .mac-btn-glass:hover {
+            background: rgba(56, 189, 248, 0.16);
+            border-color: rgba(56, 189, 248, 0.5);
+            color: #e0f2fe;
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
+        }
+        .mac-btn-glass.active {
+            background: #0284c7;
+            border-color: #38bdf8;
+            color: #ffffff;
+            box-shadow: 0 1px 5px rgba(2, 132, 199, 0.45);
+        }
+
+        /* Generic macOS Secondary Button */
         .btn {
-            background: var(--card-bg);
-            color: var(--text-main);
-            border: 1px solid var(--border);
-            padding: 5px 12px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: 600;
+            background: rgba(255, 255, 255, 0.06);
+            color: rgba(255, 255, 255, 0.85);
+            border: 1px solid var(--mac-border);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11.5px;
+            font-weight: 500;
             cursor: pointer;
             transition: all 0.15s ease;
         }
-
         .btn:hover {
-            background: #1e2c44;
-            border-color: var(--accent);
-        }
-
-        .btn-primary {
-            background: #0284c7;
-            border-color: #0284c7;
+            background: rgba(255, 255, 255, 0.12);
             color: #ffffff;
-        }
-
-        .btn-primary:hover {
-            background: #0369a1;
+            border-color: rgba(255, 255, 255, 0.16);
         }
 
         /* Main Workspace Layout */
@@ -173,29 +332,33 @@
             background: #000000;
         }
 
-        /* Left Sidebar: Exact UAV Log Viewer Field Picker */
+        /* Left Sidebar: macOS Finder / Xcode Style */
         #sidebar {
             width: var(--sidebar-w);
             min-width: var(--sidebar-w);
-            background: var(--panel-bg);
-            border-right: 1px solid var(--border);
+            background: var(--mac-glass-sidebar);
+            backdrop-filter: blur(30px) saturate(190%);
+            -webkit-backdrop-filter: blur(30px) saturate(190%);
+            border-right: 1px solid var(--mac-border);
             display: flex;
             flex-direction: column;
             height: 100%;
             overflow: hidden;
+            transition: width 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 50;
         }
 
         .sidebar-section {
-            padding: 10px 12px;
-            border-bottom: 1px solid var(--border);
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--mac-border-subtle);
         }
 
         .sidebar-title {
-            font-size: 11px;
-            font-weight: 700;
-            color: var(--text-muted);
+            font-size: 10.5px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.45);
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.06em;
             margin-bottom: 8px;
             display: flex;
             justify-content: space-between;
@@ -206,20 +369,25 @@
         #active-fields-list {
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 5px;
             max-height: 175px;
             overflow-y: auto;
         }
 
         .active-field-chip {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 6px;
             padding: 4px 8px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             font-size: 11px;
+            transition: background 0.12s ease, border-color 0.12s ease;
+        }
+        .active-field-chip:hover {
+            background: rgba(255, 255, 255, 0.07);
+            border-color: rgba(255, 255, 255, 0.12);
         }
 
         .chip-left {
@@ -232,15 +400,17 @@
         }
 
         .color-dot {
-            width: 9px;
-            height: 9px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
             flex-shrink: 0;
         }
 
         .chip-label {
-            font-weight: 600;
-            color: var(--text-main);
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.9);
+            font-family: -apple-system, "SF Mono", Menlo, Consolas, monospace;
+            font-size: 10.5px;
         }
 
         .chip-ctrls {
@@ -250,33 +420,38 @@
         }
 
         .axis-btn {
-            background: #25334d;
-            border: 1px solid #364868;
-            color: var(--text-muted);
-            font-size: 10px;
-            padding: 1px 5px;
-            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 9.5px;
+            font-weight: 600;
+            padding: 1px 6px;
+            border-radius: 4px;
             cursor: pointer;
+            transition: all 0.12s ease;
         }
-
         .axis-btn.active {
             color: #ffffff;
             background: #0284c7;
             border-color: #38bdf8;
+            box-shadow: 0 1px 3px rgba(2, 132, 199, 0.4);
         }
 
         .chip-del {
             background: transparent;
             border: none;
-            color: #ef4444;
-            font-size: 13px;
+            color: rgba(255, 255, 255, 0.4);
             cursor: pointer;
-            padding: 0 4px;
-            font-weight: bold;
+            padding: 2px 4px;
+            border-radius: 4px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.12s ease;
         }
-
         .chip-del:hover {
-            color: #f87171;
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.15);
         }
 
         .sidebar-actions {
@@ -285,79 +460,133 @@
             gap: 6px;
             margin-top: 8px;
         }
-
         .sidebar-actions .btn {
             padding: 4px 6px;
             font-size: 11px;
             text-align: center;
         }
 
+        /* macOS Style Select & Search Input */
+        .log-select {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            color: rgba(255, 255, 255, 0.9);
+            padding: 5px 8px;
+            font-size: 11.5px;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.15s ease;
+        }
+        .log-select:focus {
+            border-color: #38bdf8;
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+        }
+        .log-select option {
+            background: #111722;
+            color: #f1f5f9;
+        }
+
         .search-box {
             width: 100%;
-            background: #0b111a;
-            border: 1px solid var(--border);
-            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.09);
+            color: #f8fafc;
             padding: 6px 10px;
-            border-radius: 4px;
-            font-size: 12px;
-            margin-top: 6px;
+            border-radius: 7px;
+            font-size: 11.5px;
+            transition: all 0.15s ease;
         }
-
         .search-box:focus {
             outline: none;
-            border-color: var(--accent);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: #38bdf8;
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+        }
+        .search-box::placeholder {
+            color: rgba(255, 255, 255, 0.35);
         }
 
+        /* Message Tree: macOS Navigation Rows */
         #message-tree {
             flex: 1;
             overflow-y: auto;
-            padding: 6px 0;
+            padding: 4px 6px;
         }
 
         .msg-node {
-            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            margin-bottom: 2px;
+            border-radius: 6px;
+            overflow: hidden;
         }
 
         .msg-header {
-            padding: 6px 12px;
-            font-size: 12px;
-            font-weight: 600;
-            color: #cbd5e1;
+            padding: 5px 8px;
+            font-size: 11.5px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.78);
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: space-between;
+            border-radius: 6px;
+            transition: background 0.12s ease, color 0.12s ease;
+        }
+        .msg-header:hover {
+            background: rgba(255, 255, 255, 0.06);
+            color: #ffffff;
         }
 
-        .msg-header:hover {
+        .msg-pill {
+            font-size: 9.5px;
+            color: rgba(255, 255, 255, 0.35);
             background: rgba(255, 255, 255, 0.04);
-            color: var(--accent);
+            padding: 1px 6px;
+            border-radius: 10px;
+            font-family: -apple-system, "SF Mono", Menlo, Consolas, monospace;
         }
 
         .msg-fields-container {
             display: none;
-            background: #0b111a;
-            padding: 4px 0 4px 18px;
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 6px;
+            margin: 2px 0 4px 6px;
+            padding: 3px 0 3px 6px;
+            border-left: 1px solid rgba(255, 255, 255, 0.08);
         }
-
         .msg-fields-container.expanded {
             display: block;
         }
 
         .field-item {
-            padding: 4px 12px 4px 6px;
+            padding: 3.5px 8px;
             font-size: 11px;
-            font-family: 'Consolas', monospace;
-            color: var(--text-muted);
+            font-family: -apple-system, "SF Mono", Menlo, Consolas, monospace;
+            color: rgba(255, 255, 255, 0.55);
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: space-between;
+            border-radius: 5px;
+            transition: all 0.12s ease;
+        }
+        .field-item:hover {
+            background: rgba(56, 189, 248, 0.12);
+            color: #38bdf8;
         }
 
-        .field-item:hover {
-            background: rgba(0, 210, 255, 0.08);
-            color: var(--accent);
+        .plot-tag {
+            font-size: 9px;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.3);
+            padding: 1px 5px;
+            border-radius: 3px;
+            transition: all 0.12s ease;
+            letter-spacing: 0.04em;
+        }
+        .field-item:hover .plot-tag {
+            color: #38bdf8;
+            background: rgba(56, 189, 248, 0.18);
         }
 
         /* Center / Right Content Area */
@@ -366,20 +595,20 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            background: var(--bg-dark);
+            background: var(--mac-bg);
+            position: relative;
         }
 
-        /* Top Half: UAV Log Viewer Plot */
+        /* Top Half: macOS Multi-Series Chart Container */
         #plot-container {
             height: 48%;
             min-height: 240px;
             width: 100%;
-            background: #0c121c;
-            border-bottom: 2px solid var(--border);
+            background: #080c14;
+            border-bottom: 1px solid var(--mac-border);
             position: relative;
-            transition: height 0.22s ease;
+            transition: height 0.22s cubic-bezier(0.4, 0, 0.2, 1);
         }
-
         #plot-container.collapsed {
             display: none !important;
             height: 0 !important;
@@ -392,75 +621,60 @@
             height: 100%;
         }
 
-        /* Lower Half: Viewport Switcher & Layout */
+        /* Precision Timeline Plot Cursor */
+        #plot-cursor-line {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 1.5px;
+            background: #38bdf8;
+            pointer-events: none;
+            z-index: 100;
+            display: none;
+            box-shadow: 0 0 8px rgba(56, 189, 248, 0.9);
+        }
+        #plot-cursor-badge {
+            position: absolute;
+            top: 3px;
+            left: 5px;
+            font-family: -apple-system, "SF Mono", Menlo, Consolas, monospace;
+            font-size: 9.5px;
+            font-weight: 600;
+            color: #38bdf8;
+            background: rgba(8, 12, 20, 0.94);
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid rgba(56, 189, 248, 0.5);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+            white-space: nowrap;
+        }
+
+        /* Lower Half Viewports Wrapper */
         #lower-viewports-wrapper {
             height: 52%;
             display: flex;
             flex-direction: column;
             position: relative;
-            background: #080c14;
-            transition: height 0.22s ease;
+            background: #000000;
+            transition: height 0.22s cubic-bezier(0.4, 0, 0.2, 1);
         }
-
         #lower-viewports-wrapper.fullscreen {
             height: 100% !important;
             flex: 1;
         }
 
-        #lower-viewports-toolbar {
-            height: 38px;
-            background: #0d1420;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 12px;
-            font-size: 11px;
-            gap: 12px;
-        }
-
-        .replay-controls {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex: 1;
-        }
-
-        .replay-btn {
-            background: #182234;
-            color: #38bdf8;
-            border: 1px solid #22344e;
-            padding: 4px 10px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: 700;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            transition: all 0.15s ease;
-        }
-        .replay-btn:hover {
-            background: #0284c7;
-            color: #ffffff;
-            border-color: #38bdf8;
-        }
-        .replay-btn.playing {
-            background: #0284c7;
-            color: #ffffff;
-            border-color: #38bdf8;
-        }
-
-        /* Bottom Playback Bar with Colored Flight Mode Timeline */
+        /* Bottom Playback Control Bar: macOS QuickTime Style */
         #bottom-playback-bar {
             height: var(--footer-h);
-            background: #090e17;
-            border-top: 1px solid #1a2536;
+            background: var(--mac-glass-bottom);
+            backdrop-filter: blur(25px) saturate(190%);
+            -webkit-backdrop-filter: blur(25px) saturate(190%);
+            border-top: 1px solid var(--mac-border);
             display: flex;
             align-items: center;
             padding: 0 16px;
             gap: 12px;
-            box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.7);
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
             z-index: 1000;
             flex-shrink: 0;
             user-select: none;
@@ -481,46 +695,47 @@
         }
 
         .replay-btn {
-            background: #111a28;
-            color: #94a3b8;
-            border: 1px solid #1f2b3c;
-            padding: 5px 11px;
-            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.06);
+            color: rgba(255, 255, 255, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.09);
+            padding: 4px 10px;
+            border-radius: 6px;
             font-size: 11px;
-            font-weight: 700;
+            font-weight: 600;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.15s ease;
+            gap: 4px;
+            transition: all 0.14s ease;
         }
-
         .replay-btn:hover {
-            background: #0284c7;
+            background: rgba(255, 255, 255, 0.12);
             color: #ffffff;
-            border-color: #38bdf8;
+            border-color: rgba(255, 255, 255, 0.18);
         }
-
         .replay-btn.playing {
-            background: #0284c7;
-            color: #ffffff;
+            background: linear-gradient(180deg, #0284c7 0%, #0369a1 100%);
             border-color: #38bdf8;
+            color: #ffffff;
+            box-shadow: 0 1px 4px rgba(2, 132, 199, 0.4);
         }
 
         .flight-mode-pill {
-            font-family: 'Consolas', monospace;
-            font-size: 11px;
+            font-family: -apple-system, "SF Mono", Menlo, Consolas, monospace;
+            font-size: 10.5px;
             font-weight: 700;
-            padding: 4px 12px;
-            border-radius: 4px;
+            padding: 3px 10px;
+            border-radius: 5px;
             text-transform: uppercase;
-            background: #64748b;
+            background: rgba(100, 116, 139, 0.25);
             color: #ffffff;
-            border: 1px solid rgba(255, 255, 255, 0.25);
-            letter-spacing: 0.5px;
-            min-width: 72px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            letter-spacing: 0.05em;
+            min-width: 68px;
             text-align: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(8px);
             transition: background-color 0.2s ease, border-color 0.2s ease;
         }
 
@@ -535,12 +750,12 @@
         .timeline-track-wrapper {
             position: relative;
             width: 100%;
-            height: 24px;
-            background: #0c121d;
-            border-radius: 5px;
+            height: 20px;
+            background: rgba(0, 0, 0, 0.55);
+            border-radius: 6px;
             overflow: hidden;
-            border: 1px solid #1c2738;
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.65);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.7);
         }
 
         .flight-mode-bar {
@@ -561,8 +776,8 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-family: 'Consolas', monospace;
-            font-size: 9.5px;
+            font-family: -apple-system, "SF Mono", Menlo, Consolas, monospace;
+            font-size: 9px;
             font-weight: 700;
             color: rgba(255, 255, 255, 0.95);
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
@@ -574,6 +789,9 @@
             white-space: nowrap;
             box-sizing: border-box;
             padding: 0 3px;
+        }
+        .flight-mode-seg:hover {
+            opacity: 1;
         }
 
         .timeline-range-input {
@@ -594,12 +812,11 @@
             bottom: 0;
             width: 2px;
             background: #ffffff;
-            box-shadow: 0 0 8px #00e5ff, 0 0 16px #00e5ff;
+            box-shadow: 0 0 6px #38bdf8, 0 0 12px #38bdf8;
             pointer-events: none;
             z-index: 10;
             transform: translateX(-50%);
         }
-
         .timeline-playhead::after {
             content: '';
             position: absolute;
@@ -608,80 +825,51 @@
             transform: translateX(-50%);
             width: 0;
             height: 0;
-            border-left: 5px solid transparent;
-            border-right: 5px solid transparent;
-            border-top: 6px solid #00e5ff;
+            border-left: 4px solid transparent;
+            border-right: 4px solid transparent;
+            border-top: 5px solid #38bdf8;
         }
 
         .replay-time-badge {
-            font-family: 'Consolas', monospace;
+            font-family: -apple-system, "SF Mono", Menlo, Consolas, monospace;
             font-size: 11px;
-            color: #e2e8f0;
-            background: #111a28;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.85);
+            background: rgba(255, 255, 255, 0.05);
             padding: 4px 10px;
-            border-radius: 4px;
-            border: 1px solid #1e2c44;
-            min-width: 130px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            min-width: 125px;
             text-align: center;
+            font-variant-numeric: tabular-nums;
         }
 
         .replay-speed-select {
-            background: #111a28;
+            background: rgba(255, 255, 255, 0.06);
             color: #38bdf8;
-            border: 1px solid #22344e;
+            border: 1px solid rgba(255, 255, 255, 0.1);
             padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: 700;
-            cursor: pointer;
-        }
-
-        .view-mode-group {
-            display: flex;
-            gap: 6px;
-        }
-
-        .view-mode-btn {
-            background: #111a28;
-            color: #94a3b8;
-            border: 1px solid #1f2b3c;
-            padding: 5px 12px;
-            border-radius: 4px;
+            border-radius: 6px;
             font-size: 11px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.15s ease;
+            outline: none;
         }
-
-        .view-mode-btn:hover {
-            background: #182436;
-            color: #ffffff;
+        .replay-speed-select:focus {
             border-color: #38bdf8;
         }
-
-        .view-mode-btn.active {
-            background: #0284c7;
-            color: #ffffff;
-            border-color: #38bdf8;
-            box-shadow: 0 0 10px rgba(2, 132, 199, 0.4);
+        .replay-speed-select option {
+            background: #111722;
+            color: #f1f5f9;
         }
 
-        #lower-viewports {
-            flex: 1;
-            display: flex;
-            overflow: hidden;
-            position: relative;
-        }
-
-        /* Left Lower Pane: Interactive Satellite / Tactical Map */
+        /* 2D Leaflet Map Elements */
         #map-pane {
             flex: 1;
             height: 100%;
-            border-right: 1px solid var(--border);
             position: relative;
-            background: #0a0f18;
+            background: #080c14;
         }
-
         #leaflet-map {
             width: 100%;
             height: 100%;
@@ -692,193 +880,87 @@
             bottom: 0;
             background: #060910;
         }
-
-        /* Custom Map Controls Overlay */
         .map-overlay-ctrls {
             position: absolute;
-            top: 10px;
-            right: 12px;
-            z-index: 500;
+            top: 12px;
+            right: 14px;
             display: flex;
             gap: 6px;
+            z-index: 1000;
         }
-
         .map-select {
-            background: rgba(18, 24, 36, 0.9);
+            background: rgba(18, 24, 34, 0.88);
+            backdrop-filter: blur(12px);
             color: #ffffff;
-            border: 1px solid var(--border);
-            padding: 3px 8px;
-            border-radius: 3px;
+            border: 1px solid var(--mac-border);
+            padding: 4px 8px;
+            border-radius: 6px;
             font-size: 11px;
             cursor: pointer;
         }
-
-        /* Right Lower Pane: 3D Sharkee Model & Telemetry HUD */
-        #three-hud-pane {
-            width: 480px;
-            min-width: 380px;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            background: #0b111a;
-            position: relative;
-        }
-
-        #three-container {
-            height: 55%;
-            position: relative;
-            border-bottom: 1px solid var(--border);
-            background: radial-gradient(circle at center, #111a28 0%, #060910 100%);
-        }
-
-        #three-canvas-container {
-            width: 100%;
-            height: 100%;
-        }
-
         .viewport-badge {
             position: absolute;
-            top: 8px;
-            left: 10px;
-            background: rgba(6, 12, 20, 0.85);
-            border: 1px solid var(--border);
-            border-radius: 3px;
-            padding: 3px 6px;
-            font-size: 10px;
-            font-weight: 700;
-            color: var(--accent);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            pointer-events: none;
-            z-index: 10;
-        }
-
-        .three-ctrls {
-            position: absolute;
-            top: 8px;
-            right: 10px;
-            display: flex;
-            gap: 4px;
-            z-index: 10;
-        }
-
-        .three-ctrls .btn {
-            padding: 2px 6px;
-            font-size: 9.5px;
-        }
-
-        /* Telemetry Cards Grid */
-        #hud-telemetry-grid {
-            flex: 1;
-            padding: 6px 10px;
-            overflow-y: auto;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 6px;
-            background: #0a0e14;
-        }
-
-        .hud-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: 4px;
-            padding: 6px 8px;
-        }
-
-        .hud-card-title {
-            font-size: 9.5px;
-            font-weight: 700;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .hud-card-val {
-            font-family: 'Consolas', monospace;
-            font-size: 15px;
-            font-weight: 700;
-            color: #ffffff;
-            margin: 1px 0;
-        }
-
-        .hud-card-sub {
-            font-size: 9px;
-            color: #64748b;
-        }
-
-        /* Extraction & Test Results Strip */
-        #extraction-bar {
-            background: #0e1522;
-            border-top: 1px solid var(--border);
-            padding: 6px 14px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 12px;
-            z-index: 50;
-        }
-
-        .ext-left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .ext-select {
-            background: var(--card-bg);
-            color: var(--text-main);
-            border: 1px solid var(--border);
+            top: 12px;
+            left: 14px;
+            background: rgba(15, 20, 28, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--mac-border);
+            border-radius: 6px;
             padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 11px;
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--mac-accent);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            pointer-events: none;
+            z-index: 1000;
         }
 
-        /* Aircraft Icon on Leaflet Map */
-        .plane-marker-icon {
-            transition: transform 0.08s linear;
-        }
-
-        /* Modal Dialogs */
+        /* Modal Dialogs (macOS Sheets Style) */
         .modal-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(8px);
             display: none;
             align-items: center;
             justify-content: center;
-            z-index: 1000;
+            z-index: 10000;
         }
-
         .modal-box {
-            background: var(--panel-bg);
-            border: 1px solid var(--border);
-            border-radius: 6px;
+            background: rgba(22, 28, 38, 0.95);
+            backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 10px;
             width: 480px;
-            padding: 16px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+            padding: 18px 20px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.05);
         }
-
         .modal-title {
             font-size: 14px;
-            font-weight: 700;
-            color: var(--accent);
-            margin-bottom: 10px;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 12px;
+            letter-spacing: -0.01em;
         }
-
         .modal-input {
             width: 100%;
-            background: var(--card-bg);
-            color: var(--text-main);
-            border: 1px solid var(--border);
-            padding: 8px 10px;
-            border-radius: 4px;
-            font-size: 13px;
-            margin-bottom: 12px;
+            background: rgba(255, 255, 255, 0.06);
+            color: #f8fafc;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12.5px;
+            margin-bottom: 14px;
+            outline: none;
         }
-
+        .modal-input:focus {
+            border-color: #38bdf8;
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+        }
         .modal-actions {
             display: flex;
             justify-content: flex-end;
@@ -897,39 +979,64 @@
     </div>
 
     <!-- Header Navigation -->
+        <!-- Header Navigation (macOS Titlebar Style) -->
     <header>
         <div class="header-left">
-            <button class="view-mode-btn active" id="btn-toggle-sidebar" onclick="toggleSidebar()" title="Toggle Plotting Parameters Sidebar">
-                Parameters
+            <!-- macOS Traffic Light Window Controls -->
+            <div class="mac-window-dots">
+                <span class="mac-dot mac-dot-close" title="Close"></span>
+                <span class="mac-dot mac-dot-minimize" title="Minimize"></span>
+                <span class="mac-dot mac-dot-maximize" title="Zoom"></span>
+            </div>
+
+            <!-- Sidebar Toggle Button (macOS Toolbar Pill) -->
+            <button class="mac-btn-toggle active" id="btn-toggle-sidebar" onclick="toggleSidebar()" title="Toggle Parameters Sidebar">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="9" y1="3" x2="9" y2="21"></line>
+                </svg>
+                <span>Parameters</span>
             </button>
+
+            <!-- Brand Title -->
             <span class="brand-title">UAV Log Viewer</span>
+
             <div class="log-selector-container">
-                <!-- Open Single File -->
-                <button class="btn btn-primary" onclick="triggerFilePicker()" title="Browse and open any ArduPilot .bin log file from your computer">
-                    Open File
+                <!-- Open Single File (macOS Accent Button) -->
+                <button class="mac-btn-primary" onclick="triggerFilePicker()" title="Browse and open any ArduPilot .bin log file from your computer">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                    <span>Open File</span>
                 </button>
                 <input type="file" id="local-file-picker" accept=".bin,.log,.tlog,.BIN,.LOG,.TLOG" style="display: none;" onchange="onFileChosen(this)">
 
-                <!-- Loaded Flight Log Name Badge (No dropdown) -->
+                <!-- Loaded Flight Log Document Badge (macOS Finder Capsule) -->
                 <div class="log-badge-wrapper" title="Current loaded flight log">
                     <span class="log-badge-tag">LOG</span>
                     <span id="loaded-log-name" class="log-name-display">Loading log...</span>
                 </div>
             </div>
+
+            <!-- Metadata Info -->
             <div class="header-meta">
                 <span id="meta-date">Date: ---</span>
                 <span id="meta-board">Board: ---</span>
                 <span id="meta-dur">Duration: ---</span>
             </div>
         </div>
+
         <div class="header-right">
-            <div class="view-mode-group">
-                <button class="view-mode-btn active" id="btn-view-sitl" onclick="setViewMode('sitl')" title="3D Digital Twin Visualizer with Terrain, Horizon & Compass">3D Flight Visualizer</button>
-                <button class="view-mode-btn" id="btn-view-map" onclick="setViewMode('map')" title="2D Satellite Map with Flight Track">2D Satellite Map</button>
+            <!-- macOS Segmented Control (View Modes) -->
+            <div class="mac-segmented-control view-mode-group">
+                <button class="mac-segmented-btn view-mode-btn active" id="btn-view-sitl" onclick="setViewMode('sitl')" title="3D Digital Twin Visualizer with Terrain, Horizon & Compass">3D Flight Visualizer</button>
+                <button class="mac-segmented-btn view-mode-btn" id="btn-view-map" onclick="setViewMode('map')" title="2D Satellite Map with Flight Track">2D Satellite Map</button>
             </div>
-            <button class="view-mode-btn" id="btn-toggle-plot-layout" onclick="togglePlotVisibility()" title="Toggle Multi-Series Plot View" style="border-color: #38bdf8; color: #38bdf8;">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" style="vertical-align: middle; margin-right: 4px;">
-                    <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+
+            <!-- Show / Hide Plot Toggle -->
+            <button class="mac-btn-glass" id="btn-toggle-plot-layout" onclick="togglePlotVisibility()" title="Toggle Multi-Series Plot View">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
                 </svg>
                 <span id="txt-toggle-plot-layout">Show Plot</span>
             </button>
@@ -1869,10 +1976,23 @@
 
                 const header = document.createElement('div');
                 header.className = 'msg-header';
-                header.innerHTML = `<span>${msgName}</span><span style="font-size:10px; color:#64748b;">${cols.length} fields</span>`;
+                header.innerHTML = `
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <svg class="chevron-icon" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transition: transform 0.18s ease; opacity: 0.5;">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                        <span class="msg-name">${msgName}</span>
+                    </div>
+                    <span class="msg-pill">${cols.length}</span>
+                `;
                 header.onclick = () => {
                     const fContainer = node.querySelector('.msg-fields-container');
+                    const chevron = header.querySelector('.chevron-icon');
                     fContainer.classList.toggle('expanded');
+                    if (chevron) {
+                        chevron.style.transform = fContainer.classList.contains('expanded') ? 'rotate(90deg)' : 'rotate(0deg)';
+                        chevron.style.opacity = fContainer.classList.contains('expanded') ? '1' : '0.5';
+                    }
                 };
 
                 const fContainer = document.createElement('div');
@@ -1881,7 +2001,7 @@
                 cols.forEach(col => {
                     const fItem = document.createElement('div');
                     fItem.className = 'field-item';
-                    fItem.innerHTML = `<span>${col}</span><span style="color:#475569; font-size:9px;">+ PLOT</span>`;
+                    fItem.innerHTML = `<span>${col}</span><span class="plot-tag">+ PLOT</span>`;
                     fItem.onclick = (e) => {
                         e.stopPropagation();
                         addFieldToPlot(`${msgName}.${col}`);
@@ -1959,12 +2079,17 @@
                 chip.className = 'active-field-chip';
                 chip.innerHTML = `
                     <div class="chip-left">
-                        <span class="color-dot" style="background:${f.color};"></span>
+                        <span class="color-dot" style="background:${f.color}; box-shadow: 0 0 6px ${f.color}88;"></span>
                         <span class="chip-label">${f.name}</span>
                     </div>
                     <div class="chip-ctrls">
-                        <button class="axis-btn ${f.axis === 0 ? 'active' : ''}" onclick="toggleAxis('${f.name}')">Y${f.axis + 1}</button>
-                        <button class="chip-del" onclick="removeField('${f.name}')">x</button>
+                        <button class="axis-btn ${f.axis === 0 ? 'active' : ''}" onclick="toggleAxis('${f.name}')" title="Toggle Primary (Y1) / Secondary (Y2) Axis">Y${f.axis + 1}</button>
+                        <button class="chip-del" onclick="removeField('${f.name}')" title="Remove curve">
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                        </button>
                     </div>
                 `;
                 container.appendChild(chip);
@@ -2089,29 +2214,39 @@
             basePlotShapes = shapes;
 
             const layout = {
-                paper_bgcolor: '#0c121c',
-                plot_bgcolor: '#070a10',
-                margin: { l: 45, r: 45, t: 25, b: 35 },
-                font: { family: 'Consolas, Segoe UI, sans-serif', size: 10, color: '#94a3b8' },
+                paper_bgcolor: '#080c14',
+                plot_bgcolor: '#05080f',
+                margin: { l: 48, r: 48, t: 28, b: 34 },
+                font: { family: '-apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif', size: 10, color: 'rgba(255, 255, 255, 0.6)' },
                 hovermode: 'x unified',
                 shapes: shapes,
-                legend: { orientation: 'h', y: 1.08, x: 0.5, xanchor: 'center' },
+                legend: {
+                    orientation: 'h',
+                    y: 1.11,
+                    x: 0.5,
+                    xanchor: 'center',
+                    font: { family: '-apple-system, "SF Mono", Consolas, monospace', size: 10, color: 'rgba(255, 255, 255, 0.85)' }
+                },
                 xaxis: {
-                    title: 'Mission Time (seconds)',
-                    gridcolor: '#1a2436',
-                    rangeslider: { visible: true, thickness: 0.12, bgcolor: '#0b111a' }
+                    title: { text: 'Mission Time (seconds)', font: { size: 11, color: 'rgba(255, 255, 255, 0.45)' } },
+                    gridcolor: 'rgba(255, 255, 255, 0.04)',
+                    zerolinecolor: 'rgba(255, 255, 255, 0.08)',
+                    tickfont: { family: '"SF Mono", Consolas, monospace', size: 10, color: 'rgba(255, 255, 255, 0.4)' },
+                    rangeslider: { visible: true, thickness: 0.1, bgcolor: '#070b12', bordercolor: 'rgba(255, 255, 255, 0.08)' }
                 },
                 yaxis: {
-                    title: 'Primary Axis',
-                    gridcolor: '#1a2436',
-                    zerolinecolor: '#223048'
+                    title: { text: 'Primary (Y1)', font: { size: 11, color: 'rgba(255, 255, 255, 0.45)' } },
+                    gridcolor: 'rgba(255, 255, 255, 0.04)',
+                    zerolinecolor: 'rgba(255, 255, 255, 0.08)',
+                    tickfont: { family: '"SF Mono", Consolas, monospace', size: 10, color: 'rgba(255, 255, 255, 0.4)' }
                 },
                 yaxis2: {
-                    title: 'Secondary Axis',
+                    title: { text: 'Secondary (Y2)', font: { size: 11, color: 'rgba(255, 255, 255, 0.45)' } },
                     overlaying: 'y',
                     side: 'right',
-                    gridcolor: '#141d2c',
-                    zerolinecolor: '#223048'
+                    gridcolor: 'rgba(255, 255, 255, 0.02)',
+                    zerolinecolor: 'rgba(255, 255, 255, 0.08)',
+                    tickfont: { family: '"SF Mono", Consolas, monospace', size: 10, color: 'rgba(255, 255, 255, 0.4)' }
                 }
             };
 
