@@ -161,12 +161,13 @@ def parse_flight_telemetry(file_path, target_samples=6000):
             if abs(lat_raw) > 1000:
                 cur_lat = lat_raw / 1e7
                 cur_lng = lng_raw / 1e7
-            if status >= 3:
+            if status >= 3 and home_elevation == 0.0:
                 gps_a = getattr(msg, 'Alt', None)
                 if gps_a is not None and abs(gps_a) > 0.001:
-                    cur_amsl = float(gps_a)
-                    if home_elevation == 0.0:
-                        home_elevation = float(gps_a)
+                    home_elevation = float(gps_a)
+                    if cur_alt == 0.0:
+                        cur_alt = home_elevation
+                        cur_amsl = home_elevation
 
         elif mtype == 'POS':
             lat_p = getattr(msg, 'Lat', 0)
@@ -174,14 +175,15 @@ def parse_flight_telemetry(file_path, target_samples=6000):
             if abs(lat_p) > 0.01:
                 cur_lat = lat_p
                 cur_lng = lng_p
-            pos_alt = getattr(msg, 'Alt', None)
-            if pos_alt is not None and abs(pos_alt) > 0.001 and cur_amsl == 0.0:
-                cur_amsl = float(pos_alt)
-                if home_elevation == 0.0:
+            if home_elevation == 0.0:
+                pos_alt = getattr(msg, 'Alt', None)
+                if pos_alt is not None and abs(pos_alt) > 10.0:
                     home_elevation = float(pos_alt)
             rel_home = getattr(msg, 'RelHomeAlt', None)
             if rel_home is not None:
                 cur_rel_alt = float(rel_home)
+                cur_alt = (home_elevation + cur_rel_alt) if home_elevation != 0.0 else cur_rel_alt
+                cur_amsl = cur_alt
 
         elif mtype == 'MODE':
             m_val = getattr(msg, 'Mode', 'MANUAL')
@@ -201,19 +203,19 @@ def parse_flight_telemetry(file_path, target_samples=6000):
             if cur_crt == 0.0:
                 cur_crt = getattr(msg, 'CRt', cur_crt)
             if cur_alt == 0.0:
-                cur_alt = getattr(msg, 'Alt', cur_alt)
+                b_alt = getattr(msg, 'Alt', None)
+                if b_alt is not None and abs(b_alt) > 0.001:
+                    cur_rel_alt = float(b_alt)
+                    cur_alt = (home_elevation + cur_rel_alt) if home_elevation != 0.0 else cur_rel_alt
+                    cur_amsl = cur_alt
 
         elif mtype == 'XKF1':
             pd = getattr(msg, 'PD', None)
             if pd is not None and getattr(msg, 'C', 0) == 0:
-                cur_rel_alt = -pd
-                if home_elevation != 0.0:
-                    cur_amsl = home_elevation + cur_rel_alt
-                elif cur_alt != 0.0:
+                if 'POS' not in formats:
+                    cur_rel_alt = -pd
+                    cur_alt = (home_elevation + cur_rel_alt) if home_elevation != 0.0 else cur_rel_alt
                     cur_amsl = cur_alt
-                else:
-                    cur_amsl = cur_rel_alt
-                cur_alt = cur_amsl
             vd = getattr(msg, 'VD', None)
             if vd is not None:
                 cur_crt = -vd
@@ -314,7 +316,7 @@ def parse_flight_telemetry(file_path, target_samples=6000):
                     'yaw': round(cur_yaw, 1),
                     'lat': round(cur_lat, 7),
                     'lng': round(cur_lng, 7),
-                    'alt': round(cur_amsl if cur_amsl != 0.0 else cur_alt, 1),
+                    'alt': round(cur_alt, 1),
                     'rel_alt': round(cur_rel_alt, 1),
                     'field_elev': round(home_elevation, 1),
                     'crt': round(cur_crt, 2),
@@ -350,6 +352,13 @@ def parse_flight_telemetry(file_path, target_samples=6000):
         true_flight_date = GPS_EPOCH + datetime.timedelta(weeks=gps_week, milliseconds=gps_ms)
     else:
         true_flight_date = datetime.datetime.fromtimestamp(os.path.getmtime(file_path), tz=datetime.timezone.utc)
+
+    # Backfill field elevation and AMSL datum across initial samples before GPS 3D fix
+    if home_elevation != 0.0:
+        for r in raw_records:
+            if r['field_elev'] == 0.0 or r['alt'] == 0.0:
+                r['field_elev'] = round(home_elevation, 1)
+                r['alt'] = round(home_elevation + r['rel_alt'], 1)
 
     # Downsample evenly for high-speed web plotting if records are huge
     total_recs = len(raw_records)

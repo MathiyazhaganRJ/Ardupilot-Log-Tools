@@ -14279,6 +14279,8 @@
             const mPerDegLon = 111412.84 * Math.cos(latRad0) - 93.5 * Math.cos(3 * latRad0);
 
             const rawPoints = [];
+            let lastValidAlt = null;
+            let lastValidTime = null;
             for (let i = 0; i < traj.length; i++) {
                 const p = traj[i];
                 if (!p.lat || !p.lng || Math.abs(p.lat) < 0.001) continue;
@@ -14286,7 +14288,19 @@
                 const dLon = p.lng - homeLon;
                 const sx = dLon * mPerDegLon;
                 const sz = -(dLat * mPerDegLat);
-                const relAlt = (typeof p.alt === 'number') ? (p.alt - (homeAlt || 0)) : 2.0;
+                let relAlt = (typeof p.rel_alt === 'number') ? p.rel_alt : ((typeof p.alt === 'number') ? (p.alt - (homeAlt || 0)) : 2.0);
+                
+                // Aeronautical vertical rate limiter: filter out sensor datum step jumps (> 25 m/s climb/descent)
+                if (lastValidAlt !== null && typeof p.time === 'number' && lastValidTime !== null) {
+                    const dt = Math.max(0.05, p.time - lastValidTime);
+                    const maxDelta = 25.0 * dt;
+                    if (Math.abs(relAlt - lastValidAlt) > maxDelta) {
+                        relAlt = lastValidAlt + Math.sign(relAlt - lastValidAlt) * maxDelta;
+                    }
+                }
+                lastValidAlt = relAlt;
+                if (typeof p.time === 'number') lastValidTime = p.time;
+
                 const sy = Math.max(1.8, relAlt);
                 rawPoints.push(new THREE.Vector3(sx, sy, sz));
             }
