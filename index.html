@@ -782,35 +782,54 @@
             border-bottom: none !important;
         }
 
-        /* Avionic Channel Annunciator Ribbon */
+        /* Avionic Telemetry Channel Deck & Toolbar Ribbon */
         .plot-channel-ribbon {
-            height: 26px;
-            min-height: 26px;
+            height: 34px;
+            min-height: 34px;
             background: var(--av-header-bg);
             border-bottom: 1px solid var(--av-border);
             display: flex;
             align-items: center;
-            gap: 12px;
-            padding: 0 14px;
-            overflow-x: auto;
+            justify-content: space-between;
+            padding: 0 12px;
+            gap: 10px;
+            overflow: hidden;
             flex-shrink: 0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        .plot-ribbon-chips {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            overflow-x: auto;
+            flex: 1;
+            scrollbar-width: none;
+        }
+        .plot-ribbon-chips::-webkit-scrollbar {
+            display: none;
         }
 
         .ribbon-channel-item {
             display: inline-flex;
             align-items: center;
-            gap: 5px;
+            gap: 6px;
             background: var(--av-panel-surface);
             border: 1px solid var(--av-border);
-            border-radius: 3px;
-            padding: 2px 7px;
-            font-size: 10px;
+            border-radius: 4px;
+            padding: 3px 8px;
+            font-size: 11px;
             white-space: nowrap;
+            transition: all 0.12s ease;
+        }
+        .ribbon-channel-item:hover {
+            background: var(--av-surface-hover);
+            border-color: var(--av-border-strong);
         }
 
         .ribbon-color-pip {
-            width: 7px;
-            height: 7px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
             flex-shrink: 0;
         }
@@ -818,61 +837,127 @@
         .ribbon-name {
             font-family: 'B612 Mono', monospace;
             font-weight: 700;
-            color: #f1f5f9;
+            font-size: 10.5px;
+            color: var(--av-text-primary);
+            letter-spacing: 0.3px;
         }
 
         .ribbon-axis-badge {
             font-family: 'B612 Mono', monospace;
-            font-size: 8.5px;
-            color: #64748b;
+            font-size: 9px;
+            font-weight: 700;
+            color: var(--av-text-muted);
+            background: var(--av-capsule-bg);
+            padding: 1px 4px;
+            border-radius: 2px;
+            border: 1px solid var(--av-border);
         }
 
         .ribbon-val {
             font-family: 'B612 Mono', monospace;
             font-weight: 700;
-            color: var(--av-cyan);
+            font-size: 11px;
+            color: var(--av-text-primary);
             margin: 0 2px;
+            letter-spacing: 0.3px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .ribbon-unit {
+            font-family: 'B612 Mono', monospace;
+            font-size: 9px;
+            font-weight: 500;
+            color: var(--av-text-muted);
         }
 
         .ribbon-stats {
             font-family: 'B612 Mono', monospace;
-            font-size: 8.5px;
-            color: #64748b;
+            font-size: 9px;
+            color: var(--av-text-muted);
+            background: var(--av-capsule-bg);
+            padding: 1px 5px;
+            border-radius: 2px;
+            margin-left: 2px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .plot-ribbon-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .plot-mode-toggle-group {
+            display: inline-flex;
+            align-items: center;
+            background: var(--av-capsule-bg);
+            padding: 2px;
+            border-radius: 4px;
+            border: 1px solid var(--av-border);
+        }
+
+        .plot-action-btn {
+            background: transparent;
+            border: none;
+            color: var(--av-text-secondary);
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 9.5px;
+            font-weight: 700;
+            font-family: 'B612 Mono', monospace;
+            letter-spacing: 0.4px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.12s ease;
+        }
+        .plot-action-btn:hover {
+            color: var(--av-text-primary);
+            background: var(--av-surface-hover);
+        }
+        .plot-action-btn.active {
+            background: var(--av-btn-bg);
+            border: 1px solid var(--av-border-strong);
+            color: var(--av-text-primary);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
         }
 
         #main-plot {
             flex: 1;
             width: 100%;
-            height: calc(100% - 26px);
+            height: calc(100% - 34px);
         }
 
         /* Precision Timeline Plot Laser Cursor */
         #plot-cursor-line {
             position: absolute;
-            top: 26px;
+            top: 34px;
             bottom: 0;
-            width: 1.5px;
-            background: var(--av-cyan);
+            width: 1px;
+            background: rgba(255, 255, 255, 0.85);
             pointer-events: none;
             z-index: 100;
             display: none;
-            box-shadow: 0 0 8px rgba(0, 229, 255, 0.8);
+            box-shadow: 0 0 4px var(--av-accent);
         }
 
         #plot-cursor-badge {
             position: absolute;
-            top: 4px;
-            left: 5px;
+            top: 6px;
+            left: 6px;
             font-family: 'B612 Mono', monospace;
-            font-size: 9.5px;
+            font-size: 10px;
             font-weight: 700;
-            color: var(--av-cyan);
-            background: rgba(5, 8, 15, 0.95);
-            padding: 2px 6px;
+            color: var(--av-text-primary);
+            background: var(--av-header-bg);
+            padding: 3px 8px;
             border-radius: 3px;
-            border: 1px solid var(--av-cyan);
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
+            border: 1px solid var(--av-border-strong);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
             white-space: nowrap;
+            letter-spacing: 0.4px;
         }
 
         /* Lower Viewports Wrapper */
@@ -1265,7 +1350,7 @@
                 if (sel) sel.value = savedTheme;
             });
         })();
-    </script></script>
+    </script>
 </head>
 <body>
 
@@ -1415,7 +1500,20 @@
             <!-- Top Pane: Interactive Multi-Series Plot (Collapsed until plotting starts) -->
                         <!-- Top Pane: Multi-Channel Telemetry Oscillograph -->
             <div id="plot-container" class="collapsed">
-                <div id="plot-channel-ribbon" class="plot-channel-ribbon"></div>
+                <div id="plot-channel-ribbon" class="plot-channel-ribbon">
+                    <div id="plot-ribbon-chips" class="plot-ribbon-chips"></div>
+                    <div class="plot-ribbon-actions">
+                        <div class="plot-mode-toggle-group" title="Flight Mode Demarcation Style">
+                            <button class="plot-action-btn active" id="btn-mode-strip" onclick="setPlotModeDisplay('strip')">STRIP</button>
+                            <button class="plot-action-btn" id="btn-mode-tint" onclick="setPlotModeDisplay('tint')">TINT</button>
+                            <button class="plot-action-btn" id="btn-mode-off" onclick="setPlotModeDisplay('off')">CLEAN</button>
+                        </div>
+                        <button class="plot-action-btn" onclick="resetPlotZoom()" title="Reset Zoom / Autoscale (or Double-Click)">
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+                            <span>AUTOSCALE</span>
+                        </button>
+                    </div>
+                </div>
                 <div id="main-plot"></div>
                 <div id="plot-cursor-line">
                     <div id="plot-cursor-badge">00:00.0</div>
@@ -2427,12 +2525,50 @@
             updateChannelReadouts(currentTimeCursor);
         }
 
+        function getFieldUnit(fieldName) {
+            if (!fieldName) return '';
+            const fn = fieldName.toLowerCase();
+            if (fn.includes('volt')) return 'V';
+            if (fn.includes('curr')) return 'A';
+            if (fn.includes('power') || fn.includes('watt')) return 'W';
+            if (fn.includes('speed') || fn.includes('spd') || fn.includes('tas') || fn.includes('gs') || fn.includes('crt')) return 'm/s';
+            if (fn.includes('press')) return 'hPa';
+            if (fn.includes('temp')) return '°C';
+            if (fn.includes('density')) return 'kg/m³';
+            if (fn.includes('alt')) return 'm';
+            if (fn.includes('roll') || fn.includes('pitch') || fn.includes('yaw') || fn.includes('aoa')) return '°';
+            if (fn.includes('tho') || fn.includes('pct')) return '%';
+            if (fn.includes('mah')) return 'mAh';
+            return '';
+        }
+
+        let plotModeDisplay = 'strip'; // 'strip' | 'tint' | 'off'
+
+        function setPlotModeDisplay(mode) {
+            plotModeDisplay = mode;
+            ['btn-mode-strip', 'btn-mode-tint', 'btn-mode-off'].forEach(id => {
+                const btn = document.getElementById(id);
+                if (btn) btn.classList.remove('active');
+            });
+            const activeBtn = document.getElementById(`btn-mode-${mode}`);
+            if (activeBtn) activeBtn.classList.add('active');
+            updatePlot();
+        }
+
+        function resetPlotZoom() {
+            Plotly.relayout('main-plot', {
+                'xaxis.autorange': true,
+                'yaxis.autorange': true,
+                'yaxis2.autorange': true
+            });
+        }
+
         function updateChannelRibbon() {
-            const ribbon = document.getElementById('plot-channel-ribbon');
-            if (!ribbon) return;
-            ribbon.innerHTML = '';
+            const ribbonChips = document.getElementById('plot-ribbon-chips');
+            if (!ribbonChips) return;
+            ribbonChips.innerHTML = '';
             if (activeFields.length === 0) {
-                ribbon.innerHTML = '<span style="font-family:\'B612 Mono\', monospace; font-size:10px; color:#475569; letter-spacing:0.5px;">NO ACTIVE TELEMETRY CHANNELS PLOTTED</span>';
+                ribbonChips.innerHTML = '<span style="font-family:\'B612 Mono\', monospace; font-size:10px; color:var(--av-text-muted); letter-spacing:0.5px;">NO ACTIVE TELEMETRY CHANNELS PLOTTED</span>';
                 return;
             }
 
@@ -2440,7 +2576,7 @@
 
             activeFields.forEach(f => {
                 const idSafe = f.name.replace(/[^a-zA-Z0-9]/g, '_');
-                let minStr = '--', maxStr = '--';
+                let minStr = '--', maxStr = '--', avgStr = '--';
                 if (tele.length > 0) {
                     let key = FIELD_ALIAS_MAP[f.name];
                     if (!key) {
@@ -2454,20 +2590,24 @@
                         if (vals.length > 0) {
                             minStr = Math.min(...vals).toFixed(1);
                             maxStr = Math.max(...vals).toFixed(1);
+                            const sum = vals.reduce((a, b) => a + b, 0);
+                            avgStr = (sum / vals.length).toFixed(1);
                         }
                     }
                 }
 
+                const unit = getFieldUnit(f.name);
                 const item = document.createElement('div');
                 item.className = 'ribbon-channel-item';
                 item.innerHTML = `
-                    <span class="ribbon-color-pip" style="background:${f.color}; box-shadow:0 0 5px ${f.color}88;"></span>
+                    <span class="ribbon-color-pip" style="background:${f.color}; box-shadow:0 0 6px ${f.color}88;"></span>
                     <span class="ribbon-name">${f.name}</span>
-                    <span class="ribbon-axis-badge">[Y${f.axis + 1}]</span>
+                    <span class="ribbon-axis-badge">Y${f.axis + 1}</span>
                     <span class="ribbon-val" id="ribbon-val-${idSafe}">--</span>
-                    <span class="ribbon-stats">[${minStr}/${maxStr}]</span>
+                    ${unit ? `<span class="ribbon-unit">${unit}</span>` : ''}
+                    <span class="ribbon-stats" title="Min: ${minStr} | Max: ${maxStr} | Avg: ${avgStr}">[${minStr} / ${maxStr}]</span>
                 `;
-                ribbon.appendChild(item);
+                ribbonChips.appendChild(item);
             });
         }
 
@@ -2509,35 +2649,35 @@
             }
             if (presetKey === 'efficiency') {
                 activeFields = [
-                    { name: 'ARSP.Airspeed', axis: 0, color: '#00d2ff' },
-                    { name: 'BAT.Power', axis: 1, color: '#a855f7' },
-                    { name: 'CTUN.ThO', axis: 1, color: '#f97316' },
-                    { name: 'AOA.AOA', axis: 0, color: '#22c55e' }
+                    { name: 'ARSP.Airspeed', axis: 0, color: '#38bdf8' },
+                    { name: 'BAT.Power', axis: 1, color: '#f59e0b' },
+                    { name: 'CTUN.ThO', axis: 1, color: '#c084fc' },
+                    { name: 'AOA.AOA', axis: 0, color: '#30d158' }
                 ];
             } else if (presetKey === 'atmosphere') {
                 activeFields = [
-                    { name: 'BARO.Press', axis: 1, color: '#00d2ff' },
-                    { name: 'BARO.Temp', axis: 0, color: '#f97316' },
-                    { name: 'Calc.Density', axis: 0, color: '#22c55e' },
-                    { name: 'Calc.WindSpd', axis: 0, color: '#ffd60a' }
+                    { name: 'BARO.Press', axis: 1, color: '#38bdf8' },
+                    { name: 'BARO.Temp', axis: 0, color: '#f59e0b' },
+                    { name: 'Calc.Density', axis: 0, color: '#30d158' },
+                    { name: 'Calc.WindSpd', axis: 0, color: '#fbbf24' }
                 ];
             } else if (presetKey === 'altitude') {
                 activeFields = [
-                    { name: 'BARO.Alt', axis: 1, color: '#22c55e' },
-                    { name: 'BARO.CRt', axis: 0, color: '#ffd60a' },
-                    { name: 'TECS.spdem', axis: 0, color: '#00d2ff' }
+                    { name: 'BARO.Alt', axis: 1, color: '#30d158' },
+                    { name: 'BARO.CRt', axis: 0, color: '#f59e0b' },
+                    { name: 'TECS.spdem', axis: 0, color: '#38bdf8' }
                 ];
             } else if (presetKey === 'attitude') {
                 activeFields = [
-                    { name: 'ATT.Roll', axis: 0, color: '#ef4444' },
+                    { name: 'ATT.Roll', axis: 0, color: '#f87171' },
                     { name: 'ATT.Pitch', axis: 0, color: '#38bdf8' },
-                    { name: 'ATT.Yaw', axis: 1, color: '#ffd60a' }
+                    { name: 'ATT.Yaw', axis: 1, color: '#fbbf24' }
                 ];
             } else if (presetKey === 'power') {
                 activeFields = [
-                    { name: 'BAT.Volt', axis: 0, color: '#00d2ff' },
-                    { name: 'BAT.Curr', axis: 1, color: '#f97316' },
-                    { name: 'BAT.Power', axis: 1, color: '#a855f7' }
+                    { name: 'BAT.Volt', axis: 0, color: '#38bdf8' },
+                    { name: 'BAT.Curr', axis: 1, color: '#30d158' },
+                    { name: 'BAT.Power', axis: 1, color: '#f59e0b' }
                 ];
             }
             renderActiveFieldChips();
@@ -2545,15 +2685,15 @@
             updatePlot();
         }
 
-        // ---------------------------------------------------------------------------
-        // High-Performance Plotly Multi-Series Chart with Flight Mode Spans
-        // ---------------------------------------------------------------------------
         function updatePlot() {
             if (!currentFlightData || !currentFlightData.telemetry) return;
             const tele = currentFlightData.telemetry;
             const timeSeries = tele.map(r => r.time);
 
             const traces = [];
+            const y1Fields = [];
+            const y2Fields = [];
+
             activeFields.forEach(f => {
                 let key = FIELD_ALIAS_MAP[f.name];
                 if (!key) {
@@ -2573,78 +2713,201 @@
                     yData = tele.map(r => (r[f.name] !== undefined ? r[f.name] : (r.tas || 0)));
                 }
 
+                const unit = getFieldUnit(f.name);
+                const unitSuffix = unit ? ` (${unit})` : '';
+
+                if (f.axis === 1) {
+                    y2Fields.push(`${f.name}${unitSuffix}`);
+                } else {
+                    y1Fields.push(`${f.name}${unitSuffix}`);
+                }
+
                 traces.push({
                     x: timeSeries,
                     y: yData,
-                    name: f.name,
+                    name: `${f.name}${unitSuffix}`,
                     yaxis: f.axis === 1 ? 'y2' : 'y',
-                    line: { color: f.color, width: 1.8 },
+                    line: {
+                        color: f.color,
+                        width: 2.0,
+                        shape: 'linear'
+                    },
                     hoverinfo: 'x+y+name'
                 });
             });
 
             const shapes = [];
+            const annotations = [];
+
             const modeColors = {
-                'AUTO': 'rgba(0, 230, 118, 0.20)',
-                'FBWA': 'rgba(0, 210, 255, 0.18)',
-                'FBWB': 'rgba(14, 165, 233, 0.16)',
-                'CRUISE': 'rgba(168, 85, 247, 0.18)',
-                'MANUAL': 'rgba(239, 68, 68, 0.16)',
-                'RTL': 'rgba(245, 158, 11, 0.18)'
+                'AUTO': '#30d158',
+                'FBWA': '#38bdf8',
+                'FBWB': '#0284c7',
+                'CRUISE': '#bf5af2',
+                'MANUAL': '#ff453a',
+                'TAKEOFF': '#30d158',
+                'RTL': '#ff9f0a'
             };
 
-            if (currentFlightData.mode_segments) {
-                currentFlightData.mode_segments.forEach(seg => {
-                    const c = modeColors[seg.mode] || 'rgba(148, 163, 184, 0.08)';
-                    shapes.push({
-                        type: 'rect',
-                        xref: 'x',
-                        yref: 'paper',
-                        x0: seg.start,
-                        x1: seg.end,
-                        y0: 0,
-                        y1: 1,
-                        fillcolor: c,
-                        line: { width: 0 }
-                    });
+            if (currentFlightData.mode_segments && currentFlightData.mode_segments.length > 0) {
+                currentFlightData.mode_segments.forEach((seg, i) => {
+                    const solidColor = modeColors[seg.mode] || '#8e8e93';
+
+                    if (plotModeDisplay === 'strip') {
+                        // Top Mode Banner Strip (3.5% height in paper coords)
+                        shapes.push({
+                            type: 'rect',
+                            xref: 'x',
+                            yref: 'paper',
+                            x0: seg.start,
+                            x1: seg.end,
+                            y0: 0.955,
+                            y1: 1.0,
+                            fillcolor: solidColor,
+                            line: { width: 0 }
+                        });
+
+                        // Subtle Mode Demarcation Vertical Line
+                        shapes.push({
+                            type: 'line',
+                            xref: 'x',
+                            yref: 'paper',
+                            x0: seg.start,
+                            x1: seg.start,
+                            y0: 0,
+                            y1: 0.955,
+                            line: {
+                                color: 'rgba(255, 255, 255, 0.12)',
+                                width: 1,
+                                dash: 'dot'
+                            }
+                        });
+
+                        // Centered Mode Annotation on Strip
+                        if (seg.end - seg.start > 25) {
+                            annotations.push({
+                                xref: 'x',
+                                yref: 'paper',
+                                x: (seg.start + seg.end) / 2,
+                                y: 0.978,
+                                text: `<b>${seg.mode}</b>`,
+                                showarrow: false,
+                                font: { family: "'B612 Mono', monospace", size: 9, color: '#ffffff' },
+                                xanchor: 'center',
+                                yanchor: 'middle'
+                            });
+                        }
+                    } else if (plotModeDisplay === 'tint') {
+                        // Ultra-subtle tint (only 4% opacity)
+                        shapes.push({
+                            type: 'rect',
+                            xref: 'x',
+                            yref: 'paper',
+                            x0: seg.start,
+                            x1: seg.end,
+                            y0: 0,
+                            y1: 1.0,
+                            fillcolor: `${solidColor}0d`, // ~5% opacity
+                            line: { width: 0 }
+                        });
+                        shapes.push({
+                            type: 'line',
+                            xref: 'x',
+                            yref: 'paper',
+                            x0: seg.start,
+                            x1: seg.start,
+                            y0: 0,
+                            y1: 1.0,
+                            line: {
+                                color: 'rgba(255, 255, 255, 0.12)',
+                                width: 1,
+                                dash: 'dot'
+                            }
+                        });
+                    } else if (plotModeDisplay === 'off') {
+                        // Clean boundary lines only
+                        shapes.push({
+                            type: 'line',
+                            xref: 'x',
+                            yref: 'paper',
+                            x0: seg.start,
+                            x1: seg.start,
+                            y0: 0,
+                            y1: 1.0,
+                            line: {
+                                color: 'rgba(255, 255, 255, 0.08)',
+                                width: 1,
+                                dash: 'dot'
+                            }
+                        });
+                    }
                 });
             }
             basePlotShapes = shapes;
 
+            const y1Title = y1Fields.length > 0 ? y1Fields.join(' · ') : 'Y1 PRIMARY';
+            const y2Title = y2Fields.length > 0 ? y2Fields.join(' · ') : 'Y2 SECONDARY';
+
+            const computedStyle = getComputedStyle(document.documentElement);
+            const plotBg = computedStyle.getPropertyValue('--av-plot-bg').trim() || '#0f1013';
+            const textSecondary = computedStyle.getPropertyValue('--av-text-secondary').trim() || '#98989d';
+            const textMuted = computedStyle.getPropertyValue('--av-text-muted').trim() || '#636366';
+
             const layout = {
-                paper_bgcolor: (getComputedStyle(document.documentElement).getPropertyValue('--av-plot-bg').trim() || '#0f1013'),
-                plot_bgcolor: (getComputedStyle(document.documentElement).getPropertyValue('--av-plot-bg').trim() || '#0f1013'),
-                margin: { l: 48, r: 48, t: 8, b: 28 },
-                font: { family: "'B612', -apple-system, sans-serif", size: 10, color: '#64748b' },
+                paper_bgcolor: plotBg,
+                plot_bgcolor: plotBg,
+                margin: { l: 56, r: 56, t: 28, b: 34 },
+                font: { family: "'B612', -apple-system, sans-serif", size: 10, color: textSecondary },
                 hovermode: 'x unified',
-                hoverdistance: 30,
+                hoverdistance: 40,
+                hoverlabel: {
+                    bgcolor: 'rgba(18, 19, 23, 0.96)',
+                    bordercolor: 'rgba(255, 255, 255, 0.16)',
+                    font: { family: "'B612 Mono', monospace", size: 10.5, color: '#f5f5f7' },
+                    align: 'left'
+                },
                 showlegend: false,
                 shapes: shapes,
+                annotations: annotations,
                 xaxis: {
-                    title: { text: 'MISSION TIME (SEC)', font: { family: "'B612 Mono', monospace", size: 9.5, color: '#475569' } },
-                    gridcolor: 'rgba(255, 255, 255, 0.04)',
-                    zerolinecolor: 'rgba(255, 255, 255, 0.08)',
-                    tickfont: { family: "'B612 Mono', monospace", size: 9.5, color: '#64748b' },
+                    title: { text: 'MISSION TIME (SEC)', font: { family: "'B612 Mono', monospace", size: 9.5, color: textMuted } },
+                    gridcolor: 'rgba(255, 255, 255, 0.05)',
+                    zerolinecolor: 'rgba(255, 255, 255, 0.12)',
+                    tickfont: { family: "'B612 Mono', monospace", size: 9.5, color: textSecondary },
+                    showline: true,
+                    linecolor: 'rgba(255, 255, 255, 0.12)',
+                    linewidth: 1,
+                    ticks: 'outside',
+                    tickcolor: 'rgba(255, 255, 255, 0.2)',
                     rangeslider: { visible: false }
                 },
                 yaxis: {
-                    title: { text: 'Y1 PRIMARY', font: { family: "'B612 Mono', monospace", size: 9.5, color: '#00e5ff' } },
-                    gridcolor: 'rgba(255, 255, 255, 0.04)',
-                    zerolinecolor: 'rgba(255, 255, 255, 0.08)',
-                    tickfont: { family: "'B612 Mono', monospace", size: 9.5, color: '#00e5ff' }
+                    title: { text: y1Title, font: { family: "'B612 Mono', monospace", size: 9.5, color: '#38bdf8' } },
+                    gridcolor: 'rgba(255, 255, 255, 0.05)',
+                    zerolinecolor: 'rgba(255, 255, 255, 0.12)',
+                    tickfont: { family: "'B612 Mono', monospace", size: 9.5, color: '#38bdf8' },
+                    showline: true,
+                    linecolor: 'rgba(56, 189, 248, 0.3)',
+                    ticks: 'outside',
+                    tickcolor: 'rgba(56, 189, 248, 0.4)'
                 },
                 yaxis2: {
-                    title: { text: 'Y2 SECONDARY', font: { family: "'B612 Mono', monospace", size: 9.5, color: '#f59e0b' } },
+                    title: { text: y2Title, font: { family: "'B612 Mono', monospace", size: 9.5, color: '#f59e0b' } },
                     overlaying: 'y',
                     side: 'right',
                     gridcolor: 'rgba(255, 255, 255, 0.02)',
-                    tickfont: { family: "'B612 Mono', monospace", size: 9.5, color: '#f59e0b' }
+                    tickfont: { family: "'B612 Mono', monospace", size: 9.5, color: '#f59e0b' },
+                    showline: true,
+                    linecolor: 'rgba(245, 158, 11, 0.3)',
+                    ticks: 'outside',
+                    tickcolor: 'rgba(245, 158, 11, 0.4)'
                 }
             };
 
             const config = {
                 responsive: true,
-                displayModeBar: false
+                displayModeBar: false,
+                doubleClick: 'reset'
             };
 
             Plotly.react('main-plot', traces, layout, config);
@@ -2935,7 +3198,7 @@
             cursor.style.display = 'block';
 
             if (badge) {
-                badge.textContent = formatFlightClock(t);
+                const sample = getInterpolatedTelemetry(t); const modeStr = sample && sample.mode ? ` · ${sample.mode}` : ''; badge.textContent = `T = ${formatFlightClock(t)}${modeStr}`;
             }
         }
 
