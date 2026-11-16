@@ -1250,6 +1250,446 @@
     
         
 
+    
+        /* =========================================================================
+           AUTHENTIC ARDUPILOT UAV LOG VIEWER STYLING
+           ========================================================================= */
+        :root, [data-theme="uav-official"] {
+            --av-bg-dark: #121924;
+            --av-header-bg: #182230;
+            --av-panel-bg: #182230;
+            --av-panel-surface: #202b3c;
+            --av-surface-hover: #29374d;
+            --av-border: #243144;
+            --av-border-strong: #33445c;
+            --av-border-light: rgba(255, 255, 255, 0.08);
+            --av-border-subtle: rgba(255, 255, 255, 0.04);
+            
+            --av-accent: #3b82f6;
+            --av-accent-dim: #2563eb;
+            --av-accent-hover: #60a5fa;
+            --av-green: #22c55e;
+            --av-amber: #f59e0b;
+            --av-red: #ef4444;
+            --av-purple: #a855f7;
+            
+            --av-text-primary: #f8fafc;
+            --av-text-secondary: #94a3b8;
+            --av-text-muted: #64748b;
+            --av-title-color: #cbd5e1;
+
+            --av-btn-bg: #202b3c;
+            --av-btn-hover: #29374d;
+            --av-capsule-bg: #101721;
+            --av-plot-bg: #ffffff;
+            --av-footer-bg: #141b26;
+            --av-glow: none;
+            --av-logo-glow: none;
+
+            --header-h: 46px;
+            --footer-h: 48px;
+            --sidebar-w: 295px;
+
+            --av-cyan: var(--av-accent);
+            --av-cyan-dim: var(--av-accent-dim);
+            --bg-dark: var(--av-bg-dark);
+            --panel-bg: var(--av-panel-bg);
+            --card-bg: var(--av-panel-surface);
+            --border: var(--av-border);
+            --accent: var(--av-accent);
+            --text-main: var(--av-text-primary);
+            --text-muted: var(--av-text-secondary);
+        }
+
+        /* Top White UAV Log Viewer Header Card */
+        .uav-sidebar-header-card {
+            background: #ffffff;
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid #cbd5e1;
+            flex-shrink: 0;
+        }
+        .uav-sidebar-header-card .uav-gh-icon {
+            width: 22px;
+            height: 22px;
+            fill: #1e293b;
+            flex-shrink: 0;
+        }
+        .uav-sidebar-header-card .uav-brand-text {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-size: 17.5px;
+            font-weight: 700;
+            color: #1e3a5f;
+            letter-spacing: -0.2px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .uav-sidebar-header-card .uav-plane-symbol {
+            font-size: 16px;
+            color: #1e3a5f;
+            display: inline-block;
+            transform: translateY(-1px);
+        }
+
+        /* File & Action Row below Header */
+        .uav-file-action-bar {
+            padding: 8px 12px 10px 12px;
+            background: var(--av-panel-bg);
+            border-bottom: 1px solid var(--av-border);
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+            flex-shrink: 0;
+        }
+        .uav-file-title-line {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-size: 11.5px;
+            color: #cbd5e1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .uav-file-title-line span {
+            color: #94a3b8;
+        }
+        .uav-btn-pair-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .uav-plot-pill-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 14px;
+            background: rgba(59, 130, 246, 0.15);
+            border: 1px solid #3b82f6;
+            border-radius: 14px;
+            color: #60a5fa;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-size: 11.5px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .uav-plot-pill-btn:hover {
+            background: #2563eb;
+            color: #ffffff;
+        }
+        .uav-options-dots-btn {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #94a3b8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .uav-options-dots-btn:hover {
+            background: rgba(255, 255, 255, 0.12);
+            color: #f8fafc;
+        }
+
+        /* Collapsible Section Header */
+        .uav-collapsible-title {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            color: #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+            user-select: none;
+            margin-bottom: 6px;
+        }
+        .uav-collapsible-title .uav-caret {
+            font-size: 10px;
+            color: #94a3b8;
+            transition: transform 0.15s ease;
+        }
+
+        /* Active Plotted Fields List (UAV Log Viewer Style) */
+        .uav-active-field-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 5px;
+        }
+        .uav-field-pill-box {
+            flex: 1;
+            background: #ffffff;
+            color: #0f172a;
+            border-radius: 12px;
+            padding: 3px 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-family: 'B612 Mono', monospace;
+            font-size: 11px;
+            font-weight: 500;
+            overflow: hidden;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+        .uav-field-pill-box span {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .uav-axis-select {
+            background: #ffffff;
+            color: #0f172a;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            font-family: 'B612 Mono', monospace;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 4px;
+            cursor: pointer;
+            width: 32px;
+            text-align: center;
+        }
+        .uav-style-preview {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            padding: 2px 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 28px;
+            height: 22px;
+        }
+        .uav-trash-btn {
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            padding: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 3px;
+            transition: color 0.15s;
+        }
+        .uav-trash-btn:hover {
+            color: #ef4444;
+        }
+
+        /* Pill Action Buttons */
+        .uav-pill-actions-bar {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 8px;
+        }
+        .uav-pill-action-btn {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #cbd5e1;
+            border-radius: 12px;
+            padding: 3px 9px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-size: 10.5px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+        }
+        .uav-pill-action-btn:hover {
+            background: rgba(255, 255, 255, 0.14);
+            color: #ffffff;
+            border-color: rgba(255, 255, 255, 0.25);
+        }
+
+        /* Presets Dropdown */
+        .uav-preset-dropdown {
+            width: 100%;
+            background: #ffffff;
+            color: #0f172a;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            padding: 5px 8px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-size: 11px;
+            font-weight: 500;
+            outline: none;
+            cursor: pointer;
+        }
+
+        /* Search Box in Signal Tree */
+        .uav-filter-box {
+            width: 100%;
+            background: #ffffff;
+            color: #0f172a;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            padding: 5px 8px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-size: 11px;
+            outline: none;
+            margin-bottom: 6px;
+        }
+        .uav-filter-box::placeholder {
+            color: #94a3b8;
+        }
+
+        /* Signal Tree Nodes with Descriptions */
+        .msg-node {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        }
+        .msg-header {
+            padding: 4px 6px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            border-radius: 3px;
+            transition: background 0.1s;
+        }
+        .msg-header:hover {
+            background: rgba(255, 255, 255, 0.04);
+        }
+        .msg-header-left {
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+            overflow: hidden;
+            flex: 1;
+        }
+        .msg-name {
+            font-family: 'B612 Mono', monospace;
+            font-size: 11px;
+            font-weight: 700;
+            color: #f1f5f9;
+            flex-shrink: 0;
+        }
+        .msg-desc {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-size: 10px;
+            color: #94a3b8;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .msg-chevron {
+            font-size: 9px;
+            color: #64748b;
+            flex-shrink: 0;
+            margin-left: 4px;
+        }
+
+        /* Top Bar of Oscillograph Plot */
+        .uav-plot-top-bar {
+            height: 32px;
+            background: #ffffff;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 12px;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 10;
+        }
+        .uav-segment-ctrl {
+            display: inline-flex;
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .uav-segment-item {
+            padding: 3px 10px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-size: 10.5px;
+            font-weight: 500;
+            color: #475569;
+            background: #ffffff;
+            border: none;
+            border-right: 1px solid #cbd5e1;
+            cursor: pointer;
+            transition: all 0.1s;
+        }
+        .uav-segment-item:last-child {
+            border-right: none;
+        }
+        .uav-segment-item:hover {
+            background: #f1f5f9;
+            color: #0f172a;
+        }
+        .uav-segment-item.active {
+            background: #e2e8f0;
+            color: #1e3a5f;
+            font-weight: 600;
+        }
+        .uav-plot-file-title {
+            font-family: 'B612 Mono', monospace;
+            font-size: 12px;
+            font-weight: 600;
+            color: #1e293b;
+            letter-spacing: 0.3px;
+        }
+
+        /* Floating Boxed Legend inside Plot */
+        #uav-floating-legend {
+            position: absolute;
+            top: 40px;
+            left: 56px;
+            background: rgba(255, 255, 255, 0.96);
+            border: 1px solid #cbd5e1;
+            border-radius: 3px;
+            padding: 3px 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            z-index: 25;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            pointer-events: none;
+        }
+        .uav-floating-legend-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-family: 'B612 Mono', monospace;
+            font-size: 10.5px;
+            color: #1e293b;
+            white-space: nowrap;
+        }
+        .uav-legend-pip {
+            width: 14px;
+            height: 2px;
+            border-radius: 1px;
+            display: inline-block;
+        }
+        .uav-legend-fname {
+            font-weight: 600;
+            color: #0f172a;
+        }
+        .uav-legend-stats-body {
+            color: #475569;
+        }
+        .uav-legend-mean-val {
+            font-weight: 700;
+            color: #0f172a;
+        }
+        .uav-legend-range-tag {
+            font-size: 9.5px;
+            background: #e2e8f0;
+            color: #1e293b;
+            padding: 1px 5px;
+            border-radius: 2px;
+            font-weight: 600;
+            margin-left: 4px;
+        }
+
     </style>
     <script>
         window.onSitlIframeLoaded = function(){};
@@ -1267,7 +1707,7 @@
         }
 
         (function initWorkstationTheme() {
-            var savedTheme = localStorage.getItem('sharkee_workstation_theme') || 'macos-pro';
+            var savedTheme = localStorage.getItem('sharkee_workstation_theme') || 'uav-official';
             document.documentElement.setAttribute('data-theme', savedTheme);
             window.addEventListener('DOMContentLoaded', function() {
                 var sel = document.getElementById('theme-layout-select');
@@ -1359,7 +1799,8 @@
                     <path d="M17.66 6.34l1.41-1.41"></path>
                 </svg>
                 <select id="theme-layout-select" class="aero-theme-select" onchange="setWorkstationTheme(this.value)">
-                    <option value="macos-pro" selected>macOS Space Gray</option>
+                    <option value="uav-official" selected>UAV Log Viewer (Official)</option>
+                    <option value="macos-pro">macOS Space Gray</option>
                     <option value="garmin-slate">Garmin Cockpit Slate</option>
                     <option value="tactical-titanium">Tactical Dark Titanium</option>
                 </select>
@@ -1387,36 +1828,76 @@
         <!-- Left Sidebar: UAV Log Viewer Message & Field Selector -->
                 <!-- Left Sidebar: Telemetry Matrix & Channel Selector -->
         <div id="sidebar">
-            <div class="sidebar-section">
-                <div class="sidebar-title">
-                    <span>ACTIVE CHANNELS</span>
-                    <span id="active-field-count" class="sidebar-title-badge">0 / 8</span>
+            <!-- Authentic UAV Log Viewer White Brand Card -->
+            <div class="uav-sidebar-header-card">
+                <svg class="uav-gh-icon" viewBox="0 0 24 24">
+                    <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+                </svg>
+                <div class="uav-brand-text">
+                    <span>UAV Log Viewer</span>
+                    <span class="uav-plane-symbol">&#9992;</span>
                 </div>
-                <div id="active-fields-list"></div>
-                <div class="sidebar-actions">
-                    <button class="btn" onclick="openExpressionModal()">+ EXPRESSION</button>
-                    <button class="btn" onclick="clearAllFields()">CLEAR ALL</button>
+            </div>
+
+            <!-- Current File & Action Buttons -->
+            <div class="uav-file-action-bar">
+                <div class="uav-file-title-line">Current file: <span id="uav-current-file-label">Loading log...</span></div>
+                <div class="uav-btn-pair-row">
+                    <button class="uav-plot-pill-btn" onclick="togglePlotVisibility()" title="Toggle Plot Oscillograph View">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                        <span>Plot</span>
+                    </button>
+                    <button class="uav-options-dots-btn" onclick="triggerFilePicker()" title="Choose ArduPilot .bin log file">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2.2"></circle><circle cx="12" cy="12" r="2.2"></circle><circle cx="12" cy="19" r="2.2"></circle></svg>
+                    </button>
                 </div>
             </div>
 
+            <!-- Plots Setup Section -->
             <div class="sidebar-section">
-                <div class="sidebar-title">MISSION TEST PRESETS</div>
-                <select id="preset-select" class="log-select" onchange="applyPreset(this.value)">
-                    <option value="">-- Choose Preset to Plot --</option>
-                    <option value="efficiency">1. Cruise Performance & Airspeed (TAS, Power, ThO, AoA)</option>
-                    <option value="atmosphere">2. Atmospheric & Wind Vector (Press, Temp, Rho, Wind)</option>
-                    <option value="altitude">3. Altitude & Climb Envelope (Alt, CRt, DemSpd)</option>
-                    <option value="attitude">4. Three-Axis Flight Dynamics (Roll, Pitch, Yaw)</option>
-                    <option value="power">5. Propulsion & Electrical Power (Volt, Curr, Watts)</option>
-                </select>
+                <div class="uav-collapsible-title" onclick="toggleUavSection('plots-setup-wrapper', this)">
+                    <span>Plots Setup</span>
+                    <span class="uav-caret">&#9662;</span>
+                </div>
+                <div id="plots-setup-wrapper">
+                    <div id="active-fields-list"></div>
+                    <div class="uav-pill-actions-bar">
+                        <button class="uav-pill-action-btn" onclick="openExpressionModal()">+ Add Expression</button>
+                        <button class="uav-pill-action-btn" onclick="saveActivePresetModal()">&#128190; Save Preset</button>
+                        <button class="uav-pill-action-btn" onclick="clearAllFields()">&#8856; clear</button>
+                    </div>
+                </div>
             </div>
 
-            <div class="sidebar-section" style="flex-shrink: 0;">
-                <div class="sidebar-title">TELEMETRY SIGNAL TREE</div>
-                <input type="text" id="field-search-input" class="search-box" placeholder="Filter signals (e.g. ATT, BARO, CTUN)..." oninput="filterMessageTree(this.value)">
+            <!-- Presets Section -->
+            <div class="sidebar-section">
+                <div class="uav-collapsible-title" onclick="toggleUavSection('presets-wrapper', this)">
+                    <span>Presets</span>
+                    <span class="uav-caret">&#9662;</span>
+                </div>
+                <div id="presets-wrapper">
+                    <select id="preset-select" class="uav-preset-dropdown" onchange="applyPreset(this.value)">
+                        <option value="">-- Choose Preset to Plot --</option>
+                        <option value="efficiency">1. Cruise Performance & Airspeed (TAS, Power, ThO, AoA)</option>
+                        <option value="power">2. Propulsion & Electrical Power (Volt, Curr, Watts)</option>
+                        <option value="atmosphere">3. Atmospheric & Wind Vector (Press, Temp, Rho, Wind)</option>
+                        <option value="altitude">4. Altitude & Climb Envelope (Alt, CRt, DemSpd)</option>
+                        <option value="attitude">5. Three-Axis Flight Dynamics (Roll, Pitch, Yaw)</option>
+                    </select>
+                </div>
             </div>
 
-            <div id="message-tree"></div>
+            <!-- Plot Individual Field Section -->
+            <div class="sidebar-section" style="flex: 1; display: flex; flex-direction: column; min-height: 0;">
+                <div class="uav-collapsible-title" onclick="toggleUavSection('tree-wrapper', this)">
+                    <span>Plot Individual Field</span>
+                    <span class="uav-caret">&#9662;</span>
+                </div>
+                <div id="tree-wrapper" style="flex: 1; display: flex; flex-direction: column; min-height: 0;">
+                    <input type="text" id="field-search-input" class="uav-filter-box" placeholder="Type here to filter..." oninput="filterMessageTree(this.value)">
+                    <div id="message-tree" style="flex: 1; overflow-y: auto;"></div>
+                </div>
+            </div>
         </div>
 
         <div id="content-area">
@@ -1424,14 +1905,27 @@
             <!-- Top Pane: Interactive Multi-Series Plot (Collapsed until plotting starts) -->
                         <!-- Top Pane: Multi-Channel Telemetry Oscillograph -->
             <div id="plot-container" class="collapsed">
-                <div id="plot-channel-ribbon" class="plot-channel-ribbon"></div>
-                <div id="main-plot"></div>
+                <!-- Authentic UAV Log Viewer Top Control Strip -->
+                <div class="uav-plot-top-bar">
+                    <div class="uav-segment-ctrl">
+                        <button class="uav-segment-item active" id="btn-seg-none" onclick="setPlotEventsMode('none')">Nothing</button>
+                        <button class="uav-segment-item" id="btn-seg-events" onclick="setPlotEventsMode('events')">Events</button>
+                        <button class="uav-segment-item" id="btn-seg-params" onclick="setPlotEventsMode('params')">Events + Params</button>
+                    </div>
+                    <div class="uav-plot-file-title" id="uav-plot-file-title">Loading flight log...</div>
+                    <div style="width: 140px;"></div>
+                </div>
+
+                <!-- Floating Legend Box (inside plot canvas) -->
+                <div id="uav-floating-legend"></div>
+
+                <div id="main-plot" style="width: 100%; height: calc(100% - 32px);"></div>
                 <div id="plot-cursor-line">
                     <div id="plot-cursor-badge">00:00.0</div>
                 </div>
             </div>
 
-            <div id="lower-viewports-wrapper"  <div id="lower-viewports-wrapper" class="fullscreen" style="flex: 1; position: relative; width: 100%; height: 100%; min-height: 0;">
+            <div id="lower-viewports-wrapper" class="fullscreen" style="flex: 1; position: relative; width: 100%; height: 100%; min-height: 0;">
                 <!-- 3D Flight Visualizer View (3D Terrain + PFD Horizon + NAV Compass + Atmosphere Panel) -->
                 <div id="sitl-pane" style="width: 100%; height: 100%; position: absolute; top: 0; left: 0; right: 0; bottom: 0;">
                     <iframe id="sitl-viewer-frame" src="sharkee_hud.html?v=20261114_REV8_APPLE_GREEN" style="width: 100%; height: 100%; border: none; display: block;" onload="onSitlIframeLoaded()"></iframe>
@@ -2095,6 +2589,10 @@
                 logNameEl.textContent = fname;
                 logNameEl.title = fname;
             }
+            const uavFileLabel = document.getElementById('uav-current-file-label');
+            const uavPlotTitle = document.getElementById('uav-plot-file-title');
+            if (uavFileLabel) uavFileLabel.textContent = fname;
+            if (uavPlotTitle) uavPlotTitle.textContent = fname;
 
             // Setup Replay Timeline Extents
             flightMaxTime = (currentTrajectory[currentTrajectory.length - 1]?.time) || (data.metadata?.duration_s) || 100;
@@ -2297,8 +2795,86 @@
         // ---------------------------------------------------------------------------
         // Message Tree Construction (UAV Log Viewer format)
         // ---------------------------------------------------------------------------
+        
+        // Official ArduPilot Message Descriptions
+        const ARDUPILOT_MSG_DESCRIPTIONS = {
+            'AETR': 'Normalised pre-mixer control surfaces',
+            'AHR2': 'Backup AHRS data',
+            'AOA': 'Angle of attack and Side Slip Angle',
+            'ARM': 'Arming status changes',
+            'ARSP': 'Airspeed sensor data',
+            'ATT': 'Canonical vehicle attitude',
+            'AUXF': 'Auxiliary function invocation info',
+            'BARO': 'Gathered Barometer data',
+            'BAT': 'Gathered battery data',
+            'CMD': 'Uploaded mission command info',
+            'CTUN': 'Control Tuning information',
+            'DCM': 'DCM Estimator Data',
+            'DSF': 'Onboard logging statistics',
+            'ERR': 'Specifically coded error messages',
+            'ESC': 'ESC Telemetry Data',
+            'EV': 'Event ID and Timestamp',
+            'FTLE': 'Flight Time and Energy statistics',
+            'GPS': 'GPS Receiver Position & Velocity',
+            'IMU': 'Inertial Measurement Unit sensor',
+            'MAG': '3-Axis Magnetometer Data',
+            'MODE': 'Autopilot Vehicle Flight Mode',
+            'MSG': 'System and Warning Text Messages',
+            'NKF1': 'EKF3 Primary State Data',
+            'NKF2': 'EKF3 Innovation Data',
+            'PARM': 'Parameter Changes and Values',
+            'PM': 'Performance Monitoring Statistics',
+            'POS': 'Position & Velocity Estimates',
+            'RCIN': 'Radio Control Receiver Inputs',
+            'RCOU': 'Radio Control Servo Outputs',
+            'SIM': 'Simulated Vehicle Dynamics',
+            'TERR': 'Terrain Altitude & Database',
+            'VIBE': '3-Axis Vibration and Clipping',
+            'XKF1': 'EKF3 Kalman Filter State',
+            'XKF2': 'EKF3 Kalman Filter Covariance',
+            'RATE': 'Desired and achieved angular rates',
+            'RFND': 'Rangefinder Distance Data'
+        };
+
+        function toggleUavSection(contentId, headerEl) {
+            const el = document.getElementById(contentId);
+            if (!el) return;
+            const isHidden = el.style.display === 'none';
+            el.style.display = isHidden ? '' : 'none';
+            const caret = headerEl ? headerEl.querySelector('.uav-caret') : null;
+            if (caret) caret.style.transform = isHidden ? 'rotate(0deg)' : 'rotate(-90deg)';
+        }
+
+        let currentPlotEventsMode = 'none';
+        function setPlotEventsMode(mode) {
+            currentPlotEventsMode = mode;
+            ['btn-seg-none', 'btn-seg-events', 'btn-seg-params'].forEach(id => {
+                const b = document.getElementById(id);
+                if (b) b.classList.remove('active');
+            });
+            const activeBtn = document.getElementById(`btn-seg-${mode}`);
+            if (activeBtn) activeBtn.classList.add('active');
+            updatePlot();
+        }
+
+        function setFieldAxis(fieldName, axisVal) {
+            const f = activeFields.find(x => x.name === fieldName);
+            if (f) {
+                f.axis = parseInt(axisVal, 10);
+                updatePlot();
+            }
+        }
+
+        function saveActivePresetModal() {
+            const name = prompt("Enter a name for this custom preset:", "My Flight Preset");
+            if (name && activeFields.length > 0) {
+                alert(`Preset "${name}" saved successfully (${activeFields.length} channels).`);
+            }
+        }
+
         function buildMessageTree(formats) {
             const treeContainer = document.getElementById('message-tree');
+            if (!treeContainer) return;
             treeContainer.innerHTML = '';
 
             const sortedKeys = Object.keys(formats).sort();
@@ -2308,26 +2884,16 @@
                 node.className = 'msg-node';
                 node.dataset.msg = msgName;
 
+                const desc = ARDUPILOT_MSG_DESCRIPTIONS[msgName] || '';
                 const header = document.createElement('div');
                 header.className = 'msg-header';
                 header.innerHTML = `
-                    <div style="display:flex; align-items:center; gap:6px;">
-                        <svg class="chevron-icon" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transition: transform 0.18s ease; opacity: 0.5;">
-                            <polyline points="9 18 15 12 9 6"></polyline>
-                        </svg>
+                    <div class="msg-header-left">
                         <span class="msg-name">${msgName}</span>
+                        <span class="msg-desc">${desc}</span>
                     </div>
-                    <span class="msg-pill">${cols.length}</span>
+                    <span class="msg-chevron">&#9662;</span>
                 `;
-                header.onclick = () => {
-                    const fContainer = node.querySelector('.msg-fields-container');
-                    const chevron = header.querySelector('.chevron-icon');
-                    fContainer.classList.toggle('expanded');
-                    if (chevron) {
-                        chevron.style.transform = fContainer.classList.contains('expanded') ? 'rotate(90deg)' : 'rotate(0deg)';
-                        chevron.style.opacity = fContainer.classList.contains('expanded') ? '1' : '0.5';
-                    }
-                };
 
                 const fContainer = document.createElement('div');
                 fContainer.className = 'msg-fields-container';
@@ -2342,6 +2908,14 @@
                     };
                     fContainer.appendChild(fItem);
                 });
+
+                header.onclick = () => {
+                    fContainer.classList.toggle('expanded');
+                    const chevron = header.querySelector('.msg-chevron');
+                    if (chevron) {
+                        chevron.style.transform = fContainer.classList.contains('expanded') ? 'rotate(180deg)' : 'rotate(0deg)';
+                    }
+                };
 
                 node.appendChild(header);
                 node.appendChild(fContainer);
@@ -2405,32 +2979,32 @@
 
         function renderActiveFieldChips() {
             const container = document.getElementById('active-fields-list');
+            if (!container) return;
             container.innerHTML = '';
-            document.getElementById('active-field-count').textContent = `${activeFields.length} / 8`;
 
             activeFields.forEach(f => {
-                const idSafe = f.name.replace(/[^a-zA-Z0-9]/g, '_');
-                const chip = document.createElement('div');
-                chip.className = 'active-field-chip';
-                chip.innerHTML = `
-                    <div class="chip-color-bar" style="background:${f.color};"></div>
-                    <div class="chip-content">
-                        <div class="chip-row-top">
-                            <span class="chip-label">${f.name}</span>
-                            <span class="chip-val font-mono" id="chip-val-${idSafe}">--</span>
-                        </div>
-                        <div class="chip-ctrls">
-                            <button class="axis-btn ${f.axis === 0 ? 'active' : ''}" onclick="toggleAxis('${f.name}')" title="Toggle Primary (Y1) / Secondary (Y2) Axis">Y${f.axis + 1}</button>
-                            <button class="chip-del" onclick="removeField('${f.name}')" title="Remove signal">
-                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                                </svg>
-                            </button>
-                        </div>
+                const row = document.createElement('div');
+                row.className = 'uav-active-field-row';
+                row.innerHTML = `
+                    <div class="uav-field-pill-box" title="${f.name}">
+                        <span>${f.name}</span>
+                        <span style="font-size:8px; color:#64748b;">&#9662;</span>
                     </div>
+                    <select class="uav-axis-select" onchange="setFieldAxis('${f.name}', this.value)" title="Y-Axis">
+                        <option value="0" ${f.axis === 0 ? 'selected' : ''}>1</option>
+                        <option value="1" ${f.axis === 1 ? 'selected' : ''}>2</option>
+                    </select>
+                    <div class="uav-style-preview" style="border-bottom: 2.5px solid ${f.color};" title="Curve Color">
+                        <span style="color:${f.color}; font-weight:700;">&#8212;</span>
+                    </div>
+                    <button class="uav-trash-btn" onclick="removeField('${f.name}')" title="Delete Channel">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        </svg>
+                    </button>
                 `;
-                container.appendChild(chip);
+                container.appendChild(row);
             });
             updateChannelRibbon();
             updateChannelReadouts(currentTimeCursor);
@@ -2449,13 +3023,14 @@
         }
 
         function updateChannelRibbon() {
-            const ribbon = document.getElementById('plot-channel-ribbon');
-            if (!ribbon) return;
-            ribbon.innerHTML = '';
+            const legend = document.getElementById('uav-floating-legend') || document.getElementById('plot-channel-ribbon');
+            if (!legend) return;
+            legend.innerHTML = '';
             if (activeFields.length === 0) {
-                ribbon.innerHTML = '<span style="font-family:\'B612 Mono\', monospace; font-size:10px; color:#475569; letter-spacing:0.5px;">NO ACTIVE TELEMETRY CHANNELS PLOTTED</span>';
+                legend.style.display = 'none';
                 return;
             }
+            legend.style.display = 'flex';
 
             const tele = currentFlightData && currentFlightData.telemetry ? currentFlightData.telemetry : [];
             let dataSlice = tele;
@@ -2483,30 +3058,31 @@
                     if (key) {
                         const vals = dataSlice.map(r => r[key]).filter(v => v !== null && v !== undefined && !isNaN(v));
                         if (vals.length > 0) {
-                            minStr = Math.min(...vals).toFixed(1);
-                            maxStr = Math.max(...vals).toFixed(1);
-                            const sum = vals.reduce((a, b) => a + b, 0);
-                            meanStr = (sum / vals.length).toFixed(1);
+                            let minVal = vals[0], maxVal = vals[0], sumVal = 0;
+                            for (let i = 0; i < vals.length; i++) {
+                                const v = vals[i];
+                                if (v < minVal) minVal = v;
+                                if (v > maxVal) maxVal = v;
+                                sumVal += v;
+                            }
+                            minStr = minVal.toFixed(2);
+                            maxStr = maxVal.toFixed(2);
+                            meanStr = (sumVal / vals.length).toFixed(2);
                         }
                     }
                 }
 
                 const item = document.createElement('div');
-                item.className = 'uav-legend-item';
+                item.className = 'uav-floating-legend-item';
                 item.innerHTML = `
-                    <span class="uav-legend-line" style="background:${f.color};"></span>
-                    <span class="uav-legend-name">${f.name}</span>
-                    <span class="uav-legend-stats">[Min:${minStr} Max:${maxStr} <span class="uav-legend-mean" style="color:${isZoomed ? '#ffffff' : '#cbd5e1'}; font-weight:700;">Mean:${meanStr}</span>]</span>
+                    <span class="uav-legend-pip" style="background:${f.color};"></span>
+                    <span class="uav-legend-fname">${f.name}</span>
+                    <span style="color:#94a3b8; font-size:10px;">|</span>
+                    <span class="uav-legend-stats-body">Min: ${minStr} &nbsp;Max: ${maxStr} &nbsp;<span class="uav-legend-mean-val" style="font-weight:700; color:#0f172a;">Mean: ${meanStr}</span></span>
+                    ${isZoomed ? `<span class="uav-legend-range-tag" style="font-size:9px; background:#e2e8f0; color:#1e293b; padding:1px 5px; border-radius:3px; font-weight:600; margin-left:4px;">Region: ${formatFlightClock(currentVisibleRange[0])}–${formatFlightClock(currentVisibleRange[1])}</span>` : ''}
                 `;
-                ribbon.appendChild(item);
+                legend.appendChild(item);
             });
-
-            if (isZoomed) {
-                const rangeBadge = document.createElement('span');
-                rangeBadge.className = 'uav-range-badge';
-                rangeBadge.textContent = `Region: ${formatFlightClock(currentVisibleRange[0])}–${formatFlightClock(currentVisibleRange[1])}`;
-                ribbon.appendChild(rangeBadge);
-            }
         }
 
         function updateChannelReadouts(timeSec) {
@@ -2662,19 +3238,29 @@
             });
 
             const shapes = [];
+            const annotations = [];
             const modeColors = {
-                'AUTO': 'rgba(48, 209, 88, 0.12)',
-                'FBWA': 'rgba(56, 189, 248, 0.10)',
-                'FBWB': 'rgba(2, 132, 199, 0.10)',
-                'CRUISE': 'rgba(192, 132, 252, 0.10)',
-                'MANUAL': 'rgba(239, 68, 68, 0.10)',
-                'TAKEOFF': 'rgba(48, 209, 88, 0.12)',
-                'RTL': 'rgba(245, 158, 11, 0.10)'
+                'AUTO': 'rgba(250, 225, 40, 0.22)',
+                'FBWA': 'rgba(251, 146, 60, 0.20)',
+                'FBWB': 'rgba(251, 146, 60, 0.20)',
+                'CRUISE': 'rgba(74, 222, 128, 0.18)',
+                'MANUAL': 'rgba(248, 113, 113, 0.20)',
+                'TAKEOFF': 'rgba(74, 222, 128, 0.18)',
+                'RTL': 'rgba(96, 165, 250, 0.18)'
+            };
+            const labelColors = {
+                'AUTO': '#ca8a04',
+                'FBWA': '#ea580c',
+                'FBWB': '#ea580c',
+                'CRUISE': '#16a34a',
+                'MANUAL': '#dc2626',
+                'TAKEOFF': '#16a34a',
+                'RTL': '#2563eb'
             };
 
             if (currentFlightData.mode_segments) {
                 currentFlightData.mode_segments.forEach(seg => {
-                    const c = modeColors[seg.mode] || 'rgba(148, 163, 184, 0.06)';
+                    const c = modeColors[seg.mode] || 'rgba(148, 163, 184, 0.10)';
                     shapes.push({
                         type: 'rect',
                         xref: 'x',
@@ -2686,47 +3272,78 @@
                         fillcolor: c,
                         line: { width: 0 }
                     });
+
+                    // Vertical Flight Mode Text Label at bottom left of band
+                    if ((seg.end - seg.start) > 6) {
+                        annotations.push({
+                            x: seg.start + 1.2,
+                            y: 0.03,
+                            xref: 'x',
+                            yref: 'paper',
+                            text: seg.mode,
+                            showarrow: false,
+                            textangle: -90,
+                            font: {
+                                family: "'B612 Mono', monospace",
+                                size: 9.5,
+                                color: labelColors[seg.mode] || '#475569',
+                                weight: 700
+                            }
+                        });
+                    }
                 });
             }
             basePlotShapes = shapes;
 
             const computedStyle = getComputedStyle(document.documentElement);
-            const plotBg = computedStyle.getPropertyValue('--av-plot-bg').trim() || '#0f1013';
+            const plotBg = computedStyle.getPropertyValue('--av-plot-bg').trim() || '#ffffff';
+            const isLightBg = plotBg === '#ffffff' || plotBg.startsWith('rgb(255');
+            const axisTextColor = isLightBg ? '#334155' : '#94a3b8';
+            const gridColor = isLightBg ? '#f1f5f9' : 'rgba(255, 255, 255, 0.04)';
+            const zeroLineColor = isLightBg ? '#cbd5e1' : 'rgba(255, 255, 255, 0.08)';
 
             const layout = {
                 paper_bgcolor: plotBg,
                 plot_bgcolor: plotBg,
-                margin: { l: 48, r: 48, t: 8, b: 28 },
-                font: { family: "'B612', -apple-system, sans-serif", size: 10, color: '#64748b' },
+                margin: { l: 48, r: 48, t: 8, b: 32 },
+                font: { family: "'B612', -apple-system, sans-serif", size: 10, color: axisTextColor },
                 hovermode: 'x unified',
                 hoverdistance: 30,
                 showlegend: false,
                 shapes: shapes,
+                annotations: annotations,
                 xaxis: {
-                    title: { text: 'MISSION TIME (SEC)', font: { family: "'B612 Mono', monospace", size: 9.5, color: '#475569' } },
-                    gridcolor: 'rgba(255, 255, 255, 0.04)',
-                    zerolinecolor: 'rgba(255, 255, 255, 0.08)',
-                    tickfont: { family: "'B612 Mono', monospace", size: 9.5, color: '#64748b' },
-                    rangeslider: { visible: false }
+                    title: { text: 'time_boot (ms)', font: { family: "'B612 Mono', monospace", size: 9.5, color: axisTextColor } },
+                    gridcolor: gridColor,
+                    zerolinecolor: zeroLineColor,
+                    tickfont: { family: "'B612 Mono', monospace", size: 9.5, color: axisTextColor },
+                    rangeslider: {
+                        visible: true,
+                        thickness: 0.12,
+                        bgcolor: isLightBg ? '#ffffff' : 'rgba(0,0,0,0.3)',
+                        bordercolor: isLightBg ? '#cbd5e1' : '#334155'
+                    }
                 },
                 yaxis: {
-                    title: { text: y1Fields.join(', ') || 'Y1 PRIMARY', font: { family: "'B612 Mono', monospace", size: 9.5, color: '#38bdf8' } },
-                    gridcolor: 'rgba(255, 255, 255, 0.04)',
-                    zerolinecolor: 'rgba(255, 255, 255, 0.08)',
-                    tickfont: { family: "'B612 Mono', monospace", size: 9.5, color: '#38bdf8' }
+                    title: { text: y1Fields.join(', ') || '', font: { family: "'B612 Mono', monospace", size: 9.5, color: '#f59e0b' } },
+                    gridcolor: gridColor,
+                    zerolinecolor: zeroLineColor,
+                    tickfont: { family: "'B612 Mono', monospace", size: 9.5, color: '#f59e0b' }
                 },
                 yaxis2: {
-                    title: { text: y2Fields.join(', ') || 'Y2 SECONDARY', font: { family: "'B612 Mono', monospace", size: 9.5, color: '#f59e0b' } },
+                    title: { text: y2Fields.join(', ') || '', font: { family: "'B612 Mono', monospace", size: 9.5, color: '#38bdf8' } },
                     overlaying: 'y',
                     side: 'right',
-                    gridcolor: 'rgba(255, 255, 255, 0.02)',
-                    tickfont: { family: "'B612 Mono', monospace", size: 9.5, color: '#f59e0b' }
+                    gridcolor: 'transparent',
+                    tickfont: { family: "'B612 Mono', monospace", size: 9.5, color: '#38bdf8' }
                 }
             };
 
             const config = {
                 responsive: true,
-                displayModeBar: false,
+                displayModeBar: true,
+                displaylogo: false,
+                modeBarButtonsToRemove: ['sendDataToCloud', 'hoverClosestCartesian', 'hoverCompareCartesian'],
                 doubleClick: 'reset'
             };
 
