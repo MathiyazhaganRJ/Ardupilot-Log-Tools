@@ -188,7 +188,7 @@ def parse_flight_telemetry(file_path, target_samples=6000):
       - speed_steps: list of detected airspeed test steps in AUTO mode
     """
     mlog = mavutil.mavlink_connection(file_path)
-    target_types = ['FMT', 'MODE', 'ATT', 'BARO', 'BAT', 'ARSP', 'XKF1', 'XKF2', 'AHR2', 'CTUN', 'GPS', 'POS', 'AOA', 'TECS', 'MSG', 'RCOU', 'PARM']
+    target_types = ['FMT', 'MODE', 'ATT', 'BARO', 'BAT', 'ARSP', 'XKF1', 'XKF2', 'AHR2', 'CTUN', 'GPS', 'POS', 'AOA', 'TECS', 'MSG', 'RCOU', 'RCIN', 'PARM']
 
     formats = {}
     parameters = {}
@@ -207,7 +207,8 @@ def parse_flight_telemetry(file_path, target_samples=6000):
     cur_tas = cur_gs = cur_tho = cur_spdem = 0.0
     cur_vwn = cur_vwe = cur_aoa = cur_ssa = 0.0
     cur_lat = cur_lng = 0.0
-    cur_servos = [1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000]
+    cur_servos = [1000] * 16
+    cur_rcin = [1500] * 16
     
     true_flight_date = None
     gps_week = 0
@@ -378,7 +379,12 @@ def parse_flight_telemetry(file_path, target_samples=6000):
 
         elif mtype == 'RCOU':
             cur_servos = [
-                int(getattr(msg, f'C{ch}', 1000) or 1000) for ch in range(1, 9)
+                int(getattr(msg, f'C{ch}', 1000) or 1000) for ch in range(1, 17)
+            ]
+
+        elif mtype == 'RCIN':
+            cur_rcin = [
+                int(getattr(msg, f'C{ch}', 1500) or 1500) for ch in range(1, 17)
             ]
 
         elif mtype == 'BAT':
@@ -403,7 +409,7 @@ def parse_flight_telemetry(file_path, target_samples=6000):
                 pwr = v * i
                 wh_km = (pwr / (cur_tas * 3.6)) if cur_tas > 2.0 else 0.0
 
-                raw_records.append({
+                record = {
                     'time': round(t_s, 2),
                     'mode': cur_mode,
                     'roll': round(cur_roll, 1),
@@ -439,8 +445,15 @@ def parse_flight_telemetry(file_path, target_samples=6000):
                     'wind_dir': round(w_dir, 0),
                     'vwn': round(cur_vwn, 2),
                     'vwe': round(cur_vwe, 2),
-                    'servos': cur_servos[:]
-                })
+                    'servos': cur_servos[:],
+                    'rcin': cur_rcin[:]
+                }
+                for ch_num, s_val in enumerate(cur_servos, start=1):
+                    record[f'rcou_c{ch_num}'] = s_val
+                    record[f'c{ch_num}'] = s_val
+                for ch_num, r_val in enumerate(cur_rcin, start=1):
+                    record[f'rcin_c{ch_num}'] = r_val
+                raw_records.append(record)
 
     mlog.close()
 

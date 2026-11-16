@@ -2239,8 +2239,73 @@
             'ATT.Roll': 'roll',
             'ATT.Pitch': 'pitch',
             'ATT.Yaw': 'yaw',
-            'TECS.spdem': 'spdem'
+            'TECS.spdem': 'spdem',
+            // RCOU Servo Output Channels (1 - 16)
+            'RCOU.C1': 'c1', 'RCOU.C2': 'c2', 'RCOU.C3': 'c3', 'RCOU.C4': 'c4',
+            'RCOU.C5': 'c5', 'RCOU.C6': 'c6', 'RCOU.C7': 'c7', 'RCOU.C8': 'c8',
+            'RCOU.C9': 'c9', 'RCOU.C10': 'c10', 'RCOU.C11': 'c11', 'RCOU.C12': 'c12',
+            'RCOU.C13': 'c13', 'RCOU.C14': 'c14', 'RCOU.C15': 'c15', 'RCOU.C16': 'c16',
+            // RCIN Input Channels (1 - 16)
+            'RCIN.C1': 'rcin_c1', 'RCIN.C2': 'rcin_c2', 'RCIN.C3': 'rcin_c3', 'RCIN.C4': 'rcin_c4',
+            'RCIN.C5': 'rcin_c5', 'RCIN.C6': 'rcin_c6', 'RCIN.C7': 'rcin_c7', 'RCIN.C8': 'rcin_c8',
+            'RCIN.C9': 'rcin_c9', 'RCIN.C10': 'rcin_c10', 'RCIN.C11': 'rcin_c11', 'RCIN.C12': 'rcin_c12',
+            'RCIN.C13': 'rcin_c13', 'RCIN.C14': 'rcin_c14', 'RCIN.C15': 'rcin_c15', 'RCIN.C16': 'rcin_c16'
         };
+
+        function getTelemetryFieldValue(r, fieldName) {
+            if (!r || !fieldName) return null;
+
+            // 1. Check direct field alias map
+            const alias = FIELD_ALIAS_MAP[fieldName];
+            if (alias && r[alias] !== undefined && r[alias] !== null) {
+                return r[alias];
+            }
+
+            // 2. Direct exact property match on record
+            if (r[fieldName] !== undefined && r[fieldName] !== null) {
+                return r[fieldName];
+            }
+
+            // 3. RCOU regex match (e.g. RCOU.C1 .. RCOU.C16)
+            const rcouMatch = fieldName.match(/^RCOU\.C(\d+)$/i);
+            if (rcouMatch) {
+                const ch = parseInt(rcouMatch[1], 10);
+                if (r[`rcou_c${ch}`] !== undefined && r[`rcou_c${ch}`] !== null) return r[`rcou_c${ch}`];
+                if (r[`c${ch}`] !== undefined && r[`c${ch}`] !== null) return r[`c${ch}`];
+                if (Array.isArray(r.servos) && ch >= 1 && ch <= r.servos.length) {
+                    return r.servos[ch - 1];
+                }
+            }
+
+            // 4. RCIN regex match (e.g. RCIN.C1 .. RCIN.C16)
+            const rcinMatch = fieldName.match(/^RCIN\.C(\d+)$/i);
+            if (rcinMatch) {
+                const ch = parseInt(rcinMatch[1], 10);
+                if (r[`rcin_c${ch}`] !== undefined && r[`rcin_c${ch}`] !== null) return r[`rcin_c${ch}`];
+                if (Array.isArray(r.rcin) && ch >= 1 && ch <= r.rcin.length) {
+                    return r.rcin[ch - 1];
+                }
+            }
+
+            // 5. Short channel match (e.g. c1 .. c16)
+            const cMatch = fieldName.match(/^c(\d+)$/i);
+            if (cMatch) {
+                const ch = parseInt(cMatch[1], 10);
+                if (r[`c${ch}`] !== undefined && r[`c${ch}`] !== null) return r[`c${ch}`];
+                if (Array.isArray(r.servos) && ch >= 1 && ch <= r.servos.length) {
+                    return r.servos[ch - 1];
+                }
+            }
+
+            // 6. Dot notation fallback (e.g. BARO.Press -> press)
+            const parts = fieldName.split('.');
+            const col = (parts.length > 1 ? parts[1] : parts[0]).toLowerCase();
+            if (r[col] !== undefined && r[col] !== null) {
+                return r[col];
+            }
+
+            return null;
+        }
 
         const FLIGHT_MODE_COLORS = {
             'MANUAL': '#ef4444',
@@ -3520,16 +3585,7 @@
                             console.warn("Ribbon eval error for expr:", f.expr, err);
                         }
                     } else {
-                        let key = FIELD_ALIAS_MAP[f.name];
-                        if (!key) {
-                            const parts = f.name.split('.');
-                            const col = (parts.length > 1 ? parts[1] : parts[0]).toLowerCase();
-                            if (dataSlice[0] && dataSlice[0][col] !== undefined) key = col;
-                            else if (dataSlice[0] && dataSlice[0][f.name] !== undefined) key = f.name;
-                        }
-                        if (key) {
-                            vals = dataSlice.map(r => r[key]).filter(v => v !== null && v !== undefined && !isNaN(v));
-                        }
+                        vals = dataSlice.map(r => getTelemetryFieldValue(r, f.name)).filter(v => v !== null && v !== undefined && !isNaN(v) && isFinite(v));
                     }
 
                     if (vals.length > 0) {
@@ -3574,18 +3630,7 @@
                         val = evalFn(sample);
                     } catch (e) {}
                 } else {
-                    let key = FIELD_ALIAS_MAP[f.name];
-                    if (key && sample[key] !== undefined) {
-                        val = sample[key];
-                    } else {
-                        const parts = f.name.split('.');
-                        const col = (parts.length > 1 ? parts[1] : parts[0]).toLowerCase();
-                        if (sample[col] !== undefined) {
-                            val = sample[col];
-                        } else if (sample[f.name] !== undefined) {
-                            val = sample[f.name];
-                        }
-                    }
+                    val = getTelemetryFieldValue(sample, f.name);
                 }
                 const valStr = (val !== null && typeof val === 'number') ? val.toFixed(2) : '--';
                 const chipVal = document.getElementById(`chip-val-${idSafe}`);
@@ -3695,22 +3740,10 @@
                         yData = tele.map(() => null);
                     }
                 } else {
-                    let key = FIELD_ALIAS_MAP[f.name];
-                    if (!key) {
-                        const parts = f.name.split('.');
-                        const col = (parts.length > 1 ? parts[1] : parts[0]).toLowerCase();
-                        if (tele[0] && tele[0][col] !== undefined) {
-                            key = col;
-                        } else if (tele[0] && tele[0][f.name] !== undefined) {
-                            key = f.name;
-                        }
-                    }
-
-                    if (key && tele[0][key] !== undefined) {
-                        yData = tele.map(r => r[key]);
-                    } else {
-                        yData = tele.map(r => (r[f.name] !== undefined ? r[f.name] : (r.tas || 0)));
-                    }
+                    yData = tele.map(r => {
+                        const v = getTelemetryFieldValue(r, f.name);
+                        return (v !== null && v !== undefined && !isNaN(v) && isFinite(v)) ? v : null;
+                    });
                 }
 
                 if (f.axis === 1) {
@@ -3898,15 +3931,26 @@
                 interpAlt = p0.alt;
             }
 
-            // Interpolate 8-channel servo outputs / motor PWMs
+            // Interpolate servo outputs / motor PWMs (up to 16 channels)
             let interpServos = [1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000];
-            if (p0.servos && p1.servos && p0.servos.length >= 8 && p1.servos.length >= 8) {
+            if (p0.servos && p1.servos && p0.servos.length > 0 && p1.servos.length > 0) {
                 interpServos = p0.servos.map((s0, idx) => {
                     const s1 = p1.servos[idx] !== undefined ? p1.servos[idx] : s0;
                     return Math.round(s0 + (s1 - s0) * alpha);
                 });
             } else if (p0.servos) {
                 interpServos = p0.servos;
+            }
+
+            // Interpolate RC inputs (up to 16 channels)
+            let interpRcin = [1500, 1500, 1500, 1500, 1500, 1500, 1500, 1500];
+            if (p0.rcin && p1.rcin && p0.rcin.length > 0 && p1.rcin.length > 0) {
+                interpRcin = p0.rcin.map((r0, idx) => {
+                    const r1 = p1.rcin[idx] !== undefined ? p1.rcin[idx] : r0;
+                    return Math.round(r0 + (r1 - r0) * alpha);
+                });
+            } else if (p0.rcin) {
+                interpRcin = p0.rcin;
             }
 
             const p0RelAlt = (typeof p0.rel_alt === 'number') ? p0.rel_alt : ((p0.alt || 0) - (currentFlightData?.metadata?.field_elevation || 0));
@@ -3932,7 +3976,7 @@
             const interpQnh = (p0.qnh_hpa || 1013.25) + ((p1.qnh_hpa || p0.qnh_hpa || 1013.25) - (p0.qnh_hpa || 1013.25)) * alpha;
             const interpPress = (p0.press_hpa || 1013.25) + ((p1.press_hpa || p0.press_hpa || 1013.25) - (p0.press_hpa || 1013.25)) * alpha;
 
-            return {
+            const res = {
                 time: timeSec,
                 lat: interpLat,
                 lng: interpLng,
@@ -3964,8 +4008,18 @@
                 wind_spd: (p0.wind_spd || 0) + ((p1.wind_spd || 0) - (p0.wind_spd || 0)) * alpha,
                 wind_dir: (p0.wind_dir || 0) + ((p1.wind_dir || 0) - (p0.wind_dir || 0)) * alpha,
                 mode: alpha < 0.5 ? p0.mode : p1.mode,
-                servos: interpServos
+                servos: interpServos,
+                rcin: interpRcin
             };
+
+            for (let i = 0; i < interpServos.length; i++) {
+                res[`c${i + 1}`] = interpServos[i];
+                res[`rcou_c${i + 1}`] = interpServos[i];
+            }
+            for (let i = 0; i < interpRcin.length; i++) {
+                res[`rcin_c${i + 1}`] = interpRcin[i];
+            }
+            return res;
         }
 
         // ---------------------------------------------------------------------------
