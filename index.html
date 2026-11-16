@@ -782,182 +782,103 @@
             border-bottom: none !important;
         }
 
-        /* Avionic Telemetry Channel Deck & Toolbar Ribbon */
+        /* UAV Log Viewer Clean Legend Ribbon */
         .plot-channel-ribbon {
-            height: 34px;
-            min-height: 34px;
-            background: var(--av-header-bg);
-            border-bottom: 1px solid var(--av-border);
+            height: 26px;
+            min-height: 26px;
+            background: var(--av-plot-bg);
+            border-bottom: 1px solid var(--av-border-subtle);
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            padding: 0 12px;
-            gap: 10px;
-            overflow: hidden;
-            flex-shrink: 0;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-        }
-
-        .plot-ribbon-chips {
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            justify-content: center;
+            padding: 0 16px;
+            gap: 18px;
             overflow-x: auto;
-            flex: 1;
+            flex-shrink: 0;
+            user-select: none;
             scrollbar-width: none;
         }
-        .plot-ribbon-chips::-webkit-scrollbar {
+        .plot-channel-ribbon::-webkit-scrollbar {
             display: none;
         }
 
-        .ribbon-channel-item {
+        .uav-legend-item {
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            background: var(--av-panel-surface);
-            border: 1px solid var(--av-border);
-            border-radius: 4px;
-            padding: 3px 8px;
+            font-family: 'B612 Mono', Consolas, monospace;
             font-size: 11px;
             white-space: nowrap;
-            transition: all 0.12s ease;
-        }
-        .ribbon-channel-item:hover {
-            background: var(--av-surface-hover);
-            border-color: var(--av-border-strong);
+            color: #94a3b8;
+            cursor: default;
         }
 
-        .ribbon-color-pip {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            flex-shrink: 0;
+        .uav-legend-line {
+            width: 14px;
+            height: 2.5px;
+            border-radius: 2px;
+            display: inline-block;
         }
 
-        .ribbon-name {
-            font-family: 'B612 Mono', monospace;
+        .uav-legend-name {
             font-weight: 700;
+            color: #f1f5f9;
+        }
+
+        .uav-legend-stats {
+            color: #64748b;
             font-size: 10.5px;
-            color: var(--av-text-primary);
-            letter-spacing: 0.3px;
-        }
-
-        .ribbon-axis-badge {
-            font-family: 'B612 Mono', monospace;
-            font-size: 9px;
-            font-weight: 700;
-            color: var(--av-text-muted);
-            background: var(--av-capsule-bg);
-            padding: 1px 4px;
-            border-radius: 2px;
-            border: 1px solid var(--av-border);
-        }
-
-        .ribbon-val {
-            font-family: 'B612 Mono', monospace;
-            font-weight: 700;
-            font-size: 11px;
-            color: var(--av-text-primary);
-            margin: 0 2px;
-            letter-spacing: 0.3px;
-            font-variant-numeric: tabular-nums;
-        }
-
-        .ribbon-unit {
-            font-family: 'B612 Mono', monospace;
-            font-size: 9px;
             font-weight: 500;
-            color: var(--av-text-muted);
         }
 
-        .ribbon-stats {
-            font-family: 'B612 Mono', monospace;
-            font-size: 9px;
-            color: var(--av-text-muted);
-            background: var(--av-capsule-bg);
-            padding: 1px 5px;
-            border-radius: 2px;
-            margin-left: 2px;
-            font-variant-numeric: tabular-nums;
-        }
-
-        .plot-ribbon-actions {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            flex-shrink: 0;
-        }
-
-        .plot-mode-toggle-group {
-            display: inline-flex;
-            align-items: center;
-            background: var(--av-capsule-bg);
-            padding: 2px;
-            border-radius: 4px;
-            border: 1px solid var(--av-border);
-        }
-
-        .plot-action-btn {
-            background: transparent;
-            border: none;
-            color: var(--av-text-secondary);
-            padding: 3px 8px;
-            border-radius: 3px;
-            font-size: 9.5px;
+        .uav-legend-mean {
             font-weight: 700;
+        }
+
+        .uav-range-badge {
             font-family: 'B612 Mono', monospace;
-            letter-spacing: 0.4px;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            transition: all 0.12s ease;
-        }
-        .plot-action-btn:hover {
-            color: var(--av-text-primary);
-            background: var(--av-surface-hover);
-        }
-        .plot-action-btn.active {
-            background: var(--av-btn-bg);
-            border: 1px solid var(--av-border-strong);
-            color: var(--av-text-primary);
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+            font-size: 9.5px;
+            color: var(--av-accent);
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1px 6px;
+            border-radius: 3px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            margin-left: 6px;
         }
 
         #main-plot {
             flex: 1;
             width: 100%;
-            height: calc(100% - 34px);
+            height: calc(100% - 26px);
         }
 
         /* Precision Timeline Plot Laser Cursor */
         #plot-cursor-line {
             position: absolute;
-            top: 34px;
+            top: 26px;
             bottom: 0;
-            width: 1px;
-            background: rgba(255, 255, 255, 0.85);
+            width: 1.5px;
+            background: var(--av-cyan);
             pointer-events: none;
             z-index: 100;
             display: none;
-            box-shadow: 0 0 4px var(--av-accent);
+            box-shadow: 0 0 8px rgba(0, 229, 255, 0.8);
         }
 
         #plot-cursor-badge {
             position: absolute;
-            top: 6px;
-            left: 6px;
+            top: 4px;
+            left: 5px;
             font-family: 'B612 Mono', monospace;
-            font-size: 10px;
+            font-size: 9.5px;
             font-weight: 700;
-            color: var(--av-text-primary);
-            background: var(--av-header-bg);
-            padding: 3px 8px;
+            color: var(--av-cyan);
+            background: rgba(5, 8, 15, 0.95);
+            padding: 2px 6px;
             border-radius: 3px;
-            border: 1px solid var(--av-border-strong);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+            border: 1px solid var(--av-cyan);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
             white-space: nowrap;
-            letter-spacing: 0.4px;
         }
 
         /* Lower Viewports Wrapper */
@@ -1327,161 +1248,7 @@
         }
 
     
-        /* Aeronautical Selected Region Analytics Deck */
-        .plot-region-deck {
-            background: var(--av-panel-surface);
-            border-bottom: 1px solid var(--av-border-strong);
-            padding: 6px 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-            z-index: 20;
-            flex-shrink: 0;
-            animation: fadeIn 0.15s ease-out;
-        }
-
-        .region-deck-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-family: 'B612 Mono', monospace;
-            font-size: 10px;
-            color: var(--av-text-secondary);
-        }
-
-        .region-deck-title-group {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        .region-badge-pill {
-            background: var(--av-accent);
-            color: #ffffff;
-            font-weight: 700;
-            font-size: 9px;
-            padding: 2px 6px;
-            border-radius: 3px;
-            letter-spacing: 0.5px;
-        }
-
-        .region-meta-text {
-            color: var(--av-text-primary);
-            font-weight: 700;
-        }
-
-        .region-meta-mode {
-            color: #30d158;
-            font-weight: 700;
-        }
-
-        .region-meta-sep {
-            color: var(--av-border-strong);
-        }
-
-        .region-close-btn {
-            background: var(--av-btn-bg);
-            border: 1px solid var(--av-border);
-            color: var(--av-text-secondary);
-            font-family: 'B612 Mono', monospace;
-            font-size: 9.5px;
-            font-weight: 700;
-            padding: 2px 8px;
-            border-radius: 3px;
-            cursor: pointer;
-            transition: all 0.12s ease;
-        }
-        .region-close-btn:hover {
-            background: var(--av-surface-hover);
-            color: #ff453a;
-            border-color: #ff453a;
-        }
-
-        .region-deck-stats-row {
-            display: flex;
-            align-items: stretch;
-            gap: 8px;
-            overflow-x: auto;
-            padding-bottom: 2px;
-            scrollbar-width: thin;
-        }
-
-        .region-stat-card {
-            background: var(--av-capsule-bg);
-            border: 1px solid var(--av-border);
-            border-radius: 4px;
-            padding: 5px 9px;
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-            min-width: 140px;
-            flex: 1;
-            transition: all 0.12s ease;
-        }
-        .region-stat-card:hover {
-            border-color: var(--av-border-strong);
-            background: var(--av-surface-hover);
-        }
-
-        .region-stat-card-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .region-stat-name {
-            font-family: 'B612 Mono', monospace;
-            font-size: 10px;
-            font-weight: 700;
-            color: var(--av-text-secondary);
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .region-stat-avg-row {
-            display: flex;
-            align-items: baseline;
-            gap: 4px;
-            margin: 1px 0;
-        }
-
-        .region-stat-avg-label {
-            font-family: 'B612 Mono', monospace;
-            font-size: 8.5px;
-            font-weight: 700;
-            color: var(--av-text-muted);
-            letter-spacing: 0.4px;
-        }
-
-        .region-stat-avg-val {
-            font-family: 'B612 Mono', monospace;
-            font-size: 13px;
-            font-weight: 700;
-            color: var(--av-text-primary);
-            font-variant-numeric: tabular-nums;
-        }
-
-        .region-stat-unit {
-            font-family: 'B612 Mono', monospace;
-            font-size: 9px;
-            font-weight: 500;
-            color: var(--av-text-muted);
-        }
-
-        .region-stat-envelope {
-            font-family: 'B612 Mono', monospace;
-            font-size: 8.5px;
-            color: var(--av-text-muted);
-            display: flex;
-            justify-content: space-between;
-            border-top: 1px solid var(--av-border-subtle);
-            padding-top: 2px;
-            margin-top: 1px;
-            font-variant-numeric: tabular-nums;
-        }
+        
 
     </style>
     <script>
@@ -1657,49 +1424,14 @@
             <!-- Top Pane: Interactive Multi-Series Plot (Collapsed until plotting starts) -->
                         <!-- Top Pane: Multi-Channel Telemetry Oscillograph -->
             <div id="plot-container" class="collapsed">
-                <div id="plot-channel-ribbon" class="plot-channel-ribbon">
-                    <div id="plot-ribbon-chips" class="plot-ribbon-chips"></div>
-                    <div class="plot-ribbon-actions">
-                        <div class="plot-mode-toggle-group" title="Interaction Tool: Zoom vs Box Select">
-                            <button class="plot-action-btn active" id="btn-drag-zoom" onclick="setPlotDragMode('zoom')" title="Drag to Zoom into Region">🔍 ZOOM</button>
-                            <button class="plot-action-btn" id="btn-drag-select" onclick="setPlotDragMode('select')" title="Drag to Select & Average Region">⬚ SELECT</button>
-                        </div>
-                        <div class="plot-mode-toggle-group" title="Flight Mode Demarcation Style">
-                            <button class="plot-action-btn active" id="btn-mode-strip" onclick="setPlotModeDisplay('strip')">STRIP</button>
-                            <button class="plot-action-btn" id="btn-mode-tint" onclick="setPlotModeDisplay('tint')">TINT</button>
-                            <button class="plot-action-btn" id="btn-mode-off" onclick="setPlotModeDisplay('off')">CLEAN</button>
-                        </div>
-                        <button class="plot-action-btn" onclick="resetPlotZoom()" title="Reset Zoom / Autoscale (or Double-Click)">
-                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
-                            <span>AUTOSCALE</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Selected Region Analytics Deck -->
-                <div id="plot-region-deck" class="plot-region-deck" style="display: none;">
-                    <div class="region-deck-header">
-                        <div class="region-deck-title-group">
-                            <span class="region-badge-pill">SELECTED REGION STATS</span>
-                            <span id="region-time-span" class="region-meta-text">MET 00:00.0 → 00:00.0 (ΔT: 0.0s)</span>
-                            <span class="region-meta-sep">|</span>
-                            <span id="region-mode-tag" class="region-meta-mode">MODE: AUTO (100%)</span>
-                            <span class="region-meta-sep">|</span>
-                            <span id="region-pts-count" class="region-meta-text">0 samples</span>
-                        </div>
-                        <button class="region-close-btn" onclick="clearSelectedRegion()" title="Clear Region & Reset Selection">
-                            <span>✕ RESET RANGE</span>
-                        </button>
-                    </div>
-                    <div id="region-stats-cards" class="region-deck-stats-row"></div>
-                </div>
+                <div id="plot-channel-ribbon" class="plot-channel-ribbon"></div>
                 <div id="main-plot"></div>
                 <div id="plot-cursor-line">
                     <div id="plot-cursor-badge">00:00.0</div>
                 </div>
             </div>
 
-            <div id="lower-viewports-wrapper" class="fullscreen" style="flex: 1; position: relative; width: 100%; height: 100%; min-height: 0;">
+            <div id="lower-viewports-wrapper"  <div id="lower-viewports-wrapper" class="fullscreen" style="flex: 1; position: relative; width: 100%; height: 100%; min-height: 0;">
                 <!-- 3D Flight Visualizer View (3D Terrain + PFD Horizon + NAV Compass + Atmosphere Panel) -->
                 <div id="sitl-pane" style="width: 100%; height: 100%; position: absolute; top: 0; left: 0; right: 0; bottom: 0;">
                     <iframe id="sitl-viewer-frame" src="sharkee_hud.html?v=20261114_REV8_APPLE_GREEN" style="width: 100%; height: 100%; border: none; display: block;" onload="onSitlIframeLoaded()"></iframe>
@@ -2704,90 +2436,77 @@
             updateChannelReadouts(currentTimeCursor);
         }
 
-        function getFieldUnit(fieldName) {
-            if (!fieldName) return '';
-            const fn = fieldName.toLowerCase();
-            if (fn.includes('volt')) return 'V';
-            if (fn.includes('curr')) return 'A';
-            if (fn.includes('power') || fn.includes('watt')) return 'W';
-            if (fn.includes('speed') || fn.includes('spd') || fn.includes('tas') || fn.includes('gs') || fn.includes('crt')) return 'm/s';
-            if (fn.includes('press')) return 'hPa';
-            if (fn.includes('temp')) return '°C';
-            if (fn.includes('density')) return 'kg/m³';
-            if (fn.includes('alt')) return 'm';
-            if (fn.includes('roll') || fn.includes('pitch') || fn.includes('yaw') || fn.includes('aoa')) return '°';
-            if (fn.includes('tho') || fn.includes('pct')) return '%';
-            if (fn.includes('mah')) return 'mAh';
-            return '';
-        }
-
-        let plotModeDisplay = 'strip'; // 'strip' | 'tint' | 'off'
-
-        function setPlotModeDisplay(mode) {
-            plotModeDisplay = mode;
-            ['btn-mode-strip', 'btn-mode-tint', 'btn-mode-off'].forEach(id => {
-                const btn = document.getElementById(id);
-                if (btn) btn.classList.remove('active');
-            });
-            const activeBtn = document.getElementById(`btn-mode-${mode}`);
-            if (activeBtn) activeBtn.classList.add('active');
-            updatePlot();
-        }
+        let currentVisibleRange = null; // null = full flight, [t0, t1] = zoomed/selected region
 
         function resetPlotZoom() {
+            currentVisibleRange = null;
             Plotly.relayout('main-plot', {
                 'xaxis.autorange': true,
                 'yaxis.autorange': true,
                 'yaxis2.autorange': true
             });
+            updateChannelRibbon();
         }
 
         function updateChannelRibbon() {
-            const ribbonChips = document.getElementById('plot-ribbon-chips');
-            if (!ribbonChips) return;
-            ribbonChips.innerHTML = '';
+            const ribbon = document.getElementById('plot-channel-ribbon');
+            if (!ribbon) return;
+            ribbon.innerHTML = '';
             if (activeFields.length === 0) {
-                ribbonChips.innerHTML = '<span style="font-family:\'B612 Mono\', monospace; font-size:10px; color:var(--av-text-muted); letter-spacing:0.5px;">NO ACTIVE TELEMETRY CHANNELS PLOTTED</span>';
+                ribbon.innerHTML = '<span style="font-family:\'B612 Mono\', monospace; font-size:10px; color:#475569; letter-spacing:0.5px;">NO ACTIVE TELEMETRY CHANNELS PLOTTED</span>';
                 return;
             }
 
             const tele = currentFlightData && currentFlightData.telemetry ? currentFlightData.telemetry : [];
+            let dataSlice = tele;
+            let isZoomed = false;
+
+            if (currentVisibleRange && tele.length > 0) {
+                const [t0, t1] = currentVisibleRange;
+                const filtered = tele.filter(r => r.time >= t0 && r.time <= t1);
+                if (filtered.length > 0) {
+                    dataSlice = filtered;
+                    isZoomed = true;
+                }
+            }
 
             activeFields.forEach(f => {
-                const idSafe = f.name.replace(/[^a-zA-Z0-9]/g, '_');
-                let minStr = '--', maxStr = '--', avgStr = '--';
-                if (tele.length > 0) {
+                let minStr = '--', maxStr = '--', meanStr = '--';
+                if (dataSlice.length > 0) {
                     let key = FIELD_ALIAS_MAP[f.name];
                     if (!key) {
                         const parts = f.name.split('.');
                         const col = (parts.length > 1 ? parts[1] : parts[0]).toLowerCase();
-                        if (tele[0] && tele[0][col] !== undefined) key = col;
-                        else if (tele[0] && tele[0][f.name] !== undefined) key = f.name;
+                        if (dataSlice[0] && dataSlice[0][col] !== undefined) key = col;
+                        else if (dataSlice[0] && dataSlice[0][f.name] !== undefined) key = f.name;
                     }
                     if (key) {
-                        const vals = tele.map(r => r[key]).filter(v => v !== null && !isNaN(v));
+                        const vals = dataSlice.map(r => r[key]).filter(v => v !== null && v !== undefined && !isNaN(v));
                         if (vals.length > 0) {
                             minStr = Math.min(...vals).toFixed(1);
                             maxStr = Math.max(...vals).toFixed(1);
                             const sum = vals.reduce((a, b) => a + b, 0);
-                            avgStr = (sum / vals.length).toFixed(1);
+                            meanStr = (sum / vals.length).toFixed(1);
                         }
                     }
                 }
 
-                const unit = getFieldUnit(f.name);
                 const item = document.createElement('div');
-                item.className = 'ribbon-channel-item';
+                item.className = 'uav-legend-item';
                 item.innerHTML = `
-                    <span class="ribbon-color-pip" style="background:${f.color}; box-shadow:0 0 6px ${f.color}88;"></span>
-                    <span class="ribbon-name">${f.name}</span>
-                    <span class="ribbon-axis-badge">Y${f.axis + 1}</span>
-                    <span class="ribbon-val" id="ribbon-val-${idSafe}">--</span>
-                    ${unit ? `<span class="ribbon-unit">${unit}</span>` : ''}
-                    <span class="ribbon-stats" title="Min: ${minStr} | Max: ${maxStr} | Avg: ${avgStr}">[${minStr} / ${maxStr}]</span>
+                    <span class="uav-legend-line" style="background:${f.color};"></span>
+                    <span class="uav-legend-name">${f.name}</span>
+                    <span class="uav-legend-stats">[Min:${minStr} Max:${maxStr} <span class="uav-legend-mean" style="color:${isZoomed ? '#ffffff' : '#cbd5e1'}; font-weight:700;">Mean:${meanStr}</span>]</span>
                 `;
-                ribbonChips.appendChild(item);
+                ribbon.appendChild(item);
             });
+
+            if (isZoomed) {
+                const rangeBadge = document.createElement('span');
+                rangeBadge.className = 'uav-range-badge';
+                rangeBadge.textContent = `Region: ${formatFlightClock(currentVisibleRange[0])}–${formatFlightClock(currentVisibleRange[1])}`;
+                ribbon.appendChild(rangeBadge);
+            }
         }
 
         function updateChannelReadouts(timeSec) {
@@ -2813,13 +2532,12 @@
                 const valStr = (val !== null && typeof val === 'number') ? val.toFixed(2) : '--';
                 const chipVal = document.getElementById(`chip-val-${idSafe}`);
                 if (chipVal) chipVal.textContent = valStr;
-                const ribbonVal = document.getElementById(`ribbon-val-${idSafe}`);
-                if (ribbonVal) ribbonVal.textContent = valStr;
             });
         }
 
         function applyPreset(presetKey) {
             activeFields = [];
+            currentVisibleRange = null;
             if (!presetKey) {
                 renderActiveFieldChips();
                 setPlotVisibility(false);
@@ -2864,262 +2582,16 @@
             updatePlot();
         }
 
-        
-        let plotDragMode = 'zoom';
-        let currentSelectedRegion = null;
-
-        function setPlotDragMode(mode) {
-            plotDragMode = mode;
-            const btnZoom = document.getElementById('btn-drag-zoom');
-            const btnSelect = document.getElementById('btn-drag-select');
-            if (btnZoom) btnZoom.classList.toggle('active', mode === 'zoom');
-            if (btnSelect) btnSelect.classList.toggle('active', mode === 'select');
-            Plotly.relayout('main-plot', { dragmode: mode });
-        }
-
-        function computeRegionStats(tStart, tEnd) {
-            if (!currentFlightData || !currentFlightData.telemetry || currentFlightData.telemetry.length === 0) return null;
-            const tele = currentFlightData.telemetry;
-
-            const t0 = Math.min(tStart, tEnd);
-            const t1 = Math.max(tStart, tEnd);
-            const dt = t1 - t0;
-            if (dt <= 0.05) return null;
-
-            const samples = tele.filter(r => r.time >= t0 && r.time <= t1);
-            if (samples.length === 0) return null;
-
-            // Dominant mode determination
-            const modeCounts = {};
-            samples.forEach(s => {
-                if (s.mode) modeCounts[s.mode] = (modeCounts[s.mode] || 0) + 1;
-            });
-            let dominantMode = 'UNKNOWN';
-            let maxModeCount = 0;
-            for (const m in modeCounts) {
-                if (modeCounts[m] > maxModeCount) {
-                    maxModeCount = modeCounts[m];
-                    dominantMode = m;
-                }
-            }
-            const modePct = Math.round((maxModeCount / samples.length) * 100);
-
-            const channelStats = [];
-
-            activeFields.forEach(f => {
-                let key = FIELD_ALIAS_MAP[f.name];
-                if (!key) {
-                    const parts = f.name.split('.');
-                    const col = (parts.length > 1 ? parts[1] : parts[0]).toLowerCase();
-                    if (samples[0] && samples[0][col] !== undefined) key = col;
-                    else if (samples[0] && samples[0][f.name] !== undefined) key = f.name;
-                }
-
-                let vals = [];
-                let times = [];
-                if (key && samples[0][key] !== undefined) {
-                    samples.forEach(r => {
-                        const v = r[key];
-                        if (v !== null && v !== undefined && !isNaN(v)) {
-                            vals.push(v);
-                            times.push(r.time);
-                        }
-                    });
-                } else {
-                    samples.forEach(r => {
-                        const v = r[f.name] !== undefined ? r[f.name] : r.tas;
-                        if (v !== null && v !== undefined && !isNaN(v)) {
-                            vals.push(v);
-                            times.push(r.time);
-                        }
-                    });
-                }
-
-                if (vals.length === 0) return;
-
-                // Time-weighted trapezoidal integral average
-                let weightedSum = 0;
-                let totalTimeDelta = 0;
-                for (let i = 0; i < vals.length - 1; i++) {
-                    const dtStep = times[i + 1] - times[i];
-                    if (dtStep > 0 && dtStep < 5) {
-                        weightedSum += 0.5 * (vals[i] + vals[i + 1]) * dtStep;
-                        totalTimeDelta += dtStep;
-                    }
-                }
-
-                let avgVal;
-                if (totalTimeDelta > 0) {
-                    avgVal = weightedSum / totalTimeDelta;
-                } else {
-                    avgVal = vals.reduce((a, b) => a + b, 0) / vals.length;
-                }
-
-                const minVal = Math.min(...vals);
-                const maxVal = Math.max(...vals);
-
-                // Standard deviation
-                const variance = vals.reduce((sum, v) => sum + Math.pow(v - avgVal, 2), 0) / vals.length;
-                const stdDev = Math.sqrt(variance);
-
-                const unit = getFieldUnit(f.name);
-
-                channelStats.push({
-                    name: f.name,
-                    color: f.color,
-                    axis: f.axis,
-                    unit: unit,
-                    avg: avgVal,
-                    min: minVal,
-                    max: maxVal,
-                    stdDev: stdDev,
-                    delta: maxVal - minVal,
-                    count: vals.length
-                });
-            });
-
-            return {
-                tStart: t0,
-                tEnd: t1,
-                duration: dt,
-                sampleCount: samples.length,
-                rateHz: (samples.length / dt).toFixed(1),
-                dominantMode: dominantMode,
-                dominantModePct: modePct,
-                channels: channelStats
-            };
-        }
-
-        function applySelectedRegion(t0, t1, isBoxSelect = false) {
-            const stats = computeRegionStats(t0, t1);
-            if (!stats) return;
-
-            currentSelectedRegion = stats;
-            window.currentSelectedRegion = stats;
-
-            const deck = document.getElementById('plot-region-deck');
-            const timeSpan = document.getElementById('region-time-span');
-            const modeTag = document.getElementById('region-mode-tag');
-            const ptsCount = document.getElementById('region-pts-count');
-            const cardsContainer = document.getElementById('region-stats-cards');
-
-            if (timeSpan) {
-                timeSpan.textContent = `MET ${formatFlightClock(stats.tStart)} → ${formatFlightClock(stats.tEnd)} (ΔT: ${stats.duration.toFixed(1)}s)`;
-            }
-            if (modeTag) {
-                modeTag.textContent = `MODE: ${stats.dominantMode} (${stats.dominantModePct}%)`;
-                const c = FLIGHT_MODE_COLORS[stats.dominantMode] || '#30d158';
-                modeTag.style.color = c;
-            }
-            if (ptsCount) {
-                ptsCount.textContent = `${stats.sampleCount} pts @ ${stats.rateHz} Hz`;
-            }
-
-            if (cardsContainer) {
-                cardsContainer.innerHTML = '';
-                stats.channels.forEach(ch => {
-                    const card = document.createElement('div');
-                    card.className = 'region-stat-card';
-                    const unitStr = ch.unit ? ` ${ch.unit}` : '';
-                    card.innerHTML = `
-                        <div class="region-stat-card-header">
-                            <span class="region-stat-name">
-                                <span class="ribbon-color-pip" style="background:${ch.color};"></span>
-                                ${ch.name}
-                            </span>
-                            <span class="ribbon-axis-badge">Y${ch.axis + 1}</span>
-                        </div>
-                        <div class="region-stat-avg-row">
-                            <span class="region-stat-avg-label">AVERAGE:</span>
-                            <span class="region-stat-avg-val" style="color:${ch.color};">${ch.avg.toFixed(2)}</span>
-                            <span class="region-stat-unit">${ch.unit}</span>
-                        </div>
-                        <div class="region-stat-envelope">
-                            <span>MIN: ${ch.min.toFixed(1)}${unitStr}</span>
-                            <span>MAX: ${ch.max.toFixed(1)}${unitStr}</span>
-                            <span>σ: ±${ch.stdDev.toFixed(2)}</span>
-                        </div>
-                    `;
-                    cardsContainer.appendChild(card);
-                });
-            }
-
-            if (deck) {
-                deck.style.display = 'flex';
-            }
-
-            // Update ribbon channel chips to reflect region averages
-            updateChannelRibbonWithRegion(stats);
-
-            // If box select, draw temporary highlight rectangle on plot
-            if (isBoxSelect) {
-                const highlightShape = {
-                    type: 'rect',
-                    xref: 'x',
-                    yref: 'paper',
-                    x0: stats.tStart,
-                    x1: stats.tEnd,
-                    y0: 0,
-                    y1: 1.0,
-                    fillcolor: 'rgba(255, 255, 255, 0.08)',
-                    line: {
-                        color: 'rgba(255, 255, 255, 0.4)',
-                        width: 1,
-                        dash: 'dot'
-                    }
-                };
-                Plotly.relayout('main-plot', {
-                    shapes: [...basePlotShapes, highlightShape]
-                });
-            }
-        }
-
-        function updateChannelRibbonWithRegion(stats) {
-            if (!stats) return;
-            stats.channels.forEach(ch => {
-                const idSafe = ch.name.replace(/[^a-zA-Z0-9]/g, '_');
-                const chip = document.getElementById(`ribbon-val-${idSafe}`);
-                if (chip) {
-                    // Update display to indicate region average
-                    const statBadge = chip.parentElement.querySelector('.ribbon-stats');
-                    if (statBadge) {
-                        statBadge.innerHTML = `<b>AVG: ${ch.avg.toFixed(2)}${ch.unit ? ' ' + ch.unit : ''}</b> [${ch.min.toFixed(1)} / ${ch.max.toFixed(1)}]`;
-                        statBadge.style.color = 'var(--av-text-primary)';
-                        statBadge.style.background = 'var(--av-panel-surface)';
-                        statBadge.style.border = '1px solid var(--av-border-strong)';
-                    }
-                }
-            });
-        }
-
-        function clearSelectedRegion() {
-            currentSelectedRegion = null;
-            window.currentSelectedRegion = null;
-            const deck = document.getElementById('plot-region-deck');
-            if (deck) deck.style.display = 'none';
-            resetPlotZoom();
-            updateChannelRibbon();
-            updateChannelReadouts(currentTimeCursor);
-        }
-
-        window.applySelectedRegion = applySelectedRegion;
-        window.clearSelectedRegion = clearSelectedRegion;
-        window.computeRegionStats = computeRegionStats;
-
         function setupPlotlyEventListeners() {
             const plotEl = document.getElementById('main-plot');
             if (!plotEl || plotEl._hasTelemetryListeners) return;
             plotEl._hasTelemetryListeners = true;
 
-            // Relayout event (zoom or range change)
             plotEl.on('plotly_relayout', function(eventData) {
                 if (!eventData) return;
                 if (eventData['xaxis.autorange']) {
-                    currentSelectedRegion = null;
-                    const deck = document.getElementById('plot-region-deck');
-                    if (deck) deck.style.display = 'none';
+                    currentVisibleRange = null;
                     updateChannelRibbon();
-                    updateChannelReadouts(currentTimeCursor);
                     return;
                 }
                 let t0 = null, t1 = null;
@@ -3131,22 +2603,14 @@
                     t1 = parseFloat(eventData['xaxis.range'][1]);
                 }
                 if (t0 !== null && t1 !== null) {
-                    applySelectedRegion(t0, t1, false);
+                    currentVisibleRange = [Math.min(t0, t1), Math.max(t0, t1)];
+                    updateChannelRibbon();
                 }
             });
 
-            // Selected event (box select or lasso)
-            plotEl.on('plotly_selected', function(eventData) {
-                if (eventData && eventData.range && eventData.range.x) {
-                    const t0 = parseFloat(eventData.range.x[0]);
-                    const t1 = parseFloat(eventData.range.x[1]);
-                    applySelectedRegion(t0, t1, true);
-                }
-            });
-
-            // Double click to reset
             plotEl.on('plotly_doubleclick', function() {
-                clearSelectedRegion();
+                currentVisibleRange = null;
+                updateChannelRibbon();
             });
         }
 
@@ -3178,194 +2642,85 @@
                     yData = tele.map(r => (r[f.name] !== undefined ? r[f.name] : (r.tas || 0)));
                 }
 
-                const unit = getFieldUnit(f.name);
-                const unitSuffix = unit ? ` (${unit})` : '';
-
                 if (f.axis === 1) {
-                    y2Fields.push(`${f.name}${unitSuffix}`);
+                    y2Fields.push(f.name);
                 } else {
-                    y1Fields.push(`${f.name}${unitSuffix}`);
+                    y1Fields.push(f.name);
                 }
 
                 traces.push({
                     x: timeSeries,
                     y: yData,
-                    name: `${f.name}${unitSuffix}`,
+                    name: f.name,
                     yaxis: f.axis === 1 ? 'y2' : 'y',
                     line: {
                         color: f.color,
-                        width: 2.0,
-                        shape: 'linear'
+                        width: 1.8
                     },
                     hoverinfo: 'x+y+name'
                 });
             });
 
             const shapes = [];
-            const annotations = [];
-
             const modeColors = {
-                'AUTO': '#30d158',
-                'FBWA': '#38bdf8',
-                'FBWB': '#0284c7',
-                'CRUISE': '#bf5af2',
-                'MANUAL': '#ff453a',
-                'TAKEOFF': '#30d158',
-                'RTL': '#ff9f0a'
+                'AUTO': 'rgba(48, 209, 88, 0.12)',
+                'FBWA': 'rgba(56, 189, 248, 0.10)',
+                'FBWB': 'rgba(2, 132, 199, 0.10)',
+                'CRUISE': 'rgba(192, 132, 252, 0.10)',
+                'MANUAL': 'rgba(239, 68, 68, 0.10)',
+                'TAKEOFF': 'rgba(48, 209, 88, 0.12)',
+                'RTL': 'rgba(245, 158, 11, 0.10)'
             };
 
-            if (currentFlightData.mode_segments && currentFlightData.mode_segments.length > 0) {
-                currentFlightData.mode_segments.forEach((seg, i) => {
-                    const solidColor = modeColors[seg.mode] || '#8e8e93';
-
-                    if (plotModeDisplay === 'strip') {
-                        // Top Mode Banner Strip (3.5% height in paper coords)
-                        shapes.push({
-                            type: 'rect',
-                            xref: 'x',
-                            yref: 'paper',
-                            x0: seg.start,
-                            x1: seg.end,
-                            y0: 0.955,
-                            y1: 1.0,
-                            fillcolor: solidColor,
-                            line: { width: 0 }
-                        });
-
-                        // Subtle Mode Demarcation Vertical Line
-                        shapes.push({
-                            type: 'line',
-                            xref: 'x',
-                            yref: 'paper',
-                            x0: seg.start,
-                            x1: seg.start,
-                            y0: 0,
-                            y1: 0.955,
-                            line: {
-                                color: 'rgba(255, 255, 255, 0.12)',
-                                width: 1,
-                                dash: 'dot'
-                            }
-                        });
-
-                        // Centered Mode Annotation on Strip
-                        if (seg.end - seg.start > 25) {
-                            annotations.push({
-                                xref: 'x',
-                                yref: 'paper',
-                                x: (seg.start + seg.end) / 2,
-                                y: 0.978,
-                                text: `<b>${seg.mode}</b>`,
-                                showarrow: false,
-                                font: { family: "'B612 Mono', monospace", size: 9, color: '#ffffff' },
-                                xanchor: 'center',
-                                yanchor: 'middle'
-                            });
-                        }
-                    } else if (plotModeDisplay === 'tint') {
-                        // Ultra-subtle tint (only 4% opacity)
-                        shapes.push({
-                            type: 'rect',
-                            xref: 'x',
-                            yref: 'paper',
-                            x0: seg.start,
-                            x1: seg.end,
-                            y0: 0,
-                            y1: 1.0,
-                            fillcolor: `${solidColor}0d`, // ~5% opacity
-                            line: { width: 0 }
-                        });
-                        shapes.push({
-                            type: 'line',
-                            xref: 'x',
-                            yref: 'paper',
-                            x0: seg.start,
-                            x1: seg.start,
-                            y0: 0,
-                            y1: 1.0,
-                            line: {
-                                color: 'rgba(255, 255, 255, 0.12)',
-                                width: 1,
-                                dash: 'dot'
-                            }
-                        });
-                    } else if (plotModeDisplay === 'off') {
-                        // Clean boundary lines only
-                        shapes.push({
-                            type: 'line',
-                            xref: 'x',
-                            yref: 'paper',
-                            x0: seg.start,
-                            x1: seg.start,
-                            y0: 0,
-                            y1: 1.0,
-                            line: {
-                                color: 'rgba(255, 255, 255, 0.08)',
-                                width: 1,
-                                dash: 'dot'
-                            }
-                        });
-                    }
+            if (currentFlightData.mode_segments) {
+                currentFlightData.mode_segments.forEach(seg => {
+                    const c = modeColors[seg.mode] || 'rgba(148, 163, 184, 0.06)';
+                    shapes.push({
+                        type: 'rect',
+                        xref: 'x',
+                        yref: 'paper',
+                        x0: seg.start,
+                        x1: seg.end,
+                        y0: 0,
+                        y1: 1,
+                        fillcolor: c,
+                        line: { width: 0 }
+                    });
                 });
             }
             basePlotShapes = shapes;
 
-            const y1Title = y1Fields.length > 0 ? y1Fields.join(' · ') : 'Y1 PRIMARY';
-            const y2Title = y2Fields.length > 0 ? y2Fields.join(' · ') : 'Y2 SECONDARY';
-
             const computedStyle = getComputedStyle(document.documentElement);
             const plotBg = computedStyle.getPropertyValue('--av-plot-bg').trim() || '#0f1013';
-            const textSecondary = computedStyle.getPropertyValue('--av-text-secondary').trim() || '#98989d';
-            const textMuted = computedStyle.getPropertyValue('--av-text-muted').trim() || '#636366';
 
             const layout = {
                 paper_bgcolor: plotBg,
                 plot_bgcolor: plotBg,
-                margin: { l: 56, r: 56, t: 28, b: 34 },
-                font: { family: "'B612', -apple-system, sans-serif", size: 10, color: textSecondary },
+                margin: { l: 48, r: 48, t: 8, b: 28 },
+                font: { family: "'B612', -apple-system, sans-serif", size: 10, color: '#64748b' },
                 hovermode: 'x unified',
-                hoverdistance: 40,
-                hoverlabel: {
-                    bgcolor: 'rgba(18, 19, 23, 0.96)',
-                    bordercolor: 'rgba(255, 255, 255, 0.16)',
-                    font: { family: "'B612 Mono', monospace", size: 10.5, color: '#f5f5f7' },
-                    align: 'left'
-                },
+                hoverdistance: 30,
                 showlegend: false,
                 shapes: shapes,
-                annotations: annotations,
                 xaxis: {
-                    title: { text: 'MISSION TIME (SEC)', font: { family: "'B612 Mono', monospace", size: 9.5, color: textMuted } },
-                    gridcolor: 'rgba(255, 255, 255, 0.05)',
-                    zerolinecolor: 'rgba(255, 255, 255, 0.12)',
-                    tickfont: { family: "'B612 Mono', monospace", size: 9.5, color: textSecondary },
-                    showline: true,
-                    linecolor: 'rgba(255, 255, 255, 0.12)',
-                    linewidth: 1,
-                    ticks: 'outside',
-                    tickcolor: 'rgba(255, 255, 255, 0.2)',
+                    title: { text: 'MISSION TIME (SEC)', font: { family: "'B612 Mono', monospace", size: 9.5, color: '#475569' } },
+                    gridcolor: 'rgba(255, 255, 255, 0.04)',
+                    zerolinecolor: 'rgba(255, 255, 255, 0.08)',
+                    tickfont: { family: "'B612 Mono', monospace", size: 9.5, color: '#64748b' },
                     rangeslider: { visible: false }
                 },
                 yaxis: {
-                    title: { text: y1Title, font: { family: "'B612 Mono', monospace", size: 9.5, color: '#38bdf8' } },
-                    gridcolor: 'rgba(255, 255, 255, 0.05)',
-                    zerolinecolor: 'rgba(255, 255, 255, 0.12)',
-                    tickfont: { family: "'B612 Mono', monospace", size: 9.5, color: '#38bdf8' },
-                    showline: true,
-                    linecolor: 'rgba(56, 189, 248, 0.3)',
-                    ticks: 'outside',
-                    tickcolor: 'rgba(56, 189, 248, 0.4)'
+                    title: { text: y1Fields.join(', ') || 'Y1 PRIMARY', font: { family: "'B612 Mono', monospace", size: 9.5, color: '#38bdf8' } },
+                    gridcolor: 'rgba(255, 255, 255, 0.04)',
+                    zerolinecolor: 'rgba(255, 255, 255, 0.08)',
+                    tickfont: { family: "'B612 Mono', monospace", size: 9.5, color: '#38bdf8' }
                 },
                 yaxis2: {
-                    title: { text: y2Title, font: { family: "'B612 Mono', monospace", size: 9.5, color: '#f59e0b' } },
+                    title: { text: y2Fields.join(', ') || 'Y2 SECONDARY', font: { family: "'B612 Mono', monospace", size: 9.5, color: '#f59e0b' } },
                     overlaying: 'y',
                     side: 'right',
                     gridcolor: 'rgba(255, 255, 255, 0.02)',
-                    tickfont: { family: "'B612 Mono', monospace", size: 9.5, color: '#f59e0b' },
-                    showline: true,
-                    linecolor: 'rgba(245, 158, 11, 0.3)',
-                    ticks: 'outside',
-                    tickcolor: 'rgba(245, 158, 11, 0.4)'
+                    tickfont: { family: "'B612 Mono', monospace", size: 9.5, color: '#f59e0b' }
                 }
             };
 
@@ -3658,8 +3013,11 @@
             const topPx = ya._offset;
             const heightPx = ya._length;
 
+            const ribbonEl = document.getElementById('plot-channel-ribbon');
+            const ribbonOffset = ribbonEl ? ribbonEl.offsetHeight : 26;
+
             cursor.style.left = `${xPx}px`;
-            cursor.style.top = `${topPx}px`;
+            cursor.style.top = `${ribbonOffset + topPx}px`;
             cursor.style.height = `${heightPx}px`;
             cursor.style.display = 'block';
 
