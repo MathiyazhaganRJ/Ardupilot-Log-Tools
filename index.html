@@ -5186,6 +5186,100 @@
 
         // --- ARDUPILOT FLIGHT LOG ORGANIZER CLIENT ---
         let currentScannedLogs = [];
+        let inBrowserLogFiles = [];
+
+        function triggerNativeFolderPicker(mode) {
+            const picker = document.getElementById(mode === 'source' ? 'org-native-source-picker' : 'org-native-dest-picker');
+            if (picker) {
+                picker.value = '';
+                picker.click();
+            }
+        }
+
+        function getFilenameTrueDate(filename) {
+            let m = filename.match(/(\d{4})[-_](\d{2})[-_](\d{2})/);
+            if (m && parseInt(m[1]) >= 2022) {
+                return `${m[1]}-${m[2]}-${m[3]}`;
+            }
+            m = filename.match(/(\d{4})(\d{2})(\d{2})/);
+            if (m && parseInt(m[1]) >= 2022) {
+                return `${m[1]}-${m[2]}-${m[3]}`;
+            }
+            return new Date().toISOString().slice(0, 10);
+        }
+
+        function onNativeSourceFolderChosen(input) {
+            if (!input || !input.files || input.files.length === 0) return;
+            const files = Array.from(input.files);
+            const validExts = ['.bin', '.log', '.tlog'];
+            const logFiles = files.filter(f => {
+                const name = f.name.toLowerCase();
+                return validExts.some(ext => name.endsWith(ext));
+            });
+
+            inBrowserLogFiles = logFiles;
+            const firstRel = files[0].webkitRelativePath || files[0].name;
+            const folderName = firstRel.includes('/') ? firstRel.split('/')[0] : (files[0].name || 'Selected Folder');
+
+            const srcInput = document.getElementById('org-source-dir');
+            if (srcInput) {
+                srcInput.value = folderName;
+                localStorage.setItem('org_source_dir', folderName);
+            }
+
+            const statusSummary = document.getElementById('org-scan-summary');
+            let totalBytes = 0;
+            logFiles.forEach(f => totalBytes += f.size);
+            const totalMb = (totalBytes / (1024 * 1024)).toFixed(2);
+
+            if (statusSummary) {
+                statusSummary.innerHTML = `<span style="color: #22c55e; font-weight: 700;">Selected ${logFiles.length} logs (${totalMb} MB) in "${folderName}"</span>`;
+            }
+
+            // Render discovered files in the activity box
+            const activityList = document.getElementById('org-activity-list');
+            if (activityList) {
+                if (logFiles.length === 0) {
+                    activityList.innerHTML = `<div style="color: #64748b; padding: 16px; text-align: center;">No .bin, .log, or .tlog files found in this folder.</div>`;
+                } else {
+                    let html = '';
+                    logFiles.slice(0, 100).forEach(f => {
+                        const mb = (f.size / (1024 * 1024)).toFixed(2);
+                        const dateStr = getFilenameTrueDate(f.name);
+                        html += `
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 4px 6px; border-bottom: 1px solid #1a1c22; font-size: 11px;">
+                                <div style="color: #ffffff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 60%;" title="${f.name}">
+                                    ${f.name}
+                                </div>
+                                <div style="display: flex; gap: 8px; align-items: center;">
+                                    <span style="color: #22c55e;">${dateStr}</span>
+                                    <span style="color: #64748b;">${mb} MB</span>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    if (logFiles.length > 100) {
+                        html += `<div style="color: #64748b; padding: 6px; text-align: center; font-size: 10px;">... and ${logFiles.length - 100} more files</div>`;
+                    }
+                    activityList.innerHTML = html;
+                }
+            }
+        }
+
+        function onNativeDestFolderChosen(input) {
+            if (!input || !input.files || input.files.length === 0) return;
+            const firstRel = input.files[0].webkitRelativePath || input.files[0].name;
+            const folderName = firstRel.includes('/') ? firstRel.split('/')[0] : 'Logs';
+            const destInput = document.getElementById('org-dest-dir');
+            if (destInput) {
+                if (folderName.toLowerCase() === 'logs' || destInput.value.includes('Logs')) {
+                    destInput.value = 'C:\\Users\\KARSHAK_Tamal\\Desktop\\Logs';
+                } else {
+                    destInput.value = `C:\\Users\\KARSHAK_Tamal\\Desktop\\${folderName}`;
+                }
+                localStorage.setItem('org_dest_dir', destInput.value);
+            }
+        }
 
         function openOrganizerModal() {
             const savedSrc = localStorage.getItem('org_source_dir') || '';
@@ -5207,7 +5301,7 @@
             const modal = document.getElementById('organizer-modal');
             if (modal) {
                 modal.style.display = 'flex';
-                if (srcInput && srcInput.value.trim() && currentScannedLogs.length === 0) {
+                if (srcInput && srcInput.value.trim() && currentScannedLogs.length === 0 && inBrowserLogFiles.length === 0) {
                     scanOrganizerSource();
                 }
             }
@@ -5218,47 +5312,8 @@
             if (modal) modal.style.display = 'none';
         }
 
-        async function pickOrganizerFolder(mode) {
-            const btn = document.getElementById(mode === 'source' ? 'org-btn-browse-src' : 'org-btn-browse-dest');
-            const originalText = btn ? btn.textContent : '';
-            if (btn) {
-                btn.disabled = true;
-                btn.textContent = 'Browsing...';
-            }
-
-            try {
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 180000); // 3 minutes timeout
-                const res = await fetch(`/api/select_folder?mode=${mode}`, { signal: controller.signal });
-                clearTimeout(timeoutId);
-                const data = await res.json();
-                if (data.success && data.path) {
-                    if (mode === 'source') {
-                        const srcInput = document.getElementById('org-source-dir');
-                        if (srcInput) {
-                            srcInput.value = data.path;
-                            localStorage.setItem('org_source_dir', data.path);
-                            scanOrganizerSource();
-                        }
-                    } else {
-                        const destInput = document.getElementById('org-dest-dir');
-                        if (destInput) {
-                            destInput.value = data.path;
-                            localStorage.setItem('org_dest_dir', data.path);
-                        }
-                    }
-                }
-            } catch (err) {
-                console.error("Folder picker error:", err);
-            } finally {
-                if (btn) {
-                    btn.disabled = false;
-                    btn.textContent = originalText;
-                }
-            }
-        }
-
         function setOrgSourcePreset(folderPath) {
+            inBrowserLogFiles = [];
             const srcInput = document.getElementById('org-source-dir');
             if (srcInput) {
                 srcInput.value = folderPath;
@@ -5268,6 +5323,12 @@
         }
 
         function setOrgDestPreset(folderPath) {
+            const destInput = document.getElementById('org-dest-dir');
+            if (destInput) {
+                destInput.value = folderPath;
+                localStorage.setItem('org_dest_dir', folderPath);
+            }
+        }
             const destInput = document.getElementById('org-dest-dir');
             if (destInput) {
                 destInput.value = folderPath;
@@ -5381,6 +5442,57 @@
             if (progressBar) progressBar.style.width = '35%';
             if (footerStatus) footerStatus.textContent = 'Processing and organizing telemetry files...';
 
+            if (inBrowserLogFiles && inBrowserLogFiles.length > 0) {
+                let copied = 0;
+                let skipped = 0;
+                let errors = 0;
+                const total = inBrowserLogFiles.length;
+                const filesReport = [];
+
+                for (let i = 0; i < total; i++) {
+                    const file = inBrowserLogFiles[i];
+                    const pct = Math.round(((i + 1) / total) * 100);
+                    if (progressBar) progressBar.style.width = `${pct}%`;
+                    if (footerStatus) footerStatus.textContent = `Archiving ${i + 1}/${total}: ${file.name}...`;
+
+                    try {
+                        const url = `/api/organize_upload?filename=${encodeURIComponent(file.name)}&dest=${encodeURIComponent(destFolder)}&structure=${encodeURIComponent(structure)}`;
+                        const res = await fetch(url, {
+                            method: 'POST',
+                            headers: { 'X-File-Name': file.name },
+                            body: file
+                        });
+                        const itemData = await res.json();
+                        if (itemData.status === 'copied') copied++;
+                        else if (itemData.status === 'skipped') skipped++;
+                        else if (itemData.status === 'error') errors++;
+                        filesReport.push(itemData);
+                    } catch (e) {
+                        errors++;
+                        filesReport.push({ filename: file.name, status: 'error', error: e.message, size_mb: (file.size / (1024*1024)).toFixed(2) });
+                    }
+
+                    document.getElementById('org-cnt-total').textContent = total;
+                    document.getElementById('org-cnt-archived').textContent = copied;
+                    document.getElementById('org-cnt-skipped').textContent = skipped;
+                    document.getElementById('org-cnt-errors').textContent = errors;
+                }
+
+                if (footerStatus) {
+                    footerStatus.innerHTML = `<span style="color: #22c55e; font-weight: 700;">Completed: ${copied} archived, ${skipped} skipped duplicates.</span>`;
+                }
+
+                renderOrganizeExecutionReport(filesReport);
+                if (typeof loadAvailableLogs === 'function') {
+                    loadAvailableLogs(destFolder);
+                }
+                if (startBtn) {
+                    startBtn.disabled = false;
+                    startBtn.textContent = 'START ORGANIZING';
+                }
+                return;
+            }
+
             try {
                 const res = await fetch('/api/organize_logs', {
                     method: 'POST',
@@ -5413,38 +5525,7 @@
                     footerStatus.innerHTML = `<span style="color: #22c55e; font-weight: 700;">Completed: ${data.copied || data.moved} ${actionName}, ${data.skipped} skipped duplicates.</span>`;
                 }
 
-                if (activityList && data.files) {
-                    let html = '';
-                    data.files.forEach(f => {
-                        let badgeColor = '#22c55e';
-                        let badgeText = f.status.toUpperCase();
-                        if (f.status === 'skipped') {
-                            badgeColor = '#eab308';
-                            badgeText = 'SKIPPED';
-                        } else if (f.status === 'error') {
-                            badgeColor = '#ef4444';
-                            badgeText = 'ERROR';
-                        }
-
-                        const escapedDest = (f.dest || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-                        html += `
-                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 5px 6px; border-bottom: 1px solid #1a1c22; font-size: 11px;">
-                                <div style="display: flex; align-items: center; gap: 8px; max-width: 65%; overflow: hidden;">
-                                    <span style="background: ${badgeColor}22; color: ${badgeColor}; border: 1px solid ${badgeColor}55; padding: 1px 5px; border-radius: 3px; font-size: 9px; font-weight: 700;">${badgeText}</span>
-                                    <span style="color: #ffffff; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;" title="${f.dest || f.src}">${f.filename}</span>
-                                </div>
-                                <div style="display: flex; gap: 6px; align-items: center;">
-                                    <span style="color: #64748b; font-size: 10px;">${f.size_mb} MB</span>
-                                    ${f.dest ? `
-                                        <button type="button" class="expr-chip-btn" onclick="openPathInExplorer('${escapedDest}')" title="Highlight in Windows Explorer">Explorer</button>
-                                        <button type="button" class="expr-chip-btn" style="border-color: #22c55e55; color: #22c55e;" onclick="loadOrganizedLogDirectly('${escapedDest}')" title="Open and analyze in Flight Log Analyser">Analyze</button>
-                                    ` : ''}
-                                </div>
-                            </div>
-                        `;
-                    });
-                    activityList.innerHTML = html;
-                }
+                renderOrganizeExecutionReport(data.files);
 
                 if (typeof loadAvailableLogs === 'function') {
                     loadAvailableLogs(destFolder);
@@ -5459,6 +5540,42 @@
                     startBtn.textContent = 'START ORGANIZING';
                 }
             }
+        }
+
+        function renderOrganizeExecutionReport(filesList) {
+            const activityList = document.getElementById('org-activity-list');
+            if (!activityList || !filesList) return;
+            let html = '';
+            filesList.forEach(f => {
+                let badgeColor = '#22c55e';
+                let badgeText = (f.status || 'COPIED').toUpperCase();
+                if (f.status === 'skipped') {
+                    badgeColor = '#eab308';
+                    badgeText = 'SKIPPED';
+                } else if (f.status === 'error') {
+                    badgeColor = '#ef4444';
+                    badgeText = 'ERROR';
+                }
+
+                const escapedDest = (f.dest || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+                html += `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 5px 6px; border-bottom: 1px solid #1a1c22; font-size: 11px;">
+                        <div style="display: flex; align-items: center; gap: 8px; max-width: 65%; overflow: hidden;">
+                            <span style="background: ${badgeColor}22; color: ${badgeColor}; border: 1px solid ${badgeColor}55; padding: 1px 5px; border-radius: 3px; font-size: 9px; font-weight: 700;">${badgeText}</span>
+                            <span style="color: #ffffff; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;" title="${f.dest || f.src || f.filename}">${f.filename}</span>
+                        </div>
+                        <div style="display: flex; gap: 6px; align-items: center;">
+                            <span style="color: #64748b; font-size: 10px;">${f.size_mb || 0} MB</span>
+                            ${f.dest ? `
+                                <button type="button" class="expr-chip-btn" onclick="openPathInExplorer('${escapedDest}')" title="Highlight in Windows Explorer">Explorer</button>
+                                <button type="button" class="expr-chip-btn" style="border-color: #22c55e55; color: #22c55e;" onclick="loadOrganizedLogDirectly('${escapedDest}')" title="Open and analyze in Flight Log Analyser">Analyze</button>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+            activityList.innerHTML = html;
+        }
         }
 
         async function openPathInExplorer(targetPath) {
@@ -5649,7 +5766,8 @@
                 </div>
                 <div style="display: flex; gap: 8px;">
                     <input type="text" id="org-source-dir" class="modal-input" placeholder="e.g. E:\ or C:\Users\KARSHAK_Tamal\Downloads\FlightLogs" style="margin-bottom: 0; flex: 1;">
-                    <button type="button" id="org-btn-browse-src" class="uav-pill-action-btn" onclick="pickOrganizerFolder('source')" style="padding: 6px 12px; font-size: 11px; white-space: nowrap;" title="Select folder via native Windows directory picker">Browse...</button>
+                    <button type="button" id="org-btn-browse-src" class="uav-pill-action-btn" onclick="triggerNativeFolderPicker('source')" style="padding: 6px 12px; font-size: 11px; white-space: nowrap;" title="Open native Windows folder dialog to choose source directory">Browse...</button>
+                    <input type="file" id="org-native-source-picker" webkitdirectory directory style="display: none;" onchange="onNativeSourceFolderChosen(this)">
                     <button type="button" class="uav-pill-action-btn" onclick="scanOrganizerSource()" style="padding: 6px 12px; font-size: 11px; white-space: nowrap; background: #22c55e22; border-color: #22c55e55; color: #22c55e;" title="Scan folder for log files">Scan</button>
                 </div>
                 <!-- Quick Preset Paths -->
@@ -5672,7 +5790,8 @@
                 </div>
                 <div style="display: flex; gap: 8px;">
                     <input type="text" id="org-dest-dir" class="modal-input" placeholder="e.g. C:\Users\KARSHAK_Tamal\Desktop\Logs" style="margin-bottom: 0; flex: 1;">
-                    <button type="button" id="org-btn-browse-dest" class="uav-pill-action-btn" onclick="pickOrganizerFolder('dest')" style="padding: 6px 12px; font-size: 11px; white-space: nowrap;" title="Select folder via native Windows directory picker">Browse...</button>
+                    <button type="button" id="org-btn-browse-dest" class="uav-pill-action-btn" onclick="triggerNativeFolderPicker('dest')" style="padding: 6px 12px; font-size: 11px; white-space: nowrap;" title="Open native Windows folder dialog to choose destination directory">Browse...</button>
+                    <input type="file" id="org-native-dest-picker" webkitdirectory directory style="display: none;" onchange="onNativeDestFolderChosen(this)">
                     <button type="button" class="uav-pill-action-btn" onclick="openPathInExplorer()" style="padding: 6px 12px; font-size: 11px; white-space: nowrap;" title="Open destination directory in Windows Explorer">Explorer</button>
                 </div>
                 <!-- Quick Destination Presets -->

@@ -362,6 +362,75 @@ class LogViewerHandler(SimpleHTTPRequestHandler):
                 self._send_json({'success': False, 'error': str(e)})
             return
 
+        # 5b. API: Upload and Organize Flight Log Stream
+        elif path == '/api/organize_upload':
+            try:
+                content_length = int(self.headers.get('Content-Length', 0))
+                if content_length <= 0:
+                    self._send_json({'success': False, 'error': 'Empty upload payload'})
+                    return
+                query = urllib.parse.parse_qs(parsed.query)
+                filename = query.get('filename', [None])[0] or self.headers.get('X-File-Name', 'flight_log.bin')
+                dest_dir = query.get('dest', [None])[0] or self.headers.get('X-Dest-Folder', r'C:\Users\KARSHAK_Tamal\Desktop\Logs')
+                structure = query.get('structure', ['year_month_date'])[0]
+                filename = os.path.basename(filename)
+
+                temp_dir = os.path.join(BASE_DIR, 'uploads', '_temp_org')
+                os.makedirs(temp_dir, exist_ok=True)
+                temp_path = os.path.join(temp_dir, filename)
+
+                bytes_left = content_length
+                with open(temp_path, 'wb') as f:
+                    while bytes_left > 0:
+                        chunk = self.rfile.read(min(bytes_left, 65536))
+                        if not chunk:
+                            break
+                        f.write(chunk)
+                        bytes_left -= len(chunk)
+
+                date_obj = organizer.get_true_log_date(temp_path)
+                year_str = date_obj.strftime("%Y")
+                month_str = date_obj.strftime("%B")
+                date_str = date_obj.strftime("%Y-%m-%d")
+
+                if structure == "year_date":
+                    target_dir = os.path.join(dest_dir, year_str, date_str)
+                elif structure == "year_month":
+                    target_dir = os.path.join(dest_dir, year_str, month_str)
+                elif structure == "flat_date":
+                    target_dir = os.path.join(dest_dir, date_str)
+                else:
+                    target_dir = os.path.join(dest_dir, year_str, month_str, date_str)
+
+                os.makedirs(target_dir, exist_ok=True)
+                target_path = os.path.join(target_dir, filename)
+                temp_size = os.path.getsize(temp_path)
+
+                if os.path.exists(target_path) and os.path.getsize(target_path) == temp_size:
+                    os.remove(temp_path)
+                    self._send_json({
+                        'success': True,
+                        'status': 'skipped',
+                        'filename': filename,
+                        'dest': target_path,
+                        'date': date_str,
+                        'size_mb': round(temp_size / (1024 * 1024), 2)
+                    })
+                else:
+                    import shutil
+                    shutil.move(temp_path, target_path)
+                    self._send_json({
+                        'success': True,
+                        'status': 'copied',
+                        'filename': filename,
+                        'dest': target_path,
+                        'date': date_str,
+                        'size_mb': round(temp_size / (1024 * 1024), 2)
+                    })
+            except Exception as e:
+                self._send_json({'success': False, 'error': str(e)})
+            return
+
         # 6. API: Scan Source Directory for Flight Logs
         elif path == '/api/scan_source':
             try:
