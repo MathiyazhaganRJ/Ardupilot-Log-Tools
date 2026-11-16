@@ -13,23 +13,19 @@ import subprocess
 import threading
 import time
 
-GPS_EPOCH = datetime.datetime(1980, 1, 6, tzinfo=datetime.timezone.utc)
-
 def get_true_log_date(filepath):
     """
-    Smart Date Extraction (Preserves original ArduPilot Log Manager logic):
-    1. Extract Date from Filename (Regex YYYY-MM-DD, YYYYMMDD, or DD-MM-YYYY).
-    2. Validity Check: The '2022 Rule' (year >= 2022).
-       - YES: Valid flight date from filename.
-       - NO (e.g. 1980, 2000): Pre-GPS boot timestamp or uninitialized RTC.
-    3. If filename has no date or year < 2022:
-       - Probes internal GPS lock timestamp from DataFlash .bin messages.
-       - Falls back to System File Modification Time (os.path.getmtime).
+    SMART DATE LOGIC (Exact implementation from ArduPilot Log Manager):
+    1. Extract Date from Filename.
+    2. VALIDITY CHECK: Is the year >= 2022?
+       - YES: Use Filename Date.
+       - NO (1980, 2000): Corrupt/No GPS. Fallback to Modified Date.
+    3. If no date in filename, Use Modified Date.
     """
     filename = os.path.basename(filepath)
     potential_date = None
 
-    # Regex 1: YYYY-MM-DD or YYYY_MM_DD
+    # Regex 1: YYYY-MM-DD
     match = re.search(r"(\d{4})[-_](\d{2})[-_](\d{2})", filename)
     if match:
         try:
@@ -46,84 +42,17 @@ def get_true_log_date(filepath):
             except Exception:
                 pass
 
-    # Regex 3: DD-MM-YYYY or MM-DD-YYYY
-    if not potential_date:
-        match = re.search(r"(\d{2})[-_](\d{2})[-_](\d{4})", filename)
-        if match:
-            y = int(match.group(3))
-            try:
-                potential_date = datetime.datetime(y, int(match.group(2)), int(match.group(1)))
-            except Exception:
-                try:
-                    potential_date = datetime.datetime(y, int(match.group(1)), int(match.group(2)))
-                except Exception:
-                    pass
+    # VALIDITY CHECK (The "2022 Rule")
+    if potential_date:
+        if potential_date.year >= 2022:
+            return potential_date
+        # If older than 2022 (e.g. 1980), treat as invalid and fall through to system time
 
-    # VALIDITY CHECK (The "2022 Rule" from original ArduPilot Log Manager)
-    if potential_date and potential_date.year >= 2022:
-        return potential_date
-
-    # Binary / MAVLink probe for internal GPS lock timestamp in .bin files
-    if filepath.lower().endswith('.bin') and os.path.exists(filepath):
-        try:
-            gps_date = probe_bin_gps_date(filepath)
-            if gps_date and gps_date.year >= 2022:
-                return gps_date
-        except Exception:
-            pass
-
-    # Fallback to System File Modification Time (Original Log Manager fallback)
+    # Fallback to System Modified Time
     try:
-        mtime = os.path.getmtime(filepath)
-        return datetime.datetime.fromtimestamp(mtime)
+        return datetime.datetime.fromtimestamp(os.path.getmtime(filepath))
     except Exception:
         return datetime.datetime.now()
-
-
-def probe_bin_gps_date(filepath):
-    """
-    Inspects internal GPS messages inside an ArduPilot DataFlash .bin log
-    to extract the real flight date when filename has no date or pre-GPS 1980/2000 boot time.
-    """
-    # 1. Pymavlink GPS fix inspection
-    try:
-        from pymavlink import mavutil
-        mlog = mavutil.mavlink_connection(filepath)
-        count = 0
-        while count < 3000:
-            msg = mlog.recv_match(type=['GPS'], blocking=False)
-            if not msg:
-                break
-            count += 1
-            if getattr(msg, 'Status', 0) >= 3:
-                gwk = getattr(msg, 'GWk', 0)
-                gms = getattr(msg, 'GMS', 0)
-                if gwk > 1500:
-                    epoch = datetime.datetime(1980, 1, 6, tzinfo=datetime.timezone.utc)
-                    dt = epoch + datetime.timedelta(weeks=gwk, milliseconds=gms)
-                    dt_local = datetime.datetime.fromtimestamp(dt.timestamp())
-                    if dt_local.year >= 2022:
-                        return dt_local
-    except Exception:
-        pass
-
-    # 2. Binary buffer text search for ISO date strings
-    try:
-        with open(filepath, 'rb') as f:
-            chunk = f.read(262144)  # First 256KB
-            if len(chunk) >= 100:
-                text_matches = re.findall(b"(\\d{4}-\\d{2}-\\d{2})", chunk)
-                for m in text_matches:
-                    try:
-                        s = m.decode('ascii', errors='ignore')
-                        dt = datetime.datetime.strptime(s, "%Y-%m-%d")
-                        if dt.year >= 2022:
-                            return dt
-                    except Exception:
-                        pass
-    except Exception:
-        pass
-    return None
 
 
 def _resolve_folders(folder_input):
