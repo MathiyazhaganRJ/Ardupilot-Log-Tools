@@ -1839,6 +1839,16 @@
             margin-left: 4px;
         }
 
+        .native-hidden-file-input {
+            position: absolute !important;
+            width: 0.1px !important;
+            height: 0.1px !important;
+            opacity: 0 !important;
+            overflow: hidden !important;
+            z-index: -10 !important;
+            pointer-events: none !important;
+        }
+
     </style>
     <script>
         window.onSitlIframeLoaded = function(){};
@@ -1914,16 +1924,16 @@
             </button>
 
             <div class="log-selector-container">
-                <!-- Import Log File Button -->
-                <button class="aero-btn-primary" onclick="triggerFilePicker()" title="Import ArduPilot .bin flight log file">
+                <!-- Import Log File Button (Native Label Trigger) -->
+                <label for="local-file-picker" class="aero-btn-primary" style="cursor: pointer; margin: 0; display: inline-flex; align-items: center; gap: 6px;" title="Import ArduPilot .bin flight log file">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                         <polyline points="17 8 12 3 7 8"></polyline>
                         <line x1="12" y1="3" x2="12" y2="15"></line>
                     </svg>
                     <span>IMPORT LOG</span>
-                </button>
-                <input type="file" id="local-file-picker" accept=".bin,.log,.tlog,.BIN,.LOG,.TLOG" style="display: none;" onchange="onFileChosen(this)">
+                </label>
+                <input type="file" id="local-file-picker" accept=".bin,.log,.tlog,.BIN,.LOG,.TLOG" class="native-hidden-file-input" onchange="onFileChosen(this)">
 
                 <!-- FDR Log Annunciator Capsule -->
                 <div class="aero-log-capsule" title="Active DataFlash flight log recording">
@@ -1993,9 +2003,9 @@
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
                         <span>Plot</span>
                     </button>
-                    <button class="uav-options-dots-btn" onclick="triggerFilePicker()" title="Choose ArduPilot .bin log file">
+                    <label for="local-file-picker" class="uav-options-dots-btn" style="cursor: pointer; display: inline-flex; align-items: center; justify-content: center;" title="Choose ArduPilot .bin log file">
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2.2"></circle><circle cx="12" cy="12" r="2.2"></circle><circle cx="12" cy="19" r="2.2"></circle></svg>
-                    </button>
+                    </label>
                 </div>
             </div>
 
@@ -2930,8 +2940,12 @@
         window.addEventListener('dragover', (e) => {
             e.preventDefault();
             e.stopPropagation();
-            const dropZone = document.getElementById('drag-drop-overlay');
-            if (dropZone) dropZone.style.display = 'flex';
+            const orgModal = document.getElementById('organizer-modal');
+            const isOrgModalOpen = orgModal && (orgModal.style.display === 'flex' || orgModal.style.display === 'block');
+            if (!isOrgModalOpen) {
+                const dropZone = document.getElementById('drag-drop-overlay');
+                if (dropZone) dropZone.style.display = 'flex';
+            }
         });
         window.addEventListener('dragleave', (e) => {
             e.preventDefault();
@@ -2947,8 +2961,14 @@
             const dropZone = document.getElementById('drag-drop-overlay');
             if (dropZone) dropZone.style.display = 'none';
             if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                const orgModal = document.getElementById('organizer-modal');
+                const isOrgModalOpen = orgModal && (orgModal.style.display === 'flex' || orgModal.style.display === 'block');
+                if (isOrgModalOpen) {
+                    handleOrganizerDroppedFiles(e.dataTransfer.files);
+                    return;
+                }
                 const file = e.dataTransfer.files[0];
-                if (file.name.toLowerCase().endsWith('.bin') || file.name.toLowerCase().endsWith('.log')) {
+                if (file.name.toLowerCase().endsWith('.bin') || file.name.toLowerCase().endsWith('.log') || file.name.toLowerCase().endsWith('.tlog')) {
                     uploadAndLoadFile(file);
                 } else {
                     alert("Please drop an ArduPilot .bin or .log flight log file.");
@@ -5208,6 +5228,37 @@
             return new Date().toISOString().slice(0, 10);
         }
 
+        function renderDiscoveredFilesList(logFiles) {
+            const activityList = document.getElementById('org-activity-list');
+            if (!activityList) return;
+            if (logFiles.length === 0) {
+                activityList.innerHTML = `<div style="color: #64748b; padding: 16px; text-align: center;">No .bin, .log, or .tlog flight logs found.</div>`;
+                return;
+            }
+            let html = '';
+            const previewCount = Math.min(logFiles.length, 100);
+            for (let i = 0; i < previewCount; i++) {
+                const f = logFiles[i];
+                const mb = (f.size / (1024 * 1024)).toFixed(2);
+                const dateStr = getFilenameTrueDate(f.name);
+                html += `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 4px 6px; border-bottom: 1px solid #1a1c22; font-size: 11px;">
+                        <div style="color: #ffffff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 60%;" title="${f.name}">
+                            ${f.name}
+                        </div>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <span style="color: #22c55e;">${dateStr}</span>
+                            <span style="color: #64748b;">${mb} MB</span>
+                        </div>
+                    </div>
+                `;
+            }
+            if (logFiles.length > 100) {
+                html += `<div style="color: #64748b; padding: 6px; text-align: center; font-size: 10px;">... and ${logFiles.length - 100} more files</div>`;
+            }
+            activityList.innerHTML = html;
+        }
+
         function onNativeSourceFolderChosen(input) {
             if (!input || !input.files || input.files.length === 0) return;
             const logFiles = [];
@@ -5239,36 +5290,37 @@
                 statusSummary.innerHTML = `<span style="color: #22c55e; font-weight: 700;">Selected ${logFiles.length} logs (${totalMb} MB) in "${folderName}"</span>`;
             }
 
-            // Render discovered files in the activity box
-            const activityList = document.getElementById('org-activity-list');
-            if (activityList) {
-                if (logFiles.length === 0) {
-                    activityList.innerHTML = `<div style="color: #64748b; padding: 16px; text-align: center;">No .bin, .log, or .tlog files found in this folder.</div>`;
-                } else {
-                    let html = '';
-                    const previewCount = Math.min(logFiles.length, 100);
-                    for (let i = 0; i < previewCount; i++) {
-                        const f = logFiles[i];
-                        const mb = (f.size / (1024 * 1024)).toFixed(2);
-                        const dateStr = getFilenameTrueDate(f.name);
-                        html += `
-                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 4px 6px; border-bottom: 1px solid #1a1c22; font-size: 11px;">
-                                <div style="color: #ffffff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 60%;" title="${f.name}">
-                                    ${f.name}
-                                </div>
-                                <div style="display: flex; gap: 8px; align-items: center;">
-                                    <span style="color: #22c55e;">${dateStr}</span>
-                                    <span style="color: #64748b;">${mb} MB</span>
-                                </div>
-                            </div>
-                        `;
-                    }
-                    if (logFiles.length > 100) {
-                        html += `<div style="color: #64748b; padding: 6px; text-align: center; font-size: 10px;">... and ${logFiles.length - 100} more files</div>`;
-                    }
-                    activityList.innerHTML = html;
+            renderDiscoveredFilesList(logFiles);
+        }
+
+        function onNativeSourceFilesChosen(input) {
+            if (!input || !input.files || input.files.length === 0) return;
+            const logFiles = [];
+            let totalBytes = 0;
+            
+            for (let i = 0; i < input.files.length; i++) {
+                const f = input.files[i];
+                const lower = f.name.toLowerCase();
+                if (lower.endsWith('.bin') || lower.endsWith('.log') || lower.endsWith('.tlog')) {
+                    logFiles.push(f);
+                    totalBytes += f.size;
                 }
             }
+
+            inBrowserLogFiles = logFiles;
+            const srcInput = document.getElementById('org-source-dir');
+            if (srcInput) {
+                srcInput.value = `Selected ${logFiles.length} file(s)`;
+            }
+
+            const statusSummary = document.getElementById('org-scan-summary');
+            const totalMb = (totalBytes / (1024 * 1024)).toFixed(2);
+
+            if (statusSummary) {
+                statusSummary.innerHTML = `<span style="color: #22c55e; font-weight: 700;">Selected ${logFiles.length} logs (${totalMb} MB)</span>`;
+            }
+
+            renderDiscoveredFilesList(logFiles);
         }
 
         function onNativeDestFolderChosen(input) {
@@ -5317,6 +5369,36 @@
             if (modal) modal.style.display = 'none';
         }
 
+        function handleOrganizerDroppedFiles(fileList) {
+            if (!fileList || fileList.length === 0) return;
+            const logFiles = [];
+            let totalBytes = 0;
+            for (let i = 0; i < fileList.length; i++) {
+                const f = fileList[i];
+                const lower = f.name.toLowerCase();
+                if (lower.endsWith('.bin') || lower.endsWith('.log') || lower.endsWith('.tlog')) {
+                    logFiles.push(f);
+                    totalBytes += f.size;
+                }
+            }
+            if (logFiles.length === 0) {
+                alert("Please drop ArduPilot telemetry logs (.bin, .log, or .tlog).");
+                return;
+            }
+            inBrowserLogFiles = logFiles;
+            currentScannedLogs = [];
+            const srcInput = document.getElementById('org-source-dir');
+            if (srcInput) {
+                srcInput.value = `Dropped ${logFiles.length} file(s)`;
+            }
+            const statusSummary = document.getElementById('org-scan-summary');
+            const totalMb = (totalBytes / (1024 * 1024)).toFixed(2);
+            if (statusSummary) {
+                statusSummary.innerHTML = `<span style="color: #22c55e; font-weight: 700;">Dropped ${logFiles.length} logs (${totalMb} MB) ready to organize</span>`;
+            }
+            renderDiscoveredFilesList(logFiles);
+        }
+
         function setOrgSourcePreset(folderPath) {
             inBrowserLogFiles = [];
             const srcInput = document.getElementById('org-source-dir');
@@ -5328,12 +5410,6 @@
         }
 
         function setOrgDestPreset(folderPath) {
-            const destInput = document.getElementById('org-dest-dir');
-            if (destInput) {
-                destInput.value = folderPath;
-                localStorage.setItem('org_dest_dir', folderPath);
-            }
-        }
             const destInput = document.getElementById('org-dest-dir');
             if (destInput) {
                 destInput.value = folderPath;
@@ -5581,7 +5657,6 @@
             });
             activityList.innerHTML = html;
         }
-        }
 
         async function openPathInExplorer(targetPath) {
             const destPath = targetPath || (document.getElementById('org-dest-dir') ? document.getElementById('org-dest-dir').value.trim() : '');
@@ -5769,10 +5844,12 @@
                     </label>
                     <div id="org-scan-summary" style="font-size: 10px; font-family: 'B612 Mono', monospace;"></div>
                 </div>
-                <div style="display: flex; gap: 8px;">
+                <div style="display: flex; gap: 6px; align-items: center;">
                     <input type="text" id="org-source-dir" class="modal-input" placeholder="e.g. E:\ or C:\Users\KARSHAK_Tamal\Downloads\FlightLogs" style="margin-bottom: 0; flex: 1;">
-                    <button type="button" id="org-btn-browse-src" class="uav-pill-action-btn" onclick="triggerNativeFolderPicker('source')" style="padding: 6px 12px; font-size: 11px; white-space: nowrap;" title="Open native Windows folder dialog to choose source directory">Browse...</button>
-                    <input type="file" id="org-native-source-picker" webkitdirectory directory style="display: none;" onchange="onNativeSourceFolderChosen(this)">
+                    <label for="org-native-folder-picker" id="org-btn-browse-folder" class="uav-pill-action-btn" style="padding: 6px 11px; font-size: 11px; white-space: nowrap; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;" title="Select an entire folder of logs">Browse Folder...</label>
+                    <label for="org-native-files-picker" id="org-btn-browse-files" class="uav-pill-action-btn" style="padding: 6px 11px; font-size: 11px; white-space: nowrap; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; background: #22c55e18; border-color: #22c55e55; color: #4ade80;" title="Select individual or multiple .bin / .log files directly">Browse Files...</label>
+                    <input type="file" id="org-native-folder-picker" webkitdirectory directory class="native-hidden-file-input" onchange="onNativeSourceFolderChosen(this)">
+                    <input type="file" id="org-native-files-picker" multiple accept=".bin,.log,.tlog,.BIN,.LOG,.TLOG" class="native-hidden-file-input" onchange="onNativeSourceFilesChosen(this)">
                     <button type="button" class="uav-pill-action-btn" onclick="scanOrganizerSource()" style="padding: 6px 12px; font-size: 11px; white-space: nowrap; background: #22c55e22; border-color: #22c55e55; color: #22c55e;" title="Scan folder for log files">Scan</button>
                 </div>
                 <!-- Quick Preset Paths -->
@@ -5793,10 +5870,10 @@
                         2. Destination Archive Directory (Organized Storage)
                     </label>
                 </div>
-                <div style="display: flex; gap: 8px;">
+                <div style="display: flex; gap: 6px; align-items: center;">
                     <input type="text" id="org-dest-dir" class="modal-input" placeholder="e.g. C:\Users\KARSHAK_Tamal\Desktop\Logs" style="margin-bottom: 0; flex: 1;">
-                    <button type="button" id="org-btn-browse-dest" class="uav-pill-action-btn" onclick="triggerNativeFolderPicker('dest')" style="padding: 6px 12px; font-size: 11px; white-space: nowrap;" title="Open native Windows folder dialog to choose destination directory">Browse...</button>
-                    <input type="file" id="org-native-dest-picker" webkitdirectory directory style="display: none;" onchange="onNativeDestFolderChosen(this)">
+                    <label for="org-native-dest-picker" id="org-btn-browse-dest" class="uav-pill-action-btn" style="padding: 6px 11px; font-size: 11px; white-space: nowrap; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;" title="Select destination folder">Browse Folder...</label>
+                    <input type="file" id="org-native-dest-picker" webkitdirectory directory class="native-hidden-file-input" onchange="onNativeDestFolderChosen(this)">
                     <button type="button" class="uav-pill-action-btn" onclick="openPathInExplorer()" style="padding: 6px 12px; font-size: 11px; white-space: nowrap;" title="Open destination directory in Windows Explorer">Explorer</button>
                 </div>
                 <!-- Quick Destination Presets -->
