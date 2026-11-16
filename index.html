@@ -1524,6 +1524,72 @@
             cursor: pointer;
         }
 
+        /* Tree Tabs: Channels vs Parameters */
+        .uav-tree-tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 6px;
+        }
+        .uav-tree-tab-btn {
+            background: #0f172a;
+            border: 1px solid #334155;
+            color: #94a3b8;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 4px 6px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            flex: 1;
+            text-align: center;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .uav-tree-tab-btn:hover {
+            background: #1e293b;
+            color: #f1f5f9;
+            border-color: #475569;
+        }
+        .uav-tree-tab-btn.active {
+            background: #1e293b;
+            color: var(--av-cyan);
+            border-color: var(--av-cyan);
+            box-shadow: inset 0 0 4px rgba(0, 229, 255, 0.2);
+        }
+        .uav-param-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 4px 6px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            font-family: 'B612 Mono', monospace;
+            font-size: 10.5px;
+            border-radius: 2px;
+            transition: background 0.1s;
+        }
+        .uav-param-row:hover {
+            background: rgba(255, 255, 255, 0.04);
+        }
+        .uav-param-copy-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid #334155;
+            color: #94a3b8;
+            font-size: 9px;
+            font-family: 'B612 Mono', monospace;
+            padding: 1px 4px;
+            border-radius: 2px;
+            cursor: pointer;
+            margin-left: 6px;
+            transition: all 0.1s;
+        }
+        .uav-param-copy-btn:hover {
+            color: var(--av-cyan);
+            border-color: var(--av-cyan);
+            background: rgba(0, 229, 255, 0.1);
+        }
+
         /* Search Box in Signal Tree */
         .uav-filter-box {
             width: 100%;
@@ -1881,8 +1947,24 @@
                     <span class="uav-caret">&#9662;</span>
                 </div>
                 <div id="tree-wrapper" style="flex: 1; display: flex; flex-direction: column; min-height: 0;">
-                    <input type="text" id="field-search-input" class="uav-filter-box" placeholder="Type here to filter..." oninput="filterMessageTree(this.value)">
+                    <!-- Tree Tab Bar: Channels vs Parameters -->
+                    <div class="uav-tree-tabs">
+                        <button type="button" id="tab-telemetry-tree" class="uav-tree-tab-btn active" onclick="switchSidebarTreeTab('telemetry')">
+                            Channels (<span id="telemetry-ch-count">0</span>)
+                        </button>
+                        <button type="button" id="tab-params-tree" class="uav-tree-tab-btn" onclick="switchSidebarTreeTab('parameters')">
+                            Parameters (<span id="vehicle-params-count">0</span>)
+                        </button>
+                        <button type="button" class="uav-tree-tab-btn" style="flex: 0 0 auto; padding: 4px 7px;" onclick="openParametersModal()" title="View All Vehicle Parameters Table">
+                            &#9776; Table
+                        </button>
+                    </div>
+
+                    <input type="text" id="field-search-input" class="uav-filter-box" placeholder="Type keyword to filter (e.g. volt, speed, batt, pid)..." oninput="onSidebarFilterInput(this.value)">
+                    <div id="tree-search-summary" style="display: none; font-size: 10px; color: #38bdf8; padding: 2px 4px 6px 4px; font-family: 'B612 Mono', monospace; border-bottom: 1px solid rgba(255,255,255,0.05); margin-bottom: 6px;"></div>
+
                     <div id="message-tree" style="flex: 1; overflow-y: auto;"></div>
+                    <div id="parameters-tree" style="flex: 1; overflow-y: auto; display: none;"></div>
                 </div>
             </div>
         </div>
@@ -2586,6 +2668,12 @@
             // Build UAV Log Viewer message & field tree for plotting
             buildMessageTree(data.formats || {});
 
+            // Store & build vehicle parameters catalog
+            currentFlightParameters = data.parameters || {};
+            const paramsBadge = document.getElementById('vehicle-params-count');
+            if (paramsBadge) paramsBadge.textContent = Object.keys(currentFlightParameters).length;
+            renderParametersList('');
+
             // Reset active plotted fields on initial log load
             activeFields = [];
             renderActiveFieldChips();
@@ -2851,12 +2939,18 @@
             }
         }
 
+        let currentFlightParameters = {};
+        let activeSidebarTreeTab = 'telemetry';
+
         function buildMessageTree(formats) {
             const treeContainer = document.getElementById('message-tree');
             if (!treeContainer) return;
             treeContainer.innerHTML = '';
 
             const sortedKeys = Object.keys(formats).sort();
+            const chBadge = document.getElementById('telemetry-ch-count');
+            if (chBadge) chBadge.textContent = sortedKeys.length;
+
             sortedKeys.forEach(msgName => {
                 const cols = formats[msgName];
                 const node = document.createElement('div');
@@ -2880,7 +2974,9 @@
                 cols.forEach(col => {
                     const fItem = document.createElement('div');
                     fItem.className = 'field-item';
-                    fItem.innerHTML = `<span>${col}</span><span class="plot-tag">+ PLOT</span>`;
+                    fItem.dataset.field = col;
+                    fItem.dataset.origText = col;
+                    fItem.innerHTML = `<span class="field-name">${col}</span><span class="plot-tag">+ PLOT</span>`;
                     fItem.onclick = (e) => {
                         e.stopPropagation();
                         addFieldToPlot(`${msgName}.${col}`);
@@ -2903,11 +2999,234 @@
         }
 
         function filterMessageTree(query) {
-            const q = query.trim().toUpperCase();
-            const nodes = document.querySelectorAll('.msg-node');
+            const rawQ = (query || '').trim();
+            const q = rawQ.toLowerCase();
+            const treeContainer = document.getElementById('message-tree');
+            if (!treeContainer) return;
+
+            const nodes = treeContainer.querySelectorAll('.msg-node');
+            if (!rawQ) {
+                nodes.forEach(node => {
+                    node.style.display = 'block';
+                    const fContainer = node.querySelector('.msg-fields-container');
+                    const chevron = node.querySelector('.msg-chevron');
+                    if (fContainer) fContainer.classList.remove('expanded');
+                    if (chevron) chevron.style.transform = 'rotate(0deg)';
+
+                    const fields = node.querySelectorAll('.field-item');
+                    fields.forEach(f => {
+                        f.style.display = 'flex';
+                        const fnEl = f.querySelector('.field-name');
+                        if (fnEl && f.dataset.origText) {
+                            fnEl.textContent = f.dataset.origText;
+                        }
+                    });
+                });
+                return;
+            }
+
+            // Keyword synonyms map for flight test engineers
+            const synonyms = {
+                'volt': ['volt', 'voltr', 'bat', 'battery', 'voltage', 'curr'],
+                'voltage': ['volt', 'voltr', 'bat', 'battery', 'voltage'],
+                'batt': ['bat', 'volt', 'curr', 'currtot', 'battery', 'enrgtot', 'temp', 'res'],
+                'battery': ['bat', 'volt', 'curr', 'currtot', 'battery', 'enrgtot', 'temp', 'res'],
+                'speed': ['arsp', 'airspeed', 'spd', 'tas', 'gs', 'spdem', 'speed'],
+                'airspeed': ['arsp', 'airspeed', 'tas', 'diffpress'],
+                'groundspeed': ['gs', 'spd', 'gps'],
+                'alt': ['alt', 'relalt', 'baro', 'gps', 'pos', 'height', 'altitude'],
+                'altitude': ['alt', 'relalt', 'baro', 'gps', 'pos', 'height', 'altitude'],
+                'height': ['alt', 'relalt', 'pos', 'baro', 'height'],
+                'pitch': ['pitch', 'navpitch', 'despitch', 'att', 'ctun', 'pidp', 'ptch'],
+                'roll': ['roll', 'navroll', 'desroll', 'att', 'ctun', 'pidr', 'rll'],
+                'yaw': ['yaw', 'desyaw', 'att', 'pidy'],
+                'throttle': ['tho', 'throut', 'ctun', 'rcin', 'rcou', 'throttle'],
+                'power': ['power', 'volt', 'curr', 'watts', 'bat', 'pm'],
+                'current': ['curr', 'currtot', 'bat', 'amp', 'amps'],
+                'amps': ['curr', 'currtot', 'bat', 'amp', 'amps'],
+                'vibe': ['vibe', 'vibex', 'vibey', 'vibez', 'clip', 'clip0', 'clip1', 'clip2'],
+                'vibration': ['vibe', 'vibex', 'vibey', 'vibez', 'clip'],
+                'temp': ['temp', 'baro_temp', 'arsp_temp', 'temperature', 'gndtemp'],
+                'temperature': ['temp', 'baro_temp', 'arsp_temp', 'temperature'],
+                'wind': ['wind', 'vwn', 'vwe', 'xkf2'],
+                'pid': ['pidr', 'pidp', 'pidy', 'pida', 'pids', 'p', 'i', 'd', 'ff'],
+                'pids': ['pidr', 'pidp', 'pidy', 'pida', 'pids', 'p', 'i', 'd', 'ff'],
+                'servo': ['rcou', 'servos', 'aetr', 'c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7', 'c8']
+            };
+
+            const searchTokens = [q];
+            if (synonyms[q]) {
+                synonyms[q].forEach(s => {
+                    if (!searchTokens.includes(s)) searchTokens.push(s);
+                });
+            }
+
             nodes.forEach(node => {
-                const msgName = node.dataset.msg.toUpperCase();
-                node.style.display = msgName.includes(q) ? 'block' : 'none';
+                const msgName = (node.dataset.msg || '').toLowerCase();
+                const descEl = node.querySelector('.msg-desc');
+                const desc = descEl ? descEl.textContent.toLowerCase() : '';
+
+                const msgHeaderDirectMatch = searchTokens.some(token => msgName.includes(token) || desc.includes(token));
+
+                const fContainer = node.querySelector('.msg-fields-container');
+                const chevron = node.querySelector('.msg-chevron');
+                const fields = node.querySelectorAll('.field-item');
+
+                let matchedFieldsInMsg = 0;
+
+                fields.forEach(f => {
+                    const rawCol = f.dataset.field || f.dataset.origText || f.textContent.replace('+ PLOT', '').trim();
+                    f.dataset.origText = rawCol;
+                    const colLower = rawCol.toLowerCase();
+
+                    const fieldDirectMatch = searchTokens.some(token => colLower.includes(token));
+                    const fnEl = f.querySelector('.field-name') || f.querySelector('span:first-child');
+
+                    if (fieldDirectMatch) {
+                        f.style.display = 'flex';
+                        matchedFieldsInMsg++;
+                        if (fnEl) {
+                            const regex = new RegExp(`(${q})`, 'gi');
+                            fnEl.innerHTML = rawCol.replace(regex, '<span style="color:#00e5ff; font-weight:700; background:rgba(0,229,255,0.18); padding:0 2px; border-radius:2px;">$1</span>');
+                        }
+                    } else if (msgHeaderDirectMatch) {
+                        f.style.display = 'flex';
+                        matchedFieldsInMsg++;
+                        if (fnEl) fnEl.textContent = rawCol;
+                    } else {
+                        f.style.display = 'none';
+                        if (fnEl) fnEl.textContent = rawCol;
+                    }
+                });
+
+                if (matchedFieldsInMsg > 0 || msgHeaderDirectMatch) {
+                    node.style.display = 'block';
+                    if (fContainer) fContainer.classList.add('expanded');
+                    if (chevron) chevron.style.transform = 'rotate(180deg)';
+                } else {
+                    node.style.display = 'none';
+                    if (fContainer) fContainer.classList.remove('expanded');
+                    if (chevron) chevron.style.transform = 'rotate(0deg)';
+                }
+            });
+        }
+
+        function switchSidebarTreeTab(tab) {
+            activeSidebarTreeTab = tab;
+            const btnTele = document.getElementById('tab-telemetry-tree');
+            const btnParam = document.getElementById('tab-params-tree');
+            const treeTele = document.getElementById('message-tree');
+            const treeParam = document.getElementById('parameters-tree');
+
+            if (tab === 'telemetry') {
+                if (btnTele) btnTele.classList.add('active');
+                if (btnParam) btnParam.classList.remove('active');
+                if (treeTele) treeTele.style.display = 'block';
+                if (treeParam) treeParam.style.display = 'none';
+            } else {
+                if (btnTele) btnTele.classList.remove('active');
+                if (btnParam) btnParam.classList.add('active');
+                if (treeTele) treeTele.style.display = 'none';
+                if (treeParam) treeParam.style.display = 'block';
+            }
+
+            const searchInput = document.getElementById('field-search-input');
+            const query = searchInput ? searchInput.value : '';
+            onSidebarFilterInput(query);
+        }
+
+        function renderParametersList(query = '') {
+            const container = document.getElementById('parameters-tree');
+            if (!container) return;
+            container.innerHTML = '';
+
+            const paramKeys = Object.keys(currentFlightParameters);
+            const countBadge = document.getElementById('vehicle-params-count');
+            if (countBadge) countBadge.textContent = paramKeys.length;
+
+            const q = (query || '').trim().toUpperCase();
+            const filteredKeys = q ? paramKeys.filter(k => k.toUpperCase().includes(q)) : paramKeys;
+
+            if (filteredKeys.length === 0) {
+                container.innerHTML = `<div style="padding:16px 12px; font-size:11px; color:#64748b; text-align:center;">No vehicle parameters matching "${query}".</div>`;
+                return;
+            }
+
+            const displayKeys = q ? filteredKeys : filteredKeys.slice(0, 200);
+
+            displayKeys.forEach(pName => {
+                const val = currentFlightParameters[pName];
+                const row = document.createElement('div');
+                row.className = 'uav-param-row';
+
+                let pLabel = pName;
+                if (q) {
+                    const regex = new RegExp(`(${q})`, 'gi');
+                    pLabel = pName.replace(regex, '<span style="color:#00e5ff; font-weight:700; background:rgba(0,229,255,0.18); padding:0 2px; border-radius:2px;">$1</span>');
+                }
+
+                row.innerHTML = `
+                    <div style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #cbd5e1;" title="${pName} = ${val}">
+                        ${pLabel}
+                    </div>
+                    <div style="margin-left: 8px; font-weight: 700; color: #fbbf24; background: rgba(251,191,36,0.1); padding: 1px 6px; border-radius: 3px; font-size: 10px;">
+                        ${val}
+                    </div>
+                    <button type="button" class="uav-param-copy-btn" onclick="copyParamValue('${pName}', '${val}')" title="Copy to clipboard">
+                        COPY
+                    </button>
+                `;
+                container.appendChild(row);
+            });
+
+            if (!q && filteredKeys.length > 200) {
+                const moreNote = document.createElement('div');
+                moreNote.style.cssText = "padding: 8px 12px; font-size: 10px; color: #64748b; text-align: center; border-top: 1px solid #1e293b;";
+                moreNote.textContent = `Showing 200 of ${filteredKeys.length} parameters. Type keyword to filter.`;
+                container.appendChild(moreNote);
+            }
+        }
+
+        function onSidebarFilterInput(query) {
+            filterMessageTree(query);
+            renderParametersList(query);
+
+            const q = (query || '').trim();
+            const summaryEl = document.getElementById('tree-search-summary');
+            if (!summaryEl) return;
+
+            if (!q) {
+                summaryEl.style.display = 'none';
+                return;
+            }
+
+            summaryEl.style.display = 'block';
+
+            const paramKeys = Object.keys(currentFlightParameters);
+            const matchingParams = paramKeys.filter(k => k.toLowerCase().includes(q.toLowerCase())).length;
+
+            if (activeSidebarTreeTab === 'telemetry') {
+                const nodes = document.querySelectorAll('.msg-node[style*="display: block"]');
+                let chCount = 0;
+                nodes.forEach(n => {
+                    chCount += n.querySelectorAll('.field-item[style*="display: flex"]').length;
+                });
+                let paramHint = matchingParams > 0
+                    ? ` &nbsp;|&nbsp; <a href="javascript:void(0)" onclick="switchSidebarTreeTab('parameters')" style="color:#fbbf24; text-decoration:underline;">${matchingParams} Vehicle Params &rarr;</a>`
+                    : '';
+                summaryEl.innerHTML = `<span><strong>${chCount}</strong> channels in <strong>${nodes.length}</strong> msgs</span>${paramHint}`;
+            } else {
+                let teleHint = `<a href="javascript:void(0)" onclick="switchSidebarTreeTab('telemetry')" style="color:#00e5ff; text-decoration:underline;">View Telemetry Channels &rarr;</a>`;
+                summaryEl.innerHTML = `<span><strong>${matchingParams}</strong> parameters matching "${q}"</span> &nbsp;|&nbsp; ${teleHint}`;
+            }
+        }
+
+        function copyParamValue(name, val) {
+            const text = `${name}=${val}`;
+            navigator.clipboard.writeText(text).then(() => {
+                alert(`Copied: ${text}`);
+            }).catch(() => {
+                prompt("Copy parameter value:", text);
             });
         }
 
@@ -4163,6 +4482,143 @@
 
         function openTestTableModal() { const m = document.getElementById('table-modal'); if (m) m.style.display = 'flex'; }
         function closeTestTableModal() { const m = document.getElementById('table-modal'); if (m) m.style.display = 'none'; }
+
+        // ---------------------------------------------------------------------------
+        // Vehicle Parameters Modal Controller
+        // ---------------------------------------------------------------------------
+        function openParametersModal() {
+            const m = document.getElementById('params-modal');
+            if (m) {
+                m.style.display = 'flex';
+                const searchInp = document.getElementById('field-search-input');
+                const initialQ = (searchInp && searchInp.value) ? searchInp.value.trim() : '';
+                const modalSearchInp = document.getElementById('params-modal-search');
+                if (modalSearchInp) modalSearchInp.value = initialQ;
+                renderParametersModalTable(initialQ);
+                setTimeout(() => {
+                    if (modalSearchInp) {
+                        modalSearchInp.focus();
+                        modalSearchInp.select();
+                    }
+                }, 60);
+            }
+        }
+
+        function closeParametersModal() {
+            const m = document.getElementById('params-modal');
+            if (m) m.style.display = 'none';
+        }
+
+        function getParameterSubsystem(pName) {
+            const up = pName.toUpperCase();
+            if (up.startsWith('BATT')) return 'Battery';
+            if (up.startsWith('ARSPD') || up.startsWith('AIRSPEED')) return 'Airspeed';
+            if (up.startsWith('WP_') || up.startsWith('NAV_') || up.startsWith('MIS_')) return 'Navigation';
+            if (up.startsWith('TECS_')) return 'TECS';
+            if (up.startsWith('PTCH') || up.startsWith('ATC_ANG_PIT') || up.startsWith('ATC_RAT_PIT')) return 'Pitch';
+            if (up.startsWith('RLL') || up.startsWith('ATC_ANG_RLL') || up.startsWith('ATC_RAT_RLL')) return 'Roll';
+            if (up.startsWith('YAW') || up.startsWith('ATC_ANG_YAW') || up.startsWith('ATC_RAT_YAW')) return 'Yaw';
+            if (up.startsWith('SERVO') || up.startsWith('RC_') || up.startsWith('RCOU')) return 'Servos';
+            if (up.startsWith('FLTMODE')) return 'Flight Modes';
+            if (up.startsWith('FS_') || up.startsWith('ARMING_')) return 'Failsafe';
+            if (up.startsWith('FENCE_') || up.startsWith('RALLY_')) return 'Geofence';
+            if (up.startsWith('EKF') || up.startsWith('AHRS') || up.startsWith('INS_') || up.startsWith('COMPASS_')) return 'Sensors/EKF';
+            return 'General';
+        }
+
+        function renderParametersModalTable(query = '', filterSubsystem = 'all') {
+            const body = document.getElementById('params-modal-table-body');
+            const counter = document.getElementById('params-modal-counter');
+            if (!body) return;
+            body.innerHTML = '';
+
+            const paramKeys = Object.keys(currentFlightParameters).sort();
+            const q = (query || '').trim().toUpperCase();
+
+            let matched = paramKeys.filter(k => {
+                if (q && !k.toUpperCase().includes(q)) return false;
+                if (filterSubsystem !== 'all') {
+                    const sub = getParameterSubsystem(k).toUpperCase();
+                    if (!k.toUpperCase().startsWith(filterSubsystem) && !sub.includes(filterSubsystem)) return false;
+                }
+                return true;
+            });
+
+            if (counter) counter.textContent = `Showing ${matched.length} of ${paramKeys.length} vehicle parameters`;
+
+            if (matched.length === 0) {
+                body.innerHTML = `<div style="padding:24px; text-align:center; color:#64748b; font-size:11px;">No vehicle parameters match the search criteria.</div>`;
+                return;
+            }
+
+            matched.forEach(pName => {
+                const val = currentFlightParameters[pName];
+                const sub = getParameterSubsystem(pName);
+                const row = document.createElement('div');
+                row.style.cssText = "display: flex; align-items: center; justify-content: space-between; padding: 4px 8px; border-bottom: 1px solid rgba(255,255,255,0.03);";
+
+                let pLabel = pName;
+                if (q) {
+                    const regex = new RegExp(`(${q})`, 'gi');
+                    pLabel = pName.replace(regex, '<span style="color:#00e5ff; font-weight:700; background:rgba(0,229,255,0.18);">$1</span>');
+                }
+
+                row.innerHTML = `
+                    <span style="flex: 2; color: #f8fafc; font-weight: 600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${pName}">${pLabel}</span>
+                    <span style="flex: 1; text-align: right; padding-right: 20px; color: #fbbf24; font-weight: 700;">${val}</span>
+                    <span style="flex: 1; color: #94a3b8; font-size: 10px;">${sub}</span>
+                    <div style="width: 80px; text-align: right;">
+                        <button type="button" class="uav-param-copy-btn" onclick="copyParamValue('${pName}', '${val}')">COPY</button>
+                    </div>
+                `;
+                body.appendChild(row);
+            });
+        }
+
+        function onParamsModalSearchInput(val) {
+            const sub = document.getElementById('params-modal-subsystem')?.value || 'all';
+            renderParametersModalTable(val, sub);
+        }
+
+        function onParamsModalSubsystemChange(sub) {
+            const val = document.getElementById('params-modal-search')?.value || '';
+            renderParametersModalTable(val, sub);
+        }
+
+        function exportParametersFile(format) {
+            const paramKeys = Object.keys(currentFlightParameters).sort();
+            if (paramKeys.length === 0) {
+                alert("No parameters available to export.");
+                return;
+            }
+
+            let content = '';
+            let filename = '';
+            const logName = (currentFlightData && currentFlightData.metadata && currentFlightData.metadata.filename)
+                ? currentFlightData.metadata.filename.replace('.bin', '')
+                : 'flight_parameters';
+
+            if (format === 'param') {
+                content = `# NOTE: ArduPilot parameters exported from Flight Log Analyser\n`;
+                paramKeys.forEach(k => {
+                    content += `${k},${currentFlightParameters[k]}\n`;
+                });
+                filename = `${logName}.param`;
+            } else {
+                content = `Parameter,Value,Subsystem\n`;
+                paramKeys.forEach(k => {
+                    content += `${k},${currentFlightParameters[k]},${getParameterSubsystem(k)}\n`;
+                });
+                filename = `${logName}_params.csv`;
+            }
+
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+        }
     </script>
 
     <!-- Custom Expression Modal Dialog -->
@@ -4216,6 +4672,61 @@
             <div class="modal-actions">
                 <button type="button" class="uav-pill-action-btn" onclick="closeExpressionModal()" style="padding: 5px 12px; font-size: 11px;">Cancel</button>
                 <button type="button" class="btn" onclick="addCustomExpression()" style="padding: 5px 14px; font-size: 11px; background: #00e5ff; color: #080c14; font-weight: 700; border: none; border-radius: 4px; cursor: pointer;">Add to Plot</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vehicle Parameters Register Modal Dialog -->
+    <div id="params-modal" class="modal-overlay" onclick="if(event.target===this) closeParametersModal()">
+        <div class="modal-box" style="width: 760px; max-width: 95vw; max-height: 85vh; display: flex; flex-direction: column; border: 1px solid rgba(0, 229, 255, 0.4); box-shadow: 0 15px 40px rgba(0, 0, 0, 0.95); padding: 18px 22px;">
+            <div class="modal-title" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <span>ARDUPILOT VEHICLE PARAMETERS REGISTER (PARM)</span>
+                <button type="button" onclick="closeParametersModal()" style="background: none; border: none; color: #94a3b8; font-size: 18px; line-height: 1; cursor: pointer; padding: 0 4px;" title="Close">&times;</button>
+            </div>
+            <p style="font-size: 11px; color: #94a3b8; margin: 0 0 12px 0;">
+                All vehicle configuration parameters extracted from the flight controller dataflash log.
+            </p>
+
+            <!-- Search and Filter Bar -->
+            <div style="display: flex; gap: 8px; margin-bottom: 12px; align-items: center;">
+                <input type="text" id="params-modal-search" class="modal-input" placeholder="Search parameters (e.g. BATT_, WP_SPEED, TECS, PTCH)..." style="margin-bottom: 0; flex: 1;" oninput="onParamsModalSearchInput(this.value)">
+                
+                <select id="params-modal-subsystem" class="uav-axis-select" style="padding: 7px 10px; background: #080c14; color: #f8fafc; border: 1px solid #1a2436; border-radius: 4px; font-size: 11px;" onchange="onParamsModalSubsystemChange(this.value)">
+                    <option value="all">All Subsystems</option>
+                    <option value="BATT">Battery & Power (BATT_)</option>
+                    <option value="ARSPD">Airspeed Sensors (ARSPD_)</option>
+                    <option value="WP">Waypoints & Missions (WP_, MIS_, NAV_)</option>
+                    <option value="TECS">TECS Speed/Alt Controller (TECS_)</option>
+                    <option value="PTCH">Pitch & Longitudinal (PTCH_)</option>
+                    <option value="RLL">Roll & Lateral (RLL_)</option>
+                    <option value="YAW">Yaw & Heading (YAW_)</option>
+                    <option value="SERVO">Servos & Outputs (SERVO_)</option>
+                    <option value="FLTMODE">Flight Modes (FLTMODE_)</option>
+                    <option value="FS">Fail-safes (FS_, ARMING_)</option>
+                    <option value="FENCE">Geofence (FENCE_)</option>
+                    <option value="EKF">EKF & Navigation (EKF_, AHRS_, INS_)</option>
+                </select>
+
+                <button type="button" class="uav-pill-action-btn" onclick="exportParametersFile('param')" style="padding: 6px 10px; font-size: 11px;" title="Download ArduPilot standard .param file">Export .param</button>
+                <button type="button" class="uav-pill-action-btn" onclick="exportParametersFile('csv')" style="padding: 6px 10px; font-size: 11px;" title="Download CSV spreadsheet">Export CSV</button>
+            </div>
+
+            <!-- Table Header -->
+            <div style="display: flex; justify-content: space-between; font-size: 10px; color: #64748b; font-weight: 700; text-transform: uppercase; padding: 4px 8px; border-bottom: 1px solid #334155; font-family: 'B612 Mono', monospace;">
+                <span style="flex: 2;">Parameter Name</span>
+                <span style="flex: 1; text-align: right; padding-right: 20px;">Value</span>
+                <span style="flex: 1;">Subsystem</span>
+                <span style="width: 80px; text-align: right;">Action</span>
+            </div>
+
+            <!-- Table Body -->
+            <div id="params-modal-table-body" style="flex: 1; overflow-y: auto; max-height: 400px; font-family: 'B612 Mono', monospace; font-size: 11px;">
+                <!-- Populated dynamically -->
+            </div>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; font-size: 10.5px; color: #94a3b8;">
+                <div id="params-modal-counter">0 parameters loaded</div>
+                <button type="button" class="uav-pill-action-btn" onclick="closeParametersModal()" style="padding: 5px 14px; font-size: 11px;">Close</button>
             </div>
         </div>
     </div>

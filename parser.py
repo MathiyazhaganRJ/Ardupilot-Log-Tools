@@ -188,9 +188,10 @@ def parse_flight_telemetry(file_path, target_samples=6000):
       - speed_steps: list of detected airspeed test steps in AUTO mode
     """
     mlog = mavutil.mavlink_connection(file_path)
-    target_types = ['FMT', 'MODE', 'ATT', 'BARO', 'BAT', 'ARSP', 'XKF1', 'XKF2', 'AHR2', 'CTUN', 'GPS', 'POS', 'AOA', 'TECS', 'MSG', 'RCOU']
+    target_types = ['FMT', 'MODE', 'ATT', 'BARO', 'BAT', 'ARSP', 'XKF1', 'XKF2', 'AHR2', 'CTUN', 'GPS', 'POS', 'AOA', 'TECS', 'MSG', 'RCOU', 'PARM']
 
     formats = {}
+    parameters = {}
     raw_records = []
     
     cur_mode = 'MANUAL'
@@ -226,6 +227,16 @@ def parse_flight_telemetry(file_path, target_samples=6000):
             cols = [c.strip() for c in getattr(msg, 'Columns', '').split(',')]
             if name and cols:
                 formats[name] = cols
+
+        elif mtype == 'PARM':
+            p_name = getattr(msg, 'Name', '')
+            p_val = getattr(msg, 'Value', None)
+            if p_name and p_val is not None:
+                try:
+                    vf = float(p_val)
+                    parameters[p_name] = round(vf, 5) if vf != int(vf) else int(vf)
+                except (ValueError, TypeError):
+                    parameters[p_name] = p_val
 
         elif mtype == 'GPS':
             status = getattr(msg, 'Status', 0)
@@ -563,6 +574,7 @@ def parse_flight_telemetry(file_path, target_samples=6000):
     return {
         'metadata': metadata,
         'formats': formats,
+        'parameters': parameters,
         'telemetry': downsampled,
         'messages': flight_messages,
         'mode_segments': mode_segments,
