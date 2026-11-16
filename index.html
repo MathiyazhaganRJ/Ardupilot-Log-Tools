@@ -2837,6 +2837,13 @@
             }
         }
 
+        function setFieldAxisIndex(index, axisVal) {
+            if (activeFields[index]) {
+                activeFields[index].axis = parseInt(axisVal, 10);
+                updatePlot();
+            }
+        }
+
         function saveActivePresetModal() {
             const name = prompt("Enter a name for this custom preset:", "My Flight Preset");
             if (name && activeFields.length > 0) {
@@ -2922,8 +2929,12 @@
             updatePlot();
         }
 
-        function removeField(fieldName) {
-            activeFields = activeFields.filter(f => f.name !== fieldName);
+        function removeField(target) {
+            if (typeof target === 'number') {
+                activeFields.splice(target, 1);
+            } else {
+                activeFields = activeFields.filter(f => f.name !== target && f.id !== target);
+            }
             renderActiveFieldChips();
             if (activeFields.length === 0) {
                 setPlotVisibility(false);
@@ -2954,22 +2965,24 @@
             if (!container) return;
             container.innerHTML = '';
 
-            activeFields.forEach(f => {
+            activeFields.forEach((f, idx) => {
                 const row = document.createElement('div');
                 row.className = 'uav-active-field-row';
+                const safeName = f.name.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                const tooltip = f.expr ? `Formula: ${f.expr}` : f.name;
                 row.innerHTML = `
-                    <div class="uav-field-pill-box" title="${f.name}">
-                        <span>${f.name}</span>
-                        <span style="font-size:8px; color:#64748b;">&#9662;</span>
+                    <div class="uav-field-pill-box" title="${tooltip}">
+                        <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 130px; display: inline-block;">${safeName}</span>
+                        <span style="font-size:8px; color:#64748b; margin-left: 3px;">&#9662;</span>
                     </div>
-                    <select class="uav-axis-select" onchange="setFieldAxis('${f.name}', this.value)" title="Y-Axis">
+                    <select class="uav-axis-select" onchange="setFieldAxisIndex(${idx}, this.value)" title="Y-Axis">
                         <option value="0" ${f.axis === 0 ? 'selected' : ''}>1</option>
                         <option value="1" ${f.axis === 1 ? 'selected' : ''}>2</option>
                     </select>
                     <div class="uav-style-preview" style="border-bottom: 2.5px solid ${f.color};" title="Curve Color">
                         <span style="color:${f.color}; font-weight:700;">&#8212;</span>
                     </div>
-                    <button class="uav-trash-btn" onclick="removeField('${f.name}')" title="Delete Channel">
+                    <button class="uav-trash-btn" onclick="removeField(${idx})" title="Delete Channel">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                             <polyline points="3 6 5 6 21 6"></polyline>
                             <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -3020,27 +3033,38 @@
             activeFields.forEach(f => {
                 let minStr = '--', maxStr = '--', meanStr = '--';
                 if (dataSlice.length > 0) {
-                    let key = FIELD_ALIAS_MAP[f.name];
-                    if (!key) {
-                        const parts = f.name.split('.');
-                        const col = (parts.length > 1 ? parts[1] : parts[0]).toLowerCase();
-                        if (dataSlice[0] && dataSlice[0][col] !== undefined) key = col;
-                        else if (dataSlice[0] && dataSlice[0][f.name] !== undefined) key = f.name;
-                    }
-                    if (key) {
-                        const vals = dataSlice.map(r => r[key]).filter(v => v !== null && v !== undefined && !isNaN(v));
-                        if (vals.length > 0) {
-                            let minVal = vals[0], maxVal = vals[0], sumVal = 0;
-                            for (let i = 0; i < vals.length; i++) {
-                                const v = vals[i];
-                                if (v < minVal) minVal = v;
-                                if (v > maxVal) maxVal = v;
-                                sumVal += v;
-                            }
-                            minStr = minVal.toFixed(2);
-                            maxStr = maxVal.toFixed(2);
-                            meanStr = (sumVal / vals.length).toFixed(2);
+                    let vals = [];
+                    if (f.expr) {
+                        try {
+                            const evalFn = compileExpression(f.expr);
+                            vals = dataSlice.map(r => evalFn(r)).filter(v => v !== null && v !== undefined && !isNaN(v) && isFinite(v));
+                        } catch (err) {
+                            console.warn("Ribbon eval error for expr:", f.expr, err);
                         }
+                    } else {
+                        let key = FIELD_ALIAS_MAP[f.name];
+                        if (!key) {
+                            const parts = f.name.split('.');
+                            const col = (parts.length > 1 ? parts[1] : parts[0]).toLowerCase();
+                            if (dataSlice[0] && dataSlice[0][col] !== undefined) key = col;
+                            else if (dataSlice[0] && dataSlice[0][f.name] !== undefined) key = f.name;
+                        }
+                        if (key) {
+                            vals = dataSlice.map(r => r[key]).filter(v => v !== null && v !== undefined && !isNaN(v));
+                        }
+                    }
+
+                    if (vals.length > 0) {
+                        let minVal = vals[0], maxVal = vals[0], sumVal = 0;
+                        for (let i = 0; i < vals.length; i++) {
+                            const v = vals[i];
+                            if (v < minVal) minVal = v;
+                            if (v > maxVal) maxVal = v;
+                            sumVal += v;
+                        }
+                        minStr = minVal.toFixed(2);
+                        maxStr = maxVal.toFixed(2);
+                        meanStr = (sumVal / vals.length).toFixed(2);
                     }
                 }
 
@@ -3065,16 +3089,23 @@
             activeFields.forEach(f => {
                 const idSafe = f.name.replace(/[^a-zA-Z0-9]/g, '_');
                 let val = null;
-                let key = FIELD_ALIAS_MAP[f.name];
-                if (key && sample[key] !== undefined) {
-                    val = sample[key];
+                if (f.expr) {
+                    try {
+                        const evalFn = compileExpression(f.expr);
+                        val = evalFn(sample);
+                    } catch (e) {}
                 } else {
-                    const parts = f.name.split('.');
-                    const col = (parts.length > 1 ? parts[1] : parts[0]).toLowerCase();
-                    if (sample[col] !== undefined) {
-                        val = sample[col];
-                    } else if (sample[f.name] !== undefined) {
-                        val = sample[f.name];
+                    let key = FIELD_ALIAS_MAP[f.name];
+                    if (key && sample[key] !== undefined) {
+                        val = sample[key];
+                    } else {
+                        const parts = f.name.split('.');
+                        const col = (parts.length > 1 ? parts[1] : parts[0]).toLowerCase();
+                        if (sample[col] !== undefined) {
+                            val = sample[col];
+                        } else if (sample[f.name] !== undefined) {
+                            val = sample[f.name];
+                        }
                     }
                 }
                 const valStr = (val !== null && typeof val === 'number') ? val.toFixed(2) : '--';
@@ -3172,22 +3203,35 @@
             const y2Fields = [];
 
             activeFields.forEach(f => {
-                let key = FIELD_ALIAS_MAP[f.name];
-                if (!key) {
-                    const parts = f.name.split('.');
-                    const col = (parts.length > 1 ? parts[1] : parts[0]).toLowerCase();
-                    if (tele[0] && tele[0][col] !== undefined) {
-                        key = col;
-                    } else if (tele[0] && tele[0][f.name] !== undefined) {
-                        key = f.name;
-                    }
-                }
                 let yData = [];
-
-                if (key && tele[0][key] !== undefined) {
-                    yData = tele.map(r => r[key]);
+                if (f.expr) {
+                    try {
+                        const evalFn = compileExpression(f.expr);
+                        yData = tele.map(r => {
+                            const v = evalFn(r);
+                            return (v !== null && v !== undefined && isFinite(v)) ? v : null;
+                        });
+                    } catch (err) {
+                        console.warn("Plot eval error for expr:", f.expr, err);
+                        yData = tele.map(() => null);
+                    }
                 } else {
-                    yData = tele.map(r => (r[f.name] !== undefined ? r[f.name] : (r.tas || 0)));
+                    let key = FIELD_ALIAS_MAP[f.name];
+                    if (!key) {
+                        const parts = f.name.split('.');
+                        const col = (parts.length > 1 ? parts[1] : parts[0]).toLowerCase();
+                        if (tele[0] && tele[0][col] !== undefined) {
+                            key = col;
+                        } else if (tele[0] && tele[0][f.name] !== undefined) {
+                            key = f.name;
+                        }
+                    }
+
+                    if (key && tele[0][key] !== undefined) {
+                        yData = tele.map(r => r[key]);
+                    } else {
+                        yData = tele.map(r => (r[f.name] !== undefined ? r[f.name] : (r.tas || 0)));
+                    }
                 }
 
                 if (f.axis === 1) {
@@ -3905,18 +3949,275 @@
             updateResultsTableUI();
         }
 
-        function openExpressionModal() { document.getElementById('expression-modal').style.display = 'flex'; }
-        function closeExpressionModal() { document.getElementById('expression-modal').style.display = 'none'; }
-        function openTestTableModal() { document.getElementById('table-modal').style.display = 'flex'; }
-        function closeTestTableModal() { document.getElementById('table-modal').style.display = 'none'; }
+        // Custom Expression Compiler & Modal Management
+        const exprCompiledCache = new Map();
 
-        function addCustomExpression() {
-            const expr = document.getElementById('custom-expr-input').value.trim();
-            if (expr) {
-                addFieldToPlot(`Expr: ${expr}`, 0);
-                closeExpressionModal();
+        function compileExpression(exprStr) {
+            if (!exprStr || typeof exprStr !== 'string') {
+                return () => 0;
+            }
+            const cleanExpr = exprStr.trim();
+            if (exprCompiledCache.has(cleanExpr)) {
+                return exprCompiledCache.get(cleanExpr);
+            }
+
+            // Convert exponentiation operator ^ to **
+            let code = cleanExpr.replace(/\^/g, '**');
+
+            // Set of recognized Math functions and constants
+            const mathFuncs = new Set([
+                'sqrt', 'abs', 'sin', 'cos', 'tan', 'asin', 'acos', 'atan', 'atan2',
+                'exp', 'log', 'log10', 'pow', 'round', 'floor', 'ceil', 'min', 'max',
+                'PI', 'E'
+            ]);
+
+            // Human flight aliases
+            const humanAliases = {
+                'airspeed': 'tas',
+                'groundspeed': 'gs',
+                'altitude': 'alt',
+                'agl': 'rel_alt',
+                'height': 'rel_alt',
+                'throttle': 'tho',
+                'voltage': 'volt',
+                'current': 'curr',
+                'watts': 'power'
+            };
+
+            // Build case-insensitive lookup for FIELD_ALIAS_MAP
+            const fieldMapLower = {};
+            if (typeof FIELD_ALIAS_MAP !== 'undefined') {
+                Object.keys(FIELD_ALIAS_MAP).forEach(k => {
+                    fieldMapLower[k.toLowerCase()] = FIELD_ALIAS_MAP[k];
+                });
+            }
+
+            // Replace identifier tokens (e.g. BAT.Volt, sqrt, alt, etc.)
+            code = code.replace(/([a-zA-Z_][a-zA-Z0-9_.]*)/g, (match) => {
+                const lower = match.toLowerCase();
+
+                // Math function or constant
+                if (mathFuncs.has(match) || mathFuncs.has(lower)) {
+                    const mathName = mathFuncs.has(match) ? match : lower;
+                    return `Math.${mathName}`;
+                }
+
+                // JS literals / keywords
+                if (['true', 'false', 'null', 'undefined', 'nan', 'math'].includes(lower)) {
+                    return match;
+                }
+
+                // Known alias in FIELD_ALIAS_MAP (e.g. BAT.Volt -> volt)
+                if (fieldMapLower[lower]) {
+                    const prop = fieldMapLower[lower];
+                    return `(r.${prop} !== undefined && r.${prop} !== null ? Number(r.${prop}) : 0)`;
+                }
+
+                // Dot notation (e.g. MSG.Field)
+                if (match.includes('.')) {
+                    const parts = match.split('.');
+                    const fieldPart = parts[parts.length - 1].toLowerCase();
+                    return `(r['${fieldPart}'] !== undefined ? Number(r['${fieldPart}']) : (r['${match}'] !== undefined ? Number(r['${match}']) : 0))`;
+                }
+
+                // Human alias
+                if (humanAliases[lower]) {
+                    const prop = humanAliases[lower];
+                    return `(r.${prop} !== undefined && r.${prop} !== null ? Number(r.${prop}) : 0)`;
+                }
+
+                // Direct property on record (alt, field_elev, tas, etc.)
+                return `(r['${match}'] !== undefined ? Number(r['${match}']) : (r['${lower}'] !== undefined ? Number(r['${lower}']) : 0))`;
+            });
+
+            try {
+                const fn = new Function('r', 'Math', `
+                    try {
+                        const val = Number(${code});
+                        return (isFinite(val) && !isNaN(val)) ? val : null;
+                    } catch(e) {
+                        return null;
+                    }
+                `);
+                // Test run with dummy telemetry record
+                fn({ volt: 24, curr: 5, tas: 18, alt: 100, field_elev: 50, vwn: 0, vwe: 0, time: 0 }, Math);
+                const wrapper = (rec) => fn(rec || {}, Math);
+                exprCompiledCache.set(cleanExpr, wrapper);
+                return wrapper;
+            } catch (err) {
+                console.error("Expression compilation failure:", exprStr, "Compiled code:", code, err);
+                throw new Error("Invalid formula syntax: " + err.message);
             }
         }
+
+        function openExpressionModal() {
+            const m = document.getElementById('expression-modal');
+            if (m) {
+                m.style.display = 'flex';
+                const err = document.getElementById('custom-expr-error');
+                if (err) {
+                    err.style.display = 'none';
+                    err.textContent = '';
+                }
+                setTimeout(() => {
+                    const inp = document.getElementById('custom-expr-input');
+                    if (inp) {
+                        inp.focus();
+                        inp.select();
+                    }
+                }, 60);
+            }
+        }
+
+        function closeExpressionModal() {
+            const m = document.getElementById('expression-modal');
+            if (m) m.style.display = 'none';
+        }
+
+        function setCustomExprPreset(expr, label, axis) {
+            const exprInput = document.getElementById('custom-expr-input');
+            const labelInput = document.getElementById('custom-expr-label');
+            const axisSelect = document.getElementById('custom-expr-axis');
+            const errorBox = document.getElementById('custom-expr-error');
+
+            if (exprInput) exprInput.value = expr;
+            if (labelInput) labelInput.value = label;
+            if (axisSelect && axis !== undefined) axisSelect.value = String(axis);
+            if (errorBox) {
+                errorBox.style.display = 'none';
+                errorBox.textContent = '';
+            }
+        }
+
+        function addCustomExpression() {
+            const exprInput = document.getElementById('custom-expr-input');
+            const labelInput = document.getElementById('custom-expr-label');
+            const axisSelect = document.getElementById('custom-expr-axis');
+            const errorBox = document.getElementById('custom-expr-error');
+
+            if (errorBox) {
+                errorBox.style.display = 'none';
+                errorBox.textContent = '';
+            }
+
+            if (!exprInput) return;
+            const expr = exprInput.value.trim();
+            if (!expr) {
+                if (errorBox) {
+                    errorBox.textContent = "Please enter an expression formula.";
+                    errorBox.style.display = 'block';
+                }
+                return;
+            }
+
+            // Test and compile expression
+            try {
+                const evalFn = compileExpression(expr);
+                const sampleRec = (currentFlightData && currentFlightData.telemetry && currentFlightData.telemetry[0])
+                    ? currentFlightData.telemetry[0]
+                    : { volt: 24, curr: 5, tas: 18, alt: 100, field_elev: 50 };
+                evalFn(sampleRec);
+            } catch (err) {
+                if (errorBox) {
+                    errorBox.textContent = err.message || "Invalid formula syntax.";
+                    errorBox.style.display = 'block';
+                }
+                return;
+            }
+
+            if (activeFields.length >= 8) {
+                alert("Maximum 8 simultaneous curves supported.");
+                return;
+            }
+
+            let curveLabel = labelInput ? labelInput.value.trim() : '';
+            if (!curveLabel) {
+                curveLabel = `Expr: ${expr}`;
+            }
+
+            // Avoid collisions with existing curve names
+            if (activeFields.some(f => f.name === curveLabel)) {
+                curveLabel = `${curveLabel} (${activeFields.length + 1})`;
+            }
+
+            const axis = axisSelect ? parseInt(axisSelect.value, 10) : 0;
+            const color = PALETTE[activeFields.length % PALETTE.length];
+
+            activeFields.push({
+                id: 'expr_' + Date.now(),
+                name: curveLabel,
+                expr: expr,
+                axis: axis,
+                color: color
+            });
+
+            renderActiveFieldChips();
+            setPlotVisibility(true);
+            updatePlot();
+            closeExpressionModal();
+
+            // Clear inputs for next usage
+            exprInput.value = '';
+            if (labelInput) labelInput.value = '';
+        }
+
+        function openTestTableModal() { const m = document.getElementById('table-modal'); if (m) m.style.display = 'flex'; }
+        function closeTestTableModal() { const m = document.getElementById('table-modal'); if (m) m.style.display = 'none'; }
     </script>
+
+    <!-- Custom Expression Modal Dialog -->
+    <div id="expression-modal" class="modal-overlay" onclick="if(event.target===this) closeExpressionModal()">
+        <div class="modal-box" style="width: 520px; max-width: 95vw; border: 1px solid rgba(0, 229, 255, 0.4); box-shadow: 0 15px 40px rgba(0, 0, 0, 0.95);">
+            <div class="modal-title" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span>ADD CUSTOM EXPRESSION</span>
+                <button type="button" onclick="closeExpressionModal()" style="background: none; border: none; color: #94a3b8; font-size: 18px; line-height: 1; cursor: pointer; padding: 0 4px;" title="Close">&times;</button>
+            </div>
+            <p style="font-size: 11px; color: #94a3b8; margin: 0 0 12px 0; line-height: 1.4;">
+                Enter a mathematical formula using telemetry signals (e.g. <code>BAT.Volt * BAT.Curr</code>, <code>ARSP.Airspeed * 3.6</code>, <code>alt - field_elev</code>, <code>sqrt(XKF2.VWN^2 + XKF2.VWE^2)</code>).
+            </p>
+
+            <!-- Quick Preset Chips -->
+            <div style="margin-bottom: 12px;">
+                <div style="font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 5px; letter-spacing: 0.5px;">Quick Presets</div>
+                <div style="display: flex; flex-wrap: wrap; gap: 5px;">
+                    <button type="button" class="uav-pill-action-btn" style="font-size: 10px; padding: 2px 7px;" onclick="setCustomExprPreset('BAT.Volt * BAT.Curr', 'Power (W)', 1)">Power (W)</button>
+                    <button type="button" class="uav-pill-action-btn" style="font-size: 10px; padding: 2px 7px;" onclick="setCustomExprPreset('ARSP.Airspeed * 3.6', 'Airspeed (km/h)', 0)">Airspeed (km/h)</button>
+                    <button type="button" class="uav-pill-action-btn" style="font-size: 10px; padding: 2px 7px;" onclick="setCustomExprPreset('GPS.Spd * 3.6', 'Groundspeed (km/h)', 0)">Groundspeed (km/h)</button>
+                    <button type="button" class="uav-pill-action-btn" style="font-size: 10px; padding: 2px 7px;" onclick="setCustomExprPreset('alt - field_elev', 'Height AGL (m)', 0)">Height AGL (m)</button>
+                    <button type="button" class="uav-pill-action-btn" style="font-size: 10px; padding: 2px 7px;" onclick="setCustomExprPreset('sqrt(XKF2.VWN^2 + XKF2.VWE^2)', 'Wind Speed (m/s)', 0)">Wind Speed (m/s)</button>
+                    <button type="button" class="uav-pill-action-btn" style="font-size: 10px; padding: 2px 7px;" onclick="setCustomExprPreset('0.5 * Calc.Density * ARSP.Airspeed^2', 'Dynamic Press q (Pa)', 1)">Dyn Press q (Pa)</button>
+                </div>
+            </div>
+
+            <!-- Formula Input -->
+            <label style="display: block; font-size: 10.5px; font-weight: 700; color: #cbd5e1; text-transform: uppercase; margin-bottom: 4px; letter-spacing: 0.5px;">
+                Mathematical Expression <span style="color: #ef4444;">*</span>
+            </label>
+            <input type="text" id="custom-expr-input" class="modal-input" placeholder="e.g. BAT.Volt * BAT.Curr" style="margin-bottom: 10px;" onkeydown="if(event.key==='Enter') addCustomExpression()">
+
+            <!-- Label Input -->
+            <label style="display: block; font-size: 10.5px; font-weight: 700; color: #cbd5e1; text-transform: uppercase; margin-bottom: 4px; letter-spacing: 0.5px;">
+                Curve Label (Optional)
+            </label>
+            <input type="text" id="custom-expr-label" class="modal-input" placeholder="e.g. Total Electrical Power (W)" style="margin-bottom: 12px;">
+
+            <!-- Target Y-Axis Selection -->
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; background: rgba(15, 23, 42, 0.6); padding: 8px 10px; border-radius: 4px; border: 1px solid #1e293b;">
+                <label style="font-size: 11px; font-weight: 600; color: #cbd5e1;">Target Plot Axis:</label>
+                <select id="custom-expr-axis" style="background: #0b111e; color: #f8fafc; border: 1px solid #334155; border-radius: 4px; padding: 4px 8px; font-size: 11px; outline: none;">
+                    <option value="0">Axis 1 (Left Y1)</option>
+                    <option value="1">Axis 2 (Right Y2)</option>
+                </select>
+            </div>
+
+            <!-- Error message feedback -->
+            <div id="custom-expr-error" style="display: none; color: #f87171; font-size: 11px; font-family: 'B612 Mono', monospace; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); padding: 6px 10px; border-radius: 4px; margin-bottom: 12px;"></div>
+
+            <div class="modal-actions">
+                <button type="button" class="uav-pill-action-btn" onclick="closeExpressionModal()" style="padding: 5px 12px; font-size: 11px;">Cancel</button>
+                <button type="button" class="btn" onclick="addCustomExpression()" style="padding: 5px 14px; font-size: 11px; background: #00e5ff; color: #080c14; font-weight: 700; border: none; border-radius: 4px; cursor: pointer;">Add to Plot</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
