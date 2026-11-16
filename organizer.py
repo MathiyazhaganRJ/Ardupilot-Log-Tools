@@ -303,12 +303,17 @@ def organize_flight_logs(source_folder, dest_folder, structure="year_month_date"
 def pick_folder_native(title="Select Folder", initial_dir=""):
     """
     Launches a dedicated subprocess to prompt the native Windows Folder Picker dialog.
-    Directly mirrors the proven implementation from the original ArduPilot Log Manager tool.
+    Directly mirrors the proven implementation from the original ArduPilot Log Manager tool,
+    with STARTF_USESHOWWINDOW / SW_SHOW to ensure visibility.
     """
     picker_script = os.path.join(os.path.dirname(os.path.abspath(__file__)), "picker.py")
+    si = subprocess.STARTUPINFO()
+    si.dwFlags = subprocess.STARTF_USESHOWWINDOW
+    si.wShowWindow = 5 # SW_SHOW
     try:
         p = subprocess.run(
             [sys.executable, picker_script, title or "Select Folder"],
+            startupinfo=si,
             capture_output=True,
             text=True,
             timeout=180
