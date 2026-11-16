@@ -304,10 +304,11 @@ def pick_folder_native(title="Select Folder", initial_dir=""):
     """
     Launches a dedicated subprocess to prompt the native Windows Folder Picker dialog.
     Directly mirrors the proven implementation from the original ArduPilot Log Manager tool,
-    with STARTF_USESHOWWINDOW / SW_SHOW to ensure visibility.
+    with explicit interactive user desktop routing to WinSta0\\Default.
     """
     picker_script = os.path.join(os.path.dirname(os.path.abspath(__file__)), "picker.py")
     si = subprocess.STARTUPINFO()
+    si.lpDesktop = r"WinSta0\Default"
     si.dwFlags = subprocess.STARTF_USESHOWWINDOW
     si.wShowWindow = 5 # SW_SHOW
     try:
