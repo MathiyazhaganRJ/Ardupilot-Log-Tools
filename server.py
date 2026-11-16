@@ -474,7 +474,7 @@ class LogViewerHandler(SimpleHTTPRequestHandler):
                 self._send_json({'success': False, 'error': str(e)})
             return
 
-        # 7. API: Organize Flight Logs into Year/Month/Date Hierarchies
+        # 7. API: Organize Flight Logs into Year/Month/Date Hierarchies (with Live Streaming Progress)
         elif path == '/api/organize_logs':
             try:
                 length = int(self.headers.get('Content-Length', 0))
@@ -484,10 +484,38 @@ class LogViewerHandler(SimpleHTTPRequestHandler):
                 dest_folder = req.get('dest_folder', '').strip()
                 structure = req.get('structure', 'year_month_date')
                 mode = req.get('mode', 'copy')
-                res = organizer.organize_flight_logs(source_folder, dest_folder, structure=structure, mode=mode)
-                self._send_json(res)
+                is_stream = req.get('stream', True)
+
+                if is_stream:
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'application/x-ndjson')
+                    self.send_header('Cache-Control', 'no-cache, no-store, must-revalidate')
+                    self.send_header('Access-Control-Allow-Origin', '*')
+                    self.end_headers()
+
+                    def on_progress(p_data):
+                        try:
+                            line = (json.dumps({'type': 'progress', **p_data}) + '\n').encode('utf-8')
+                            self.wfile.write(line)
+                            self.wfile.flush()
+                        except Exception:
+                            pass
+
+                    res = organizer.organize_flight_logs(source_folder, dest_folder, structure=structure, mode=mode, progress_callback=on_progress)
+                    try:
+                        final_line = (json.dumps({'type': 'complete', **res}) + '\n').encode('utf-8')
+                        self.wfile.write(final_line)
+                        self.wfile.flush()
+                    except Exception:
+                        pass
+                else:
+                    res = organizer.organize_flight_logs(source_folder, dest_folder, structure=structure, mode=mode)
+                    self._send_json(res)
             except Exception as e:
-                self._send_json({'success': False, 'error': str(e)})
+                try:
+                    self._send_json({'success': False, 'error': str(e)})
+                except Exception:
+                    pass
             return
 
         # 8. API: Open File/Directory in Windows Explorer

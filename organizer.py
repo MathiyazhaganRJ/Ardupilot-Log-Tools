@@ -261,7 +261,20 @@ def organize_flight_logs(source_folder, dest_folder, structure="year_month_date"
             })
 
         if progress_callback:
-            progress_callback(idx + 1, total, filename)
+            try:
+                progress_callback({
+                    'current': idx + 1,
+                    'total': total,
+                    'filename': filename,
+                    'status': stats['files'][-1]['status'] if stats['files'] else 'copied',
+                    'copied': stats['copied'],
+                    'moved': stats['moved'],
+                    'new_organized': stats['moved'] if is_move else stats['copied'],
+                    'skipped': stats['skipped'],
+                    'errors': stats['errors']
+                })
+            except TypeError:
+                progress_callback(idx + 1, total, filename)
 
     stats['new_organized'] = stats['moved'] if is_move else stats['copied']
     stats['created_folders'] = sorted(list(stats['created_folders']))

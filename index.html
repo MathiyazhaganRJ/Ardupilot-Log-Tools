@@ -5714,8 +5714,8 @@
                 startBtn.disabled = true;
                 startBtn.textContent = 'ORGANIZING...';
             }
-            if (progressBar) progressBar.style.width = '35%';
-            if (footerStatus) footerStatus.textContent = 'Processing and organizing telemetry files...';
+            if (progressBar) progressBar.style.width = '0%';
+            if (footerStatus) footerStatus.textContent = 'Preparing files for organization...';
             if (activityList) {
                 activityList.innerHTML = `<div style="color: #94a3b8; padding: 24px; text-align: center;"><div class="spinner" style="display:inline-block; margin-bottom: 8px;"></div><div>Organizing flight logs from "${sourceFolder}" into "${destFolder}"...</div></div>`;
             }
@@ -5782,11 +5782,72 @@
                         source_folder: sourceFolder,
                         dest_folder: destFolder,
                         structure: structure,
-                        mode: mode
+                        mode: mode,
+                        stream: true
                     })
                 });
-                const data = await res.json();
 
+                if (!res.ok) {
+                    throw new Error(`Server returned HTTP status ${res.status}`);
+                }
+
+                let finalData = null;
+
+                // Process streaming chunks
+                if (res.body && res.body.getReader) {
+                    const reader = res.body.getReader();
+                    const decoder = new TextDecoder();
+                    let buffer = '';
+
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        if (done) break;
+                        buffer += decoder.decode(value, { stream: true });
+                        const lines = buffer.split('\n');
+                        buffer = lines.pop(); // keep remainder
+
+                        for (const line of lines) {
+                            if (!line.trim()) continue;
+                            try {
+                                const msg = JSON.parse(line);
+                                if (msg.type === 'progress') {
+                                    const cur = msg.current || 0;
+                                    const tot = msg.total || 1;
+                                    const pct = Math.round((cur / tot) * 100);
+                                    if (progressBar) progressBar.style.width = `${pct}%`;
+
+                                    const verb = mode === 'move' ? 'Moving' : 'Archiving';
+                                    const statusBadge = msg.status === 'skipped' ? '<span style="color:#eab308; font-size:10px;">(duplicate skipped)</span>' : '<span style="color:#22c55e; font-size:10px;">(new organized)</span>';
+                                    if (footerStatus) {
+                                        footerStatus.innerHTML = `<span style="color: #22c55e; font-weight: 700;">${pct}%</span> <span style="color: #94a3b8;">${verb} ${cur}/${tot}:</span> <span style="color: #ffffff;">${msg.filename}</span> ${statusBadge}`;
+                                    }
+
+                                    const liveNew = (mode === 'move' ? msg.moved : msg.copied) || 0;
+                                    document.getElementById('org-cnt-total').textContent = tot;
+                                    document.getElementById('org-cnt-archived').textContent = liveNew;
+                                    document.getElementById('org-cnt-skipped').textContent = msg.skipped || 0;
+                                    document.getElementById('org-cnt-errors').textContent = msg.errors || 0;
+                                } else if (msg.type === 'complete') {
+                                    finalData = msg;
+                                }
+                            } catch (pe) {
+                                console.warn("Stream line parse warning:", pe);
+                            }
+                        }
+                    }
+
+                    if (buffer.trim()) {
+                        try {
+                            const msg = JSON.parse(buffer);
+                            if (msg.type === 'complete') finalData = msg;
+                            else if (!finalData) finalData = msg;
+                        } catch (e) {}
+                    }
+                } else {
+                    finalData = await res.json();
+                }
+
+                const data = finalData || { success: true, total: 0 };
                 if (progressBar) progressBar.style.width = '100%';
 
                 if (!data.success) {
