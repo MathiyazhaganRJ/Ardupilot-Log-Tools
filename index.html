@@ -1903,6 +1903,16 @@
                 <span>CHANNELS</span>
             </button>
 
+            <!-- Flight Log Organizer & Archiver Button -->
+            <button class="aero-btn-switch" id="btn-organize-logs" onclick="openOrganizerModal()" title="Organize & Archive Flight Logs by Year and Date">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                    <line x1="12" y1="11" x2="12" y2="17"></line>
+                    <line x1="9" y1="14" x2="15" y2="14"></line>
+                </svg>
+                <span>ORGANIZE LOGS</span>
+            </button>
+
             <div class="log-selector-container">
                 <!-- Import Log File Button -->
                 <button class="aero-btn-primary" onclick="triggerFilePicker()" title="Import ArduPilot .bin flight log file">
@@ -5173,6 +5183,278 @@
             a.download = filename;
             a.click();
         }
+
+        // --- ARDUPILOT FLIGHT LOG ORGANIZER CLIENT ---
+        let currentScannedLogs = [];
+
+        function openOrganizerModal() {
+            const savedSrc = localStorage.getItem('org_source_dir') || '';
+            const savedDest = localStorage.getItem('org_dest_dir') || 'C:\\Users\\KARSHAK_Tamal\\Desktop\\Logs';
+            const savedStruct = localStorage.getItem('org_structure') || 'year_month_date';
+            const savedMode = localStorage.getItem('org_mode') || 'copy';
+
+            const srcInput = document.getElementById('org-source-dir');
+            const destInput = document.getElementById('org-dest-dir');
+            const structSelect = document.getElementById('org-structure-select');
+
+            if (srcInput && !srcInput.value) srcInput.value = savedSrc;
+            if (destInput && !destInput.value) destInput.value = savedDest;
+            if (structSelect) structSelect.value = savedStruct;
+
+            const modeRadio = document.querySelector(`input[name="org-mode"][value="${savedMode}"]`);
+            if (modeRadio) modeRadio.checked = true;
+
+            const modal = document.getElementById('organizer-modal');
+            if (modal) {
+                modal.style.display = 'flex';
+                if (srcInput && srcInput.value.trim() && currentScannedLogs.length === 0) {
+                    scanOrganizerSource();
+                }
+            }
+        }
+
+        function closeOrganizerModal() {
+            const modal = document.getElementById('organizer-modal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        async function pickOrganizerFolder(mode) {
+            const btn = document.getElementById(mode === 'source' ? 'org-btn-browse-src' : 'org-btn-browse-dest');
+            const originalText = btn ? btn.textContent : '';
+            if (btn) btn.textContent = 'Selecting...';
+
+            try {
+                const res = await fetch(`/api/select_folder?mode=${mode}`);
+                const data = await res.json();
+                if (data.success && data.path) {
+                    if (mode === 'source') {
+                        const srcInput = document.getElementById('org-source-dir');
+                        if (srcInput) {
+                            srcInput.value = data.path;
+                            localStorage.setItem('org_source_dir', data.path);
+                            scanOrganizerSource();
+                        }
+                    } else {
+                        const destInput = document.getElementById('org-dest-dir');
+                        if (destInput) {
+                            destInput.value = data.path;
+                            localStorage.setItem('org_dest_dir', data.path);
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error("Folder picker error:", err);
+            } finally {
+                if (btn) btn.textContent = originalText;
+            }
+        }
+
+        async function scanOrganizerSource() {
+            const srcInput = document.getElementById('org-source-dir');
+            if (!srcInput) return;
+            const sourceFolder = srcInput.value.trim();
+            if (!sourceFolder) {
+                alert("Please enter or browse to a Source Folder first.");
+                return;
+            }
+
+            localStorage.setItem('org_source_dir', sourceFolder);
+            const statusSummary = document.getElementById('org-scan-summary');
+            const fileListContainer = document.getElementById('org-activity-list');
+            if (statusSummary) {
+                statusSummary.innerHTML = `<span style="color: #94a3b8;">Scanning directory for .bin, .log, .tlog files...</span>`;
+            }
+
+            try {
+                const res = await fetch('/api/scan_source', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ source_folder: sourceFolder })
+                });
+                const data = await res.json();
+
+                if (!data.success) {
+                    if (statusSummary) {
+                        statusSummary.innerHTML = `<span style="color: #ef4444;">Error: ${data.error || 'Scan failed'}</span>`;
+                    }
+                    return;
+                }
+
+                currentScannedLogs = data.logs || [];
+                if (statusSummary) {
+                    statusSummary.innerHTML = `<span style="color: #22c55e; font-weight: 700;">Discovered ${data.count} flight logs (${data.total_size_mb} MB)</span>`;
+                }
+
+                if (fileListContainer) {
+                    if (currentScannedLogs.length === 0) {
+                        fileListContainer.innerHTML = `<div style="color: #64748b; padding: 16px; text-align: center;">No .bin, .log, or .tlog flight logs found in this folder.</div>`;
+                    } else {
+                        let html = '';
+                        currentScannedLogs.slice(0, 100).forEach(log => {
+                            html += `
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding: 4px 6px; border-bottom: 1px solid #1a1c22; font-size: 11px;">
+                                    <div style="color: #ffffff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 55%;" title="${log.filename}">
+                                        ${log.filename}
+                                    </div>
+                                    <div style="display: flex; gap: 8px; align-items: center;">
+                                        <span style="color: #22c55e;">${log.date}</span>
+                                        <span style="color: #64748b;">${log.size_mb} MB</span>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        if (data.count > 100) {
+                            html += `<div style="color: #64748b; padding: 6px; text-align: center; font-size: 10px;">... and ${data.count - 100} more files</div>`;
+                        }
+                        fileListContainer.innerHTML = html;
+                    }
+                }
+            } catch (err) {
+                console.error("Scan error:", err);
+                if (statusSummary) {
+                    statusSummary.innerHTML = `<span style="color: #ef4444;">Scan request failed: ${err.message}</span>`;
+                }
+            }
+        }
+
+        async function startLogOrganization() {
+            const srcInput = document.getElementById('org-source-dir');
+            const destInput = document.getElementById('org-dest-dir');
+            const structSelect = document.getElementById('org-structure-select');
+            const modeInput = document.querySelector('input[name="org-mode"]:checked');
+
+            if (!srcInput || !destInput) return;
+            const sourceFolder = srcInput.value.trim();
+            const destFolder = destInput.value.trim();
+            const structure = structSelect ? structSelect.value : 'year_month_date';
+            const mode = modeInput ? modeInput.value : 'copy';
+
+            if (!sourceFolder) {
+                alert("Please specify a Source Directory containing your flight logs.");
+                return;
+            }
+            if (!destFolder) {
+                alert("Please specify a Destination Directory to archive into.");
+                return;
+            }
+
+            localStorage.setItem('org_source_dir', sourceFolder);
+            localStorage.setItem('org_dest_dir', destFolder);
+            localStorage.setItem('org_structure', structure);
+            localStorage.setItem('org_mode', mode);
+
+            const startBtn = document.getElementById('org-start-btn');
+            const progressBar = document.getElementById('org-progress-bar');
+            const footerStatus = document.getElementById('org-footer-status');
+            const activityList = document.getElementById('org-activity-list');
+
+            if (startBtn) {
+                startBtn.disabled = true;
+                startBtn.textContent = 'ORGANIZING...';
+            }
+            if (progressBar) progressBar.style.width = '35%';
+            if (footerStatus) footerStatus.textContent = 'Processing and organizing telemetry files...';
+
+            try {
+                const res = await fetch('/api/organize_logs', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        source_folder: sourceFolder,
+                        dest_folder: destFolder,
+                        structure: structure,
+                        mode: mode
+                    })
+                });
+                const data = await res.json();
+
+                if (progressBar) progressBar.style.width = '100%';
+
+                if (!data.success) {
+                    alert("Organization error: " + (data.error || 'Unknown error'));
+                    if (footerStatus) footerStatus.textContent = "Error: " + (data.error || 'Failed');
+                    return;
+                }
+
+                // Update counters
+                document.getElementById('org-cnt-total').textContent = data.total || 0;
+                document.getElementById('org-cnt-archived').textContent = (mode === 'move' ? data.moved : data.copied) || 0;
+                document.getElementById('org-cnt-skipped').textContent = data.skipped || 0;
+                document.getElementById('org-cnt-errors').textContent = data.errors || 0;
+
+                if (footerStatus) {
+                    const actionName = mode === 'move' ? 'moved' : 'archived';
+                    footerStatus.innerHTML = `<span style="color: #22c55e; font-weight: 700;">Completed: ${data.copied || data.moved} ${actionName}, ${data.skipped} skipped duplicates.</span>`;
+                }
+
+                if (activityList && data.files) {
+                    let html = '';
+                    data.files.forEach(f => {
+                        let badgeColor = '#22c55e';
+                        let badgeText = f.status.toUpperCase();
+                        if (f.status === 'skipped') {
+                            badgeColor = '#eab308';
+                            badgeText = 'SKIPPED';
+                        } else if (f.status === 'error') {
+                            badgeColor = '#ef4444';
+                            badgeText = 'ERROR';
+                        }
+
+                        const escapedDest = (f.dest || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+                        html += `
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 5px 6px; border-bottom: 1px solid #1a1c22; font-size: 11px;">
+                                <div style="display: flex; align-items: center; gap: 8px; max-width: 65%; overflow: hidden;">
+                                    <span style="background: ${badgeColor}22; color: ${badgeColor}; border: 1px solid ${badgeColor}55; padding: 1px 5px; border-radius: 3px; font-size: 9px; font-weight: 700;">${badgeText}</span>
+                                    <span style="color: #ffffff; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;" title="${f.dest || f.src}">${f.filename}</span>
+                                </div>
+                                <div style="display: flex; gap: 6px; align-items: center;">
+                                    <span style="color: #64748b; font-size: 10px;">${f.size_mb} MB</span>
+                                    ${f.dest ? `
+                                        <button type="button" class="expr-chip-btn" onclick="openPathInExplorer('${escapedDest}')" title="Highlight in Windows Explorer">Explorer</button>
+                                        <button type="button" class="expr-chip-btn" style="border-color: #22c55e55; color: #22c55e;" onclick="loadOrganizedLogDirectly('${escapedDest}')" title="Open and analyze in Flight Log Analyser">Analyze</button>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        `;
+                    });
+                    activityList.innerHTML = html;
+                }
+
+                if (typeof loadAvailableLogs === 'function') {
+                    loadAvailableLogs(destFolder);
+                }
+
+            } catch (err) {
+                console.error("Organize execution error:", err);
+                if (footerStatus) footerStatus.textContent = "Execution failed: " + err.message;
+            } finally {
+                if (startBtn) {
+                    startBtn.disabled = false;
+                    startBtn.textContent = 'START ORGANIZING';
+                }
+            }
+        }
+
+        async function openPathInExplorer(targetPath) {
+            const destPath = targetPath || (document.getElementById('org-dest-dir') ? document.getElementById('org-dest-dir').value.trim() : '');
+            if (!destPath) return;
+            try {
+                await fetch('/api/open_folder', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ path: destPath })
+                });
+            } catch (err) {
+                console.error("Open Explorer error:", err);
+            }
+        }
+
+        function loadOrganizedLogDirectly(filePath) {
+            closeOrganizerModal();
+            if (typeof loadLogByPath === 'function') {
+                loadLogByPath(filePath);
+            }
+        }
     </script>
 
     <!-- Custom Expression Modal Dialog -->
@@ -5309,6 +5591,131 @@
             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; font-size: 10.5px; color: #94a3b8;">
                 <div id="params-modal-counter">0 parameters loaded</div>
                 <button type="button" class="uav-pill-action-btn" onclick="closeParametersModal()" style="padding: 5px 14px; font-size: 11px;">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ArduPilot Flight Log Organizer & Archiver Modal Dialog -->
+    <div id="organizer-modal" class="modal-overlay" onclick="if(event.target===this) closeOrganizerModal()">
+        <div class="modal-box" style="width: 760px; max-width: 95vw; max-height: 88vh; display: flex; flex-direction: column; border: 1px solid #282a32; box-shadow: 0 15px 40px rgba(0, 0, 0, 0.95); padding: 18px 22px; background: #0f1013;">
+            <div class="modal-title" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                        <line x1="12" y1="11" x2="12" y2="17"></line>
+                        <line x1="9" y1="14" x2="15" y2="14"></line>
+                    </svg>
+                    <span>ARDUPILOT FLIGHT LOG ORGANIZER & ARCHIVER</span>
+                </div>
+                <button type="button" onclick="closeOrganizerModal()" style="background: none; border: none; color: #94a3b8; font-size: 18px; line-height: 1; cursor: pointer; padding: 0 4px;" title="Close">&times;</button>
+            </div>
+            <p style="font-size: 11px; color: #94a3b8; margin: 0 0 14px 0; line-height: 1.4;">
+                Automatically scans unorganized telemetry logs (.bin, .log, .tlog) and organizes them into structured Year, Month, and Date folders. Identical duplicate files are automatically skipped.
+            </p>
+
+            <!-- 1. Source Folder Selection -->
+            <div style="background: #090a0c; border: 1px solid #24262c; border-radius: 5px; padding: 10px 12px; margin-bottom: 10px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <label style="font-size: 10.5px; font-weight: 700; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.5px;">
+                        1. Source Log Directory (SD Card, Downloads, or Raw Folder)
+                    </label>
+                    <div id="org-scan-summary" style="font-size: 10px; font-family: 'B612 Mono', monospace;"></div>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" id="org-source-dir" class="modal-input" placeholder="e.g. E:\ or C:\Users\KARSHAK_Tamal\Downloads\FlightLogs" style="margin-bottom: 0; flex: 1;">
+                    <button type="button" id="org-btn-browse-src" class="uav-pill-action-btn" onclick="pickOrganizerFolder('source')" style="padding: 6px 12px; font-size: 11px; white-space: nowrap;" title="Select folder via native Windows directory picker">Browse...</button>
+                    <button type="button" class="uav-pill-action-btn" onclick="scanOrganizerSource()" style="padding: 6px 12px; font-size: 11px; white-space: nowrap; background: #22c55e22; border-color: #22c55e55; color: #22c55e;" title="Scan folder for log files">Scan</button>
+                </div>
+            </div>
+
+            <!-- 2. Destination Folder Selection -->
+            <div style="background: #090a0c; border: 1px solid #24262c; border-radius: 5px; padding: 10px 12px; margin-bottom: 10px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <label style="font-size: 10.5px; font-weight: 700; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.5px;">
+                        2. Destination Archive Directory (Organized Storage)
+                    </label>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" id="org-dest-dir" class="modal-input" placeholder="e.g. C:\Users\KARSHAK_Tamal\Desktop\Logs" style="margin-bottom: 0; flex: 1;">
+                    <button type="button" id="org-btn-browse-dest" class="uav-pill-action-btn" onclick="pickOrganizerFolder('dest')" style="padding: 6px 12px; font-size: 11px; white-space: nowrap;" title="Select folder via native Windows directory picker">Browse...</button>
+                    <button type="button" class="uav-pill-action-btn" onclick="openPathInExplorer()" style="padding: 6px 12px; font-size: 11px; white-space: nowrap;" title="Open destination directory in Windows Explorer">Explorer</button>
+                </div>
+            </div>
+
+            <!-- 3. Organization Configuration Row -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                <!-- Hierarchy Selection -->
+                <div style="background: #090a0c; border: 1px solid #24262c; border-radius: 5px; padding: 8px 12px;">
+                    <label style="display: block; font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 4px; letter-spacing: 0.5px;">
+                        Folder Structure Hierarchy
+                    </label>
+                    <select id="org-structure-select" class="uav-axis-select" style="width: 100%; padding: 6px 8px; background: #0f1013; color: #ffffff; border: 1px solid #282a32; border-radius: 4px; font-size: 11px;">
+                        <option value="year_month_date" selected>Year / Month / Date (e.g. 2025/November/2025-11-03)</option>
+                        <option value="year_date">Year / Date (e.g. 2025/2025-11-03)</option>
+                        <option value="year_month">Year / Month (e.g. 2025/November)</option>
+                        <option value="flat_date">Flat Date (e.g. 2025-11-03)</option>
+                    </select>
+                </div>
+
+                <!-- Transfer Mode -->
+                <div style="background: #090a0c; border: 1px solid #24262c; border-radius: 5px; padding: 8px 12px;">
+                    <label style="display: block; font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px;">
+                        Transfer Mode
+                    </label>
+                    <div style="display: flex; gap: 14px; font-size: 11px; color: #cbd5e1; align-items: center; margin-top: 4px;">
+                        <label style="display: inline-flex; align-items: center; gap: 5px; cursor: pointer;">
+                            <input type="radio" name="org-mode" value="copy" checked style="accent-color: #22c55e;">
+                            <span>Copy (Safe Archive)</span>
+                        </label>
+                        <label style="display: inline-flex; align-items: center; gap: 5px; cursor: pointer;">
+                            <input type="radio" name="org-mode" value="move" style="accent-color: #22c55e;">
+                            <span>Move (Relocate)</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div style="height: 5px; width: 100%; background: #1a1c22; border-radius: 3px; overflow: hidden; margin-bottom: 8px;">
+                <div id="org-progress-bar" style="height: 100%; width: 0%; background: #22c55e; transition: width 0.3s ease;"></div>
+            </div>
+
+            <!-- Metric Summary Badges -->
+            <div style="display: flex; gap: 8px; margin-bottom: 8px; font-size: 10px; font-family: 'B612 Mono', monospace;">
+                <div style="flex: 1; background: #090a0c; border: 1px solid #24262c; padding: 5px 8px; border-radius: 4px; display: flex; justify-content: space-between;">
+                    <span style="color: #64748b;">TOTAL:</span>
+                    <span id="org-cnt-total" style="color: #ffffff; font-weight: 700;">0</span>
+                </div>
+                <div style="flex: 1; background: #090a0c; border: 1px solid #24262c; padding: 5px 8px; border-radius: 4px; display: flex; justify-content: space-between;">
+                    <span style="color: #64748b;">ARCHIVED:</span>
+                    <span id="org-cnt-archived" style="color: #22c55e; font-weight: 700;">0</span>
+                </div>
+                <div style="flex: 1; background: #090a0c; border: 1px solid #24262c; padding: 5px 8px; border-radius: 4px; display: flex; justify-content: space-between;">
+                    <span style="color: #64748b;">SKIPPED:</span>
+                    <span id="org-cnt-skipped" style="color: #eab308; font-weight: 700;">0</span>
+                </div>
+                <div style="flex: 1; background: #090a0c; border: 1px solid #24262c; padding: 5px 8px; border-radius: 4px; display: flex; justify-content: space-between;">
+                    <span style="color: #64748b;">ERRORS:</span>
+                    <span id="org-cnt-errors" style="color: #ef4444; font-weight: 700;">0</span>
+                </div>
+            </div>
+
+            <!-- Activity / File List -->
+            <div id="org-activity-list" style="flex: 1; min-height: 140px; max-height: 220px; overflow-y: auto; background: #090a0c; border: 1px solid #24262c; border-radius: 4px; padding: 4px; font-family: 'B612 Mono', monospace; font-size: 11px; margin-bottom: 12px;">
+                <div style="color: #64748b; padding: 24px; text-align: center; font-size: 11px;">
+                    Select or browse a source folder, then click Scan or Start Organizing.
+                </div>
+            </div>
+
+            <!-- Footer Actions -->
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div id="org-footer-status" style="font-size: 11px; color: #94a3b8; font-family: 'B612 Mono', monospace;">
+                    Ready
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button type="button" class="uav-pill-action-btn" onclick="closeOrganizerModal()" style="padding: 6px 14px; font-size: 11px;">Close</button>
+                    <button type="button" id="org-start-btn" onclick="startLogOrganization()" style="padding: 6px 18px; font-size: 11px; background: #22c55e; color: #000000; font-weight: 700; border: none; border-radius: 4px; cursor: pointer; letter-spacing: 0.5px;">START ORGANIZING</button>
+                </div>
             </div>
         </div>
     </div>

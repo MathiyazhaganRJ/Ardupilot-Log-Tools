@@ -17,6 +17,7 @@ import webbrowser
 import threading
 from PIL import Image
 import parser
+import organizer
 
 PORT = 8085
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -278,6 +279,17 @@ class LogViewerHandler(SimpleHTTPRequestHandler):
             })
             return
 
+        # 5. API: Folder Selection (Native Windows Directory Picker)
+        elif path == '/api/select_folder':
+            mode = query.get('mode', ['source'])[0]
+            title = "Select Source Flight Logs Directory" if mode == 'source' else "Select Destination Directory for Organized Logs"
+            selected_path = organizer.pick_folder_native(title=title)
+            if selected_path:
+                self._send_json({'success': True, 'path': selected_path})
+            else:
+                self._send_json({'success': False, 'cancelled': True})
+            return
+
         super().do_GET()
 
     def do_POST(self):
@@ -344,6 +356,48 @@ class LogViewerHandler(SimpleHTTPRequestHandler):
                 res = parser.parse_flight_telemetry(save_path)
                 LOG_CACHE[save_path] = res
                 self._send_json({'success': True, 'path': save_path, 'filename': filename, 'cached': False, **res})
+            except Exception as e:
+                self._send_json({'success': False, 'error': str(e)})
+            return
+
+        # 6. API: Scan Source Directory for Flight Logs
+        elif path == '/api/scan_source':
+            try:
+                length = int(self.headers.get('Content-Length', 0))
+                body = self.rfile.read(length) if length > 0 else b'{}'
+                req = json.loads(body.decode('utf-8'))
+                source_folder = req.get('source_folder', '')
+                res = organizer.scan_source_logs(source_folder)
+                self._send_json(res)
+            except Exception as e:
+                self._send_json({'success': False, 'error': str(e)})
+            return
+
+        # 7. API: Organize Flight Logs into Year/Month/Date Hierarchies
+        elif path == '/api/organize_logs':
+            try:
+                length = int(self.headers.get('Content-Length', 0))
+                body = self.rfile.read(length) if length > 0 else b'{}'
+                req = json.loads(body.decode('utf-8'))
+                source_folder = req.get('source_folder', '')
+                dest_folder = req.get('dest_folder', '').strip()
+                structure = req.get('structure', 'year_month_date')
+                mode = req.get('mode', 'copy')
+                res = organizer.organize_flight_logs(source_folder, dest_folder, structure=structure, mode=mode)
+                self._send_json(res)
+            except Exception as e:
+                self._send_json({'success': False, 'error': str(e)})
+            return
+
+        # 8. API: Open File/Directory in Windows Explorer
+        elif path == '/api/open_folder':
+            try:
+                length = int(self.headers.get('Content-Length', 0))
+                body = self.rfile.read(length) if length > 0 else b'{}'
+                req = json.loads(body.decode('utf-8'))
+                folder_path = req.get('path', '').strip()
+                opened = organizer.open_folder_in_explorer(folder_path)
+                self._send_json({'success': opened})
             except Exception as e:
                 self._send_json({'success': False, 'error': str(e)})
             return
