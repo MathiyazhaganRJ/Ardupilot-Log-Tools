@@ -5207,6 +5207,34 @@
         // --- ARDUPILOT FLIGHT LOG ORGANIZER CLIENT ---
         let currentScannedLogs = [];
         let inBrowserLogFiles = [];
+        let orgScanDebounceTimer = null;
+
+        function onOrgSourceInput(val) {
+            let clean = (val || '').trim();
+            if ((clean.startsWith('"') && clean.endsWith('"')) || (clean.startsWith("'") && clean.endsWith("'"))) {
+                clean = clean.slice(1, -1).trim();
+                const el = document.getElementById('org-source-dir');
+                if (el) el.value = clean;
+            }
+            localStorage.setItem('org_source_dir', clean);
+            inBrowserLogFiles = [];
+            clearTimeout(orgScanDebounceTimer);
+            if (clean.length >= 2) {
+                orgScanDebounceTimer = setTimeout(() => {
+                    scanOrganizerSource();
+                }, 500);
+            }
+        }
+
+        function onOrgDestInput(val) {
+            let clean = (val || '').trim();
+            if ((clean.startsWith('"') && clean.endsWith('"')) || (clean.startsWith("'") && clean.endsWith("'"))) {
+                clean = clean.slice(1, -1).trim();
+                const el = document.getElementById('org-dest-dir');
+                if (el) el.value = clean;
+            }
+            localStorage.setItem('org_dest_dir', clean);
+        }
 
         async function browseNativeFolder(mode) {
             const btn = document.getElementById(mode === 'source' ? 'org-btn-browse-src' : 'org-btn-browse-dest');
@@ -5463,7 +5491,7 @@
         }
 
         function openOrganizerModal() {
-            const savedSrc = localStorage.getItem('org_source_dir') || '';
+            const savedSrc = localStorage.getItem('org_source_dir') || 'C:\\Users\\KARSHAK_Tamal\\Downloads';
             const savedDest = localStorage.getItem('org_dest_dir') || 'C:\\Users\\KARSHAK_Tamal\\Desktop\\Logs';
             const savedStruct = localStorage.getItem('org_structure') || 'year_month_date';
             const savedMode = localStorage.getItem('org_mode') || 'copy';
@@ -5506,7 +5534,10 @@
                 }
             }
             if (logFiles.length === 0) {
-                alert("Please drop ArduPilot telemetry logs (.bin, .log, or .tlog).");
+                const activityList = document.getElementById('org-activity-list');
+                if (activityList) {
+                    activityList.innerHTML = `<div style="background: #eab30815; border: 1px solid #eab30855; padding: 12px; border-radius: 4px; color: #eab308; font-size: 11px;">Please drop ArduPilot telemetry logs (.bin, .log, or .tlog).</div>`;
+                }
                 return;
             }
             inBrowserLogFiles = logFiles;
@@ -5544,17 +5575,26 @@
         async function scanOrganizerSource() {
             const srcInput = document.getElementById('org-source-dir');
             if (!srcInput) return;
-            const sourceFolder = srcInput.value.trim();
+            let sourceFolder = srcInput.value.trim();
+            if ((sourceFolder.startsWith('"') && sourceFolder.endsWith('"')) || (sourceFolder.startsWith("'") && sourceFolder.endsWith("'"))) {
+                sourceFolder = sourceFolder.slice(1, -1).trim();
+                srcInput.value = sourceFolder;
+            }
+
+            const statusSummary = document.getElementById('org-scan-summary');
+            const fileListContainer = document.getElementById('org-activity-list');
+
             if (!sourceFolder) {
-                alert("Please enter or browse to a Source Folder first.");
+                if (fileListContainer) {
+                    fileListContainer.innerHTML = `<div style="color: #64748b; padding: 20px; text-align: center; font-size: 11px;">Please enter or browse to a source folder.</div>`;
+                }
+                if (statusSummary) statusSummary.innerHTML = '';
                 return;
             }
 
             localStorage.setItem('org_source_dir', sourceFolder);
-            const statusSummary = document.getElementById('org-scan-summary');
-            const fileListContainer = document.getElementById('org-activity-list');
             if (statusSummary) {
-                statusSummary.innerHTML = `<span style="color: #94a3b8;">Scanning directory for .bin, .log, .tlog files...</span>`;
+                statusSummary.innerHTML = `<span style="color: #94a3b8;">Scanning for .bin, .log, .tlog files...</span>`;
             }
 
             try {
@@ -5567,7 +5607,14 @@
 
                 if (!data.success) {
                     if (statusSummary) {
-                        statusSummary.innerHTML = `<span style="color: #ef4444;">Error: ${data.error || 'Scan failed'}</span>`;
+                        statusSummary.innerHTML = `<span style="color: #ef4444;">Directory not found or unreadable</span>`;
+                    }
+                    if (fileListContainer) {
+                        fileListContainer.innerHTML = `
+                            <div style="background: #ef444415; border: 1px solid #ef444455; padding: 12px; border-radius: 4px; color: #ef4444; font-size: 11px;">
+                                <strong>Scan Error:</strong> ${data.error || 'Failed to scan directory.'}
+                            </div>
+                        `;
                     }
                     return;
                 }
@@ -5578,8 +5625,13 @@
                 }
 
                 if (fileListContainer) {
-                    if (currentScannedLogs.length === 0) {
-                        fileListContainer.innerHTML = `<div style="color: #64748b; padding: 16px; text-align: center;">No .bin, .log, or .tlog flight logs found in this folder.</div>`;
+                    if (data.count === 0) {
+                        fileListContainer.innerHTML = `
+                            <div style="background: #eab30815; border: 1px solid #eab30855; padding: 14px; border-radius: 4px; color: #eab308; font-size: 11px;">
+                                <strong>No Flight Logs Found:</strong> No .bin, .log, or .tlog files detected in <code>${sourceFolder}</code>.
+                                <div style="color: #94a3b8; font-size: 10px; margin-top: 6px;">Select a directory containing ArduPilot telemetry logs (e.g. Downloads, SD card drive, or Desktop Logs).</div>
+                            </div>
+                        `;
                     } else {
                         let html = '';
                         currentScannedLogs.slice(0, 100).forEach(log => {
@@ -5614,19 +5666,39 @@
             const destInput = document.getElementById('org-dest-dir');
             const structSelect = document.getElementById('org-structure-select');
             const modeInput = document.querySelector('input[name="org-mode"]:checked');
+            const activityList = document.getElementById('org-activity-list');
+            const footerStatus = document.getElementById('org-footer-status');
+            const startBtn = document.getElementById('org-start-btn');
+            const progressBar = document.getElementById('org-progress-bar');
 
             if (!srcInput || !destInput) return;
-            const sourceFolder = srcInput.value.trim();
-            const destFolder = destInput.value.trim();
+            let sourceFolder = srcInput.value.trim();
+            let destFolder = destInput.value.trim();
+
+            if ((sourceFolder.startsWith('"') && sourceFolder.endsWith('"')) || (sourceFolder.startsWith("'") && sourceFolder.endsWith("'"))) {
+                sourceFolder = sourceFolder.slice(1, -1).trim();
+                srcInput.value = sourceFolder;
+            }
+            if ((destFolder.startsWith('"') && destFolder.endsWith('"')) || (destFolder.startsWith("'") && destFolder.endsWith("'"))) {
+                destFolder = destFolder.slice(1, -1).trim();
+                destInput.value = destFolder;
+            }
+
             const structure = structSelect ? structSelect.value : 'year_month_date';
             const mode = modeInput ? modeInput.value : 'copy';
 
             if (!sourceFolder) {
-                alert("Please specify a Source Directory containing your flight logs.");
+                if (activityList) {
+                    activityList.innerHTML = `<div style="background: #ef444415; border: 1px solid #ef444455; padding: 12px; border-radius: 4px; color: #ef4444; font-size: 11px;"><strong>Source Folder Required:</strong> Please enter or browse to a source directory containing flight logs.</div>`;
+                }
+                if (footerStatus) footerStatus.textContent = 'Please specify a source directory.';
                 return;
             }
             if (!destFolder) {
-                alert("Please specify a Destination Directory to archive into.");
+                if (activityList) {
+                    activityList.innerHTML = `<div style="background: #ef444415; border: 1px solid #ef444455; padding: 12px; border-radius: 4px; color: #ef4444; font-size: 11px;"><strong>Destination Folder Required:</strong> Please enter or select a destination archive directory.</div>`;
+                }
+                if (footerStatus) footerStatus.textContent = 'Please specify a destination directory.';
                 return;
             }
 
@@ -5635,19 +5707,17 @@
             localStorage.setItem('org_structure', structure);
             localStorage.setItem('org_mode', mode);
 
-            const startBtn = document.getElementById('org-start-btn');
-            const progressBar = document.getElementById('org-progress-bar');
-            const footerStatus = document.getElementById('org-footer-status');
-            const activityList = document.getElementById('org-activity-list');
-
             if (startBtn) {
                 startBtn.disabled = true;
                 startBtn.textContent = 'ORGANIZING...';
             }
             if (progressBar) progressBar.style.width = '35%';
             if (footerStatus) footerStatus.textContent = 'Processing and organizing telemetry files...';
+            if (activityList) {
+                activityList.innerHTML = `<div style="color: #94a3b8; padding: 24px; text-align: center;"><div class="spinner" style="display:inline-block; margin-bottom: 8px;"></div><div>Organizing flight logs from "${sourceFolder}" into "${destFolder}"...</div></div>`;
+            }
 
-            // If the source is a local directory on disk, execute direct disk-to-disk organization (instantaneous, no uploading)
+            // In-browser upload mode (only if dropped in browser and source is not a disk path)
             const isLocalDiskSource = sourceFolder && (sourceFolder.includes(':') || sourceFolder.startsWith('\\\\') || sourceFolder.startsWith('/') || !sourceFolder.toLowerCase().includes('file'));
 
             if (!isLocalDiskSource && inBrowserLogFiles && inBrowserLogFiles.length > 0) {
@@ -5690,7 +5760,7 @@
                     footerStatus.innerHTML = `<span style="color: #22c55e; font-weight: 700;">Completed: ${copied} archived, ${skipped} skipped duplicates.</span>`;
                 }
 
-                renderOrganizeExecutionReport(filesReport);
+                renderOrganizeExecutionReport(filesReport, destFolder, mode);
                 if (typeof loadAvailableLogs === 'function') {
                     loadAvailableLogs(destFolder);
                 }
@@ -5717,8 +5787,30 @@
                 if (progressBar) progressBar.style.width = '100%';
 
                 if (!data.success) {
-                    alert("Organization error: " + (data.error || 'Unknown error'));
+                    if (activityList) {
+                        activityList.innerHTML = `
+                            <div style="background: #ef444415; border: 1px solid #ef444455; padding: 14px; border-radius: 4px; color: #ef4444; font-size: 11px;">
+                                <div style="font-weight: 700; margin-bottom: 4px;">Organization Error:</div>
+                                <div>${data.error || 'Failed to organize logs.'}</div>
+                                <div style="color: #94a3b8; font-size: 10px; margin-top: 8px;">Ensure the source folder exists on disk and contains .bin, .log, or .tlog files.</div>
+                            </div>
+                        `;
+                    }
                     if (footerStatus) footerStatus.textContent = "Error: " + (data.error || 'Failed');
+                    return;
+                }
+
+                if (data.total === 0) {
+                    if (activityList) {
+                        activityList.innerHTML = `
+                            <div style="background: #eab30815; border: 1px solid #eab30855; padding: 14px; border-radius: 4px; color: #eab308; font-size: 11px;">
+                                <div style="font-weight: 700; margin-bottom: 4px;">No Flight Logs Found:</div>
+                                <div>No .bin, .log, or .tlog files were detected in <code>${sourceFolder}</code>.</div>
+                                <div style="color: #94a3b8; font-size: 10px; margin-top: 8px;">Select a folder containing telemetry logs (e.g. Downloads, SD card, or Desktop Logs).</div>
+                            </div>
+                        `;
+                    }
+                    if (footerStatus) footerStatus.textContent = 'No logs found in source directory.';
                     return;
                 }
 
@@ -5730,10 +5822,10 @@
 
                 if (footerStatus) {
                     const actionName = mode === 'move' ? 'moved' : 'archived';
-                    footerStatus.innerHTML = `<span style="color: #22c55e; font-weight: 700;">Completed: ${data.copied || data.moved} ${actionName}, ${data.skipped} skipped duplicates.</span>`;
+                    footerStatus.innerHTML = `<span style="color: #22c55e; font-weight: 700;">Completed: ${data.copied || data.moved || 0} ${actionName}, ${data.skipped || 0} skipped duplicates.</span>`;
                 }
 
-                renderOrganizeExecutionReport(data.files);
+                renderOrganizeExecutionReport(data.files || [], destFolder, mode);
 
                 if (typeof loadAvailableLogs === 'function') {
                     loadAvailableLogs(destFolder);
@@ -5741,6 +5833,9 @@
 
             } catch (err) {
                 console.error("Organize execution error:", err);
+                if (activityList) {
+                    activityList.innerHTML = `<div style="background: #ef444415; border: 1px solid #ef444455; padding: 12px; border-radius: 4px; color: #ef4444;">Execution failed: ${err.message}</div>`;
+                }
                 if (footerStatus) footerStatus.textContent = "Execution failed: " + err.message;
             } finally {
                 if (startBtn) {
@@ -5750,11 +5845,23 @@
             }
         }
 
-        function renderOrganizeExecutionReport(filesList) {
+        function renderOrganizeExecutionReport(filesList, destFolder, mode) {
             const activityList = document.getElementById('org-activity-list');
             if (!activityList || !filesList) return;
+
             let html = '';
-            filesList.forEach(f => {
+            const escDestFolder = (destFolder || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+            
+            // Header summary action bar
+            html += `
+                <div style="background: #12141a; border-bottom: 1px solid #24262c; padding: 6px 8px; margin: -4px -4px 6px -4px; display: flex; justify-content: space-between; align-items: center; font-size: 10px;">
+                    <span style="color: #22c55e; font-weight: 700;">Organization Completed (${filesList.length} files processed)</span>
+                    <button type="button" class="expr-chip-btn" style="border-color: #22c55e55; color: #22c55e;" onclick="openPathInExplorer('${escDestFolder}')" title="Open organized archive in Windows Explorer">Open Destination Folder</button>
+                </div>
+            `;
+
+            const displayList = filesList.slice(0, 100);
+            displayList.forEach(f => {
                 let badgeColor = '#22c55e';
                 let badgeText = (f.status || 'COPIED').toUpperCase();
                 if (f.status === 'skipped') {
@@ -5782,6 +5889,9 @@
                     </div>
                 `;
             });
+            if (filesList.length > 100) {
+                html += `<div style="color: #64748b; padding: 6px; text-align: center; font-size: 10px;">... and ${filesList.length - 100} more files</div>`;
+            }
             activityList.innerHTML = html;
         }
 
@@ -5947,7 +6057,7 @@
 
     <!-- ArduPilot Flight Log Organizer & Archiver Modal Dialog -->
     <div id="organizer-modal" class="modal-overlay" onclick="if(event.target===this) closeOrganizerModal()">
-        <div class="modal-box" style="width: 760px; max-width: 95vw; max-height: 88vh; display: flex; flex-direction: column; border: 1px solid #282a32; box-shadow: 0 15px 40px rgba(0, 0, 0, 0.95); padding: 18px 22px; background: #0f1013;">
+        <div class="modal-box" style="width: 760px; max-width: 95vw; max-height: 90vh; overflow-y: auto; display: flex; flex-direction: column; border: 1px solid #282a32; box-shadow: 0 15px 40px rgba(0, 0, 0, 0.95); padding: 18px 22px; background: #0f1013;">
             <div class="modal-title" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -5972,7 +6082,7 @@
                     <div id="org-scan-summary" style="font-size: 10px; font-family: 'B612 Mono', monospace;"></div>
                 </div>
                 <div style="display: flex; gap: 6px; align-items: center;">
-                    <input type="text" id="org-source-dir" class="modal-input" placeholder="e.g. E:\ or C:\Users\KARSHAK_Tamal\Downloads\FlightLogs" style="margin-bottom: 0; flex: 1;">
+                    <input type="text" id="org-source-dir" class="modal-input" placeholder="e.g. C:\Users\KARSHAK_Tamal\Downloads or E:\" oninput="onOrgSourceInput(this.value)" onchange="onOrgSourceInput(this.value)" onkeydown="if(event.key==='Enter') startLogOrganization()" style="margin-bottom: 0; flex: 1;">
                     <button type="button" id="org-btn-browse-src" class="uav-pill-action-btn" onclick="browseNativeFolder('source')" style="padding: 6px 14px; font-size: 11px; white-space: nowrap; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; background: #22c55e18; border-color: #22c55e55; color: #4ade80;" title="Open native Windows Folder Picker dialog">Browse...</button>
                     <button type="button" class="uav-pill-action-btn" onclick="toggleFolderNavigator('source')" style="padding: 6px 10px; font-size: 11px; white-space: nowrap;" title="Explore local drives and folders in workstation">Folder Tree</button>
                     <button type="button" class="uav-pill-action-btn" onclick="scanOrganizerSource()" style="padding: 6px 14px; font-size: 11px; white-space: nowrap; background: #22c55e22; border-color: #22c55e55; color: #22c55e;" title="Scan folder for log files">Scan</button>
@@ -5982,8 +6092,8 @@
                 <!-- Quick Preset Paths -->
                 <div style="display: flex; gap: 5px; flex-wrap: wrap; margin-top: 6px; align-items: center;">
                     <span style="font-size: 9px; color: #64748b; font-weight: 700; text-transform: uppercase;">Quick Source:</span>
-                    <button type="button" class="expr-chip-btn" onclick="setOrgSourcePreset('C:\\Users\\KARSHAK_Tamal\\Desktop\\Logs')">Desktop Logs</button>
                     <button type="button" class="expr-chip-btn" onclick="setOrgSourcePreset('C:\\Users\\KARSHAK_Tamal\\Downloads')">Downloads</button>
+                    <button type="button" class="expr-chip-btn" onclick="setOrgSourcePreset('C:\\Users\\KARSHAK_Tamal\\Desktop\\Logs')">Desktop Logs</button>
                     <button type="button" class="expr-chip-btn" onclick="setOrgSourcePreset('C:\\Users\\KARSHAK_Tamal\\Desktop')">Desktop</button>
                     <button type="button" class="expr-chip-btn" onclick="setOrgSourcePreset('D:\\')">Drive D:</button>
                     <button type="button" class="expr-chip-btn" onclick="setOrgSourcePreset('G:\\')">Drive G: (SD Card)</button>
@@ -5998,7 +6108,7 @@
                     </label>
                 </div>
                 <div style="display: flex; gap: 6px; align-items: center;">
-                    <input type="text" id="org-dest-dir" class="modal-input" placeholder="e.g. C:\Users\KARSHAK_Tamal\Desktop\Logs" style="margin-bottom: 0; flex: 1;">
+                    <input type="text" id="org-dest-dir" class="modal-input" placeholder="e.g. C:\Users\KARSHAK_Tamal\Desktop\Logs" oninput="onOrgDestInput(this.value)" onchange="onOrgDestInput(this.value)" onkeydown="if(event.key==='Enter') startLogOrganization()" style="margin-bottom: 0; flex: 1;">
                     <button type="button" id="org-btn-browse-dest" class="uav-pill-action-btn" onclick="browseNativeFolder('dest')" style="padding: 6px 14px; font-size: 11px; white-space: nowrap; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;" title="Open native Windows Folder Picker dialog">Browse...</button>
                     <button type="button" class="uav-pill-action-btn" onclick="toggleFolderNavigator('dest')" style="padding: 6px 10px; font-size: 11px; white-space: nowrap;" title="Explore local drives and folders in workstation">Folder Tree</button>
                     <button type="button" class="uav-pill-action-btn" onclick="openPathInExplorer()" style="padding: 6px 12px; font-size: 11px; white-space: nowrap;" title="Open destination directory in Windows Explorer">Explorer</button>

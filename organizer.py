@@ -5,6 +5,7 @@ Extracted and enhanced from the original ArduPilot Log Manager tool.
 """
 
 import os
+import sys
 import re
 import shutil
 import datetime
@@ -302,9 +303,14 @@ def organize_flight_logs(source_folder, dest_folder, structure="year_month_date"
 def pick_folder_native(title="Select Folder", initial_dir=""):
     """
     Launches a dedicated subprocess to prompt the Windows Folder Picker dialog
-    using Tkinter, directed specifically to the interactive user desktop (WinSta0\Default).
+    using Tkinter, directed specifically to the interactive user desktop.
+    Falls back to PowerShell FolderBrowserDialog if Tkinter is unavailable.
     Does not block the web server threads.
     """
+    clean_init = os.path.normpath(initial_dir.strip(' "\'')) if initial_dir else ''
+    if not (clean_init and os.path.exists(clean_init)):
+        clean_init = os.path.expanduser('~\\Desktop')
+
     code = (
         "import tkinter as tk\n"
         "from tkinter import filedialog\n"
@@ -313,6 +319,7 @@ def pick_folder_native(title="Select Folder", initial_dir=""):
         "    root = tk.Tk()\n"
         "    root.withdraw()\n"
         "    root.wm_attributes('-topmost', 1)\n"
+        "    root.focus_force()\n"
         "    init_dir = sys.argv[1] if len(sys.argv) > 1 and os.path.exists(sys.argv[1]) else ''\n"
         "    title_str = sys.argv[2] if len(sys.argv) > 2 else 'Select Folder'\n"
         "    folder = filedialog.askdirectory(master=root, title=title_str, initialdir=init_dir)\n"
@@ -322,13 +329,41 @@ def pick_folder_native(title="Select Folder", initial_dir=""):
         "except Exception as e:\n"
         "    sys.stderr.write(str(e))\n"
     )
-    si = subprocess.STARTUPINFO()
-    si.lpDesktop = r"WinSta0\Default"
 
+    # Strategy 1: Subprocess with WinSta0\Default desktop routing
+    for use_winsta in (True, False):
+        try:
+            si = subprocess.STARTUPINFO()
+            if use_winsta:
+                si.lpDesktop = r"WinSta0\Default"
+            p = subprocess.run(
+                [sys.executable, "-c", code, clean_init, title or "Select Folder"],
+                startupinfo=si if use_winsta else None,
+                capture_output=True,
+                text=True,
+                timeout=180
+            )
+            out = p.stdout.strip()
+            if out and os.path.exists(out):
+                return out
+            # Active user cancellation: exit code 0 and empty output
+            if p.returncode == 0 and not p.stderr:
+                return None
+        except Exception as e:
+            print(f"[Organizer] Folder picker (winsta={use_winsta}) error: {e}")
+
+    # Strategy 2: PowerShell FolderBrowserDialog fallback
     try:
+        ps_code = (
+            "[System.Reflection.Assembly]::LoadWithPartialName('System.windows.forms') | Out-Null; "
+            "$f = New-Object System.Windows.Forms.FolderBrowserDialog; "
+            f"$f.Description = '{title}'; "
+            f"$f.SelectedPath = '{clean_init}'; "
+            "$f.ShowNewFolderButton = $true; "
+            "if ($f.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { Write-Output $f.SelectedPath }"
+        )
         p = subprocess.run(
-            [sys.executable, "-c", code, initial_dir or "", title or "Select Folder"],
-            startupinfo=si,
+            ["powershell", "-NoProfile", "-Command", ps_code],
             capture_output=True,
             text=True,
             timeout=180
@@ -337,7 +372,8 @@ def pick_folder_native(title="Select Folder", initial_dir=""):
         if out and os.path.exists(out):
             return out
     except Exception as e:
-        print(f"[Organizer] Folder picker error: {e}")
+        print(f"[Organizer] PowerShell FolderBrowserDialog fallback error: {e}")
+
     return None
 
 
