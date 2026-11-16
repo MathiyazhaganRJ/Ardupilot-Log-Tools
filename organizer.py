@@ -299,18 +299,41 @@ def organize_flight_logs(source_folder, dest_folder, structure="year_month_date"
     return stats
 
 
-def pick_folder_native(title="Select Folder"):
+def pick_folder_native(title="Select Folder", initial_dir=""):
     """
-    Returns available common default folder paths safely without spawning blocking desktop modal hooks.
+    Launches a dedicated subprocess to prompt the Windows Folder Picker dialog
+    using Tkinter (matching the reference desktop tool implementation).
+    Does not block the web server threads.
     """
-    default_candidates = [
-        r"C:\Users\KARSHAK_Tamal\Desktop\Logs",
-        r"C:\Users\KARSHAK_Tamal\Downloads",
-        r"C:\Users\KARSHAK_Tamal\Desktop"
-    ]
-    for p in default_candidates:
-        if os.path.exists(p):
-            return p
+    code = (
+        "import tkinter as tk\n"
+        "from tkinter import filedialog\n"
+        "import sys, os\n"
+        "try:\n"
+        "    root = tk.Tk()\n"
+        "    root.withdraw()\n"
+        "    root.wm_attributes('-topmost', 1)\n"
+        "    init_dir = sys.argv[1] if len(sys.argv) > 1 and os.path.exists(sys.argv[1]) else ''\n"
+        "    title_str = sys.argv[2] if len(sys.argv) > 2 else 'Select Folder'\n"
+        "    folder = filedialog.askdirectory(master=root, title=title_str, initialdir=init_dir)\n"
+        "    root.destroy()\n"
+        "    if folder:\n"
+        "        sys.stdout.write(os.path.normpath(folder))\n"
+        "except Exception as e:\n"
+        "    sys.stderr.write(str(e))\n"
+    )
+    try:
+        p = subprocess.run(
+            [sys.executable, "-c", code, initial_dir or "", title or "Select Folder"],
+            capture_output=True,
+            text=True,
+            timeout=180
+        )
+        out = p.stdout.strip()
+        if out and os.path.exists(out):
+            return out
+    except Exception as e:
+        print(f"[Organizer] Folder picker error: {e}")
     return None
 
 

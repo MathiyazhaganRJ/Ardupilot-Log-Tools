@@ -5208,11 +5208,31 @@
         let currentScannedLogs = [];
         let inBrowserLogFiles = [];
 
-        function triggerNativeFolderPicker(mode) {
-            const picker = document.getElementById(mode === 'source' ? 'org-native-source-picker' : 'org-native-dest-picker');
-            if (picker) {
-                picker.value = '';
-                picker.click();
+        async function browseNativeFolder(mode) {
+            const btn = document.getElementById(mode === 'source' ? 'org-btn-browse-src' : 'org-btn-browse-dest');
+            const originalText = btn ? btn.textContent : 'Browse...';
+            if (btn) btn.textContent = 'Selecting...';
+            const currentInput = document.getElementById(mode === 'source' ? 'org-source-dir' : 'org-dest-dir');
+            const currentVal = currentInput ? currentInput.value.trim() : '';
+
+            try {
+                const res = await fetch(`/api/select_folder?mode=${mode}&current=${encodeURIComponent(currentVal)}`);
+                const data = await res.json();
+                if (data.success && data.path) {
+                    if (mode === 'source') {
+                        if (currentInput) currentInput.value = data.path;
+                        localStorage.setItem('org_source_dir', data.path);
+                        inBrowserLogFiles = [];
+                        scanOrganizerSource();
+                    } else {
+                        if (currentInput) currentInput.value = data.path;
+                        localStorage.setItem('org_dest_dir', data.path);
+                    }
+                }
+            } catch (err) {
+                console.error("Browse folder error:", err);
+            } finally {
+                if (btn) btn.textContent = originalText;
             }
         }
 
@@ -5523,7 +5543,10 @@
             if (progressBar) progressBar.style.width = '35%';
             if (footerStatus) footerStatus.textContent = 'Processing and organizing telemetry files...';
 
-            if (inBrowserLogFiles && inBrowserLogFiles.length > 0) {
+            // If the source is a local directory on disk, execute direct disk-to-disk organization (instantaneous, no uploading)
+            const isLocalDiskSource = sourceFolder && (sourceFolder.includes(':') || sourceFolder.startsWith('\\\\') || sourceFolder.startsWith('/') || !sourceFolder.toLowerCase().includes('file'));
+
+            if (!isLocalDiskSource && inBrowserLogFiles && inBrowserLogFiles.length > 0) {
                 let copied = 0;
                 let skipped = 0;
                 let errors = 0;
@@ -5846,11 +5869,8 @@
                 </div>
                 <div style="display: flex; gap: 6px; align-items: center;">
                     <input type="text" id="org-source-dir" class="modal-input" placeholder="e.g. E:\ or C:\Users\KARSHAK_Tamal\Downloads\FlightLogs" style="margin-bottom: 0; flex: 1;">
-                    <label for="org-native-folder-picker" id="org-btn-browse-folder" class="uav-pill-action-btn" style="padding: 6px 11px; font-size: 11px; white-space: nowrap; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;" title="Select an entire folder of logs">Browse Folder...</label>
-                    <label for="org-native-files-picker" id="org-btn-browse-files" class="uav-pill-action-btn" style="padding: 6px 11px; font-size: 11px; white-space: nowrap; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; background: #22c55e18; border-color: #22c55e55; color: #4ade80;" title="Select individual or multiple .bin / .log files directly">Browse Files...</label>
-                    <input type="file" id="org-native-folder-picker" webkitdirectory directory class="native-hidden-file-input" onchange="onNativeSourceFolderChosen(this)">
-                    <input type="file" id="org-native-files-picker" multiple accept=".bin,.log,.tlog,.BIN,.LOG,.TLOG" class="native-hidden-file-input" onchange="onNativeSourceFilesChosen(this)">
-                    <button type="button" class="uav-pill-action-btn" onclick="scanOrganizerSource()" style="padding: 6px 12px; font-size: 11px; white-space: nowrap; background: #22c55e22; border-color: #22c55e55; color: #22c55e;" title="Scan folder for log files">Scan</button>
+                    <button type="button" id="org-btn-browse-src" class="uav-pill-action-btn" onclick="browseNativeFolder('source')" style="padding: 6px 14px; font-size: 11px; white-space: nowrap; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; background: #22c55e18; border-color: #22c55e55; color: #4ade80;" title="Open Windows Folder Picker to select source directory">Browse...</button>
+                    <button type="button" class="uav-pill-action-btn" onclick="scanOrganizerSource()" style="padding: 6px 14px; font-size: 11px; white-space: nowrap; background: #22c55e22; border-color: #22c55e55; color: #22c55e;" title="Scan folder for log files">Scan</button>
                 </div>
                 <!-- Quick Preset Paths -->
                 <div style="display: flex; gap: 5px; flex-wrap: wrap; margin-top: 6px; align-items: center;">
@@ -5872,8 +5892,7 @@
                 </div>
                 <div style="display: flex; gap: 6px; align-items: center;">
                     <input type="text" id="org-dest-dir" class="modal-input" placeholder="e.g. C:\Users\KARSHAK_Tamal\Desktop\Logs" style="margin-bottom: 0; flex: 1;">
-                    <label for="org-native-dest-picker" id="org-btn-browse-dest" class="uav-pill-action-btn" style="padding: 6px 11px; font-size: 11px; white-space: nowrap; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;" title="Select destination folder">Browse Folder...</label>
-                    <input type="file" id="org-native-dest-picker" webkitdirectory directory class="native-hidden-file-input" onchange="onNativeDestFolderChosen(this)">
+                    <button type="button" id="org-btn-browse-dest" class="uav-pill-action-btn" onclick="browseNativeFolder('dest')" style="padding: 6px 14px; font-size: 11px; white-space: nowrap; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;" title="Open Windows Folder Picker to select destination directory">Browse...</button>
                     <button type="button" class="uav-pill-action-btn" onclick="openPathInExplorer()" style="padding: 6px 12px; font-size: 11px; white-space: nowrap;" title="Open destination directory in Windows Explorer">Explorer</button>
                 </div>
                 <!-- Quick Destination Presets -->
