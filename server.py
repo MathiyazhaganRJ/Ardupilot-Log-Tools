@@ -7,20 +7,120 @@ import os
 import sys
 import time
 import json
+import math
+import io
 import socket
 import urllib.parse
 import urllib.request
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 import webbrowser
 import threading
+from PIL import Image
 import parser
 
 PORT = 8085
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 LOG_CACHE = {}
 
-# Local Tile Cache Directory from SITL (holds 28,000+ cached airfield tiles)
+# Local Tile & DEM Cache Directories (integrated with SITL cache if present)
 LOCAL_TILE_CACHE = os.environ.get("SITL_TILE_CACHE", r"C:\Users\KARSHAK_Tamal\Desktop\Git\ArdupilotSITL\tile_cache\My_Home_Airfield")
+SITL_DEM_CACHE = os.environ.get("SITL_DEM_CACHE", r"C:\Users\KARSHAK_Tamal\Desktop\Git\ArdupilotSITL\tile_cache\dem")
+TOOLS_DEM_CACHE = os.path.join(BASE_DIR, 'tile_cache', 'dem')
+os.makedirs(TOOLS_DEM_CACHE, exist_ok=True)
+
+
+def find_or_synthesize_dem(z, x, y):
+    """
+    Finds or synthesizes Terrarium DEM tile for 3D elevation.
+    Checks SITL cached DEM tiles, local cache, fetches remote AWS Terrarium tiles,
+    or falls back to dynamic LOD parent DEM synthesis / flat sea level.
+    """
+    dem_z = min(z, 15)
+    zoom_diff = z - dem_z
+    dem_x = x >> zoom_diff
+    dem_y = y >> zoom_diff
+
+    dem_filename = f"{dem_z}_{dem_x}_{dem_y}.png"
+
+    # 1. Exact cached DEM tile in SITL cache or Tools cache
+    for d in [SITL_DEM_CACHE, TOOLS_DEM_CACHE]:
+        if os.path.exists(d):
+            c_file = os.path.join(d, dem_filename)
+            if os.path.exists(c_file) and os.path.getsize(c_file) > 100:
+                try:
+                    with open(c_file, 'rb') as f:
+                        return f.read(), 'image/png'
+                except Exception:
+                    pass
+
+    # 2. Remote DEM fetch from AWS Terrarium if online
+    try:
+        url = f"https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{dem_z}/{dem_x}/{dem_y}.png"
+        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=4.0) as resp:
+            if resp.status == 200:
+                data = resp.read()
+                if len(data) > 100:
+                    try:
+                        with open(os.path.join(TOOLS_DEM_CACHE, dem_filename), 'wb') as df:
+                            df.write(data)
+                    except Exception:
+                        pass
+                    return data, 'image/png'
+    except Exception:
+        pass
+
+    # 3. Dynamic LOD Parent DEM Synthesis (searches parent zoom levels)
+    try:
+        for pz in range(dem_z - 1, max(0, dem_z - 6), -1):
+            dz = dem_z - pz
+            px = dem_x >> dz
+            py = dem_y >> dz
+            p_name = f"{pz}_{px}_{py}.png"
+            p_cand = None
+            for d in [SITL_DEM_CACHE, TOOLS_DEM_CACHE]:
+                cand = os.path.join(d, p_name)
+                if os.path.exists(cand) and os.path.getsize(cand) > 100:
+                    p_cand = cand
+                    break
+            if p_cand:
+                p_img = Image.open(p_cand)
+                sub_span = 1 << dz
+                sub_mask = sub_span - 1
+                sub_x = dem_x & sub_mask
+                sub_y = dem_y & sub_mask
+
+                w, h = p_img.size
+                crop_w = w / sub_span
+                crop_h = h / sub_span
+
+                x0 = int(round(sub_x * crop_w))
+                y0 = int(round(sub_y * crop_h))
+                x1 = int(round(x0 + crop_w))
+                y1 = int(round(y0 + crop_h))
+
+                cropped = p_img.crop((x0, y0, x1, y1))
+                resized = cropped.resize((256, 256), Image.Resampling.NEAREST)
+                out_io = io.BytesIO()
+                resized.save(out_io, format='PNG')
+                synth_bytes = out_io.getvalue()
+                try:
+                    with open(os.path.join(TOOLS_DEM_CACHE, dem_filename), 'wb') as df:
+                        df.write(synth_bytes)
+                except Exception:
+                    pass
+                return synth_bytes, 'image/png'
+    except Exception:
+        pass
+
+    # 4. Universal flat 0m sea-level Terrarium tile fallback (RGB 128, 0, 0 -> 0.0m MSL)
+    try:
+        flat_dem = Image.new('RGB', (256, 256), color=(128, 0, 0))
+        out_io = io.BytesIO()
+        flat_dem.save(out_io, format='PNG')
+        return out_io.getvalue(), 'image/png'
+    except Exception:
+        return b'', 'image/png'
 
 
 class LogViewerHandler(SimpleHTTPRequestHandler):
@@ -118,6 +218,33 @@ class LogViewerHandler(SimpleHTTPRequestHandler):
                     pass
 
             self.send_error(404, "Tile not found")
+            return
+
+        # 3b. DEM Elevation Tile proxy and disk caching: /dem/<z>/<x>/<y>.png
+        elif path.startswith('/dem/'):
+            clean_path = path.split('?')[0]
+            parts = clean_path.split('/')
+            if len(parts) >= 5:
+                try:
+                    z = int(parts[2])
+                    x = int(parts[3])
+                    y = int(parts[4].split('.')[0])
+
+                    data, content_type = find_or_synthesize_dem(z, x, y)
+                    if data:
+                        self.send_response(200)
+                        self.send_header('Content-Type', content_type)
+                        self.send_header('Content-Length', str(len(data)))
+                        self.send_header('Access-Control-Allow-Origin', '*')
+                        self.send_header('Cache-Control', 'public, max-age=31536000')
+                        self.end_headers()
+                        self.wfile.write(data)
+                        return
+                except (ConnectionResetError, ConnectionAbortedError, BrokenPipeError):
+                    return
+                except Exception:
+                    pass
+            self.send_error(404, "DEM tile not found")
             return
 
         # 4. Mock SITL Endpoints for clean console operation

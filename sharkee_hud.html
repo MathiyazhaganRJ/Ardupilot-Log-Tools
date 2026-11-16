@@ -5480,9 +5480,9 @@
         const selTerrainScale = document.getElementById('sel-terrain-scale');
         const selTerrainStyle = document.getElementById('sel-terrain-style');
 
-        // Default to FLAT MESH for clean, instantaneous airfield startup
+        // Default to 3D Topography unless explicitly set to false
         const savedTerrain3D = localStorage.getItem('pilot_terrain_3d');
-        terrain3DEnabled = (savedTerrain3D === 'true');
+        terrain3DEnabled = (savedTerrain3D === null || savedTerrain3D === 'true');
         window.terrain3DEnabled = terrain3DEnabled;
         if (chkToggleTerrain3D) chkToggleTerrain3D.checked = terrain3DEnabled;
         if (terrain3DStatus) {
@@ -14854,6 +14854,9 @@
                 window.logOriginLat = homeLat;
                 window.logOriginLon = homeLon;
                 window.logOriginAlt = homeAlt;
+                if (typeof initHomeElevation === 'function') {
+                    initHomeElevation(homeLat, homeLon);
+                }
             }
             detectAirspeedAliveWindow(traj);
             renderLogFlightCorridor(traj);
@@ -14972,6 +14975,9 @@
                     isArmed = true;
 
                     // Rebuild map meshes centered on the log flight origin
+                    if (typeof initHomeElevation === 'function') {
+                        initHomeElevation(homeLat, homeLon);
+                    }
                     if (typeof updateMap === 'function') {
                         updateMap(homeLat, homeLon, true);
                     }

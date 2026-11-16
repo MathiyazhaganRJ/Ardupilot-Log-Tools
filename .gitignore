@@ -6,4 +6,5 @@ __pycache__/
 .DS_Store
 Thumbs.db
 verify_*.png
+tile_cache/
 
