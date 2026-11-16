@@ -301,76 +301,16 @@ def organize_flight_logs(source_folder, dest_folder, structure="year_month_date"
 
 def pick_folder_native(title="Select Folder"):
     """
-    Spawns Windows native folder picker via a standalone TopMost PowerShell process.
-    Guarantees modal appearance in front of browser windows without deadlocking server worker threads.
+    Returns available common default folder paths safely without spawning blocking desktop modal hooks.
     """
-    safe_title = title.replace("'", "").replace('"', '')
-    ps_cmd = f"""
-Add-Type -AssemblyName System.Windows.Forms
-$dialog = New-Object System.Windows.Forms.FolderBrowserDialog
-$dialog.Description = '{safe_title}'
-$dialog.ShowNewFolderButton = $true
-$form = New-Object System.Windows.Forms.Form
-$form.TopMost = $true
-$form.StartPosition = 'Manual'
-$form.Location = New-Object System.Drawing.Point(-32000, -32000)
-$form.Show()
-$form.Activate()
-$res = $dialog.ShowDialog($form)
-$form.Close()
-if ($res -eq [System.Windows.Forms.DialogResult]::OK) {{
-    Write-Output "PATH:$($dialog.SelectedPath)"
-}} else {{
-    Write-Output "CANCELLED"
-}}
-"""
-    try:
-        proc = subprocess.run(
-            ["powershell", "-NoProfile", "-STA", "-ExecutionPolicy", "Bypass", "-Command", ps_cmd],
-            capture_output=True,
-            text=True,
-            timeout=180
-        )
-        for line in proc.stdout.splitlines():
-            line = line.strip()
-            if line.startswith("PATH:"):
-                selected = line[5:].strip()
-                if os.path.exists(selected):
-                    return selected
-            elif line == "CANCELLED":
-                return None
-    except Exception as e:
-        print("PowerShell folder picker exception:", e)
-
-    # Secondary fallback: standalone Python Tkinter subprocess
-    try:
-        py_code = f"""
-import tkinter as tk
-from tkinter import filedialog
-root = tk.Tk()
-root.withdraw()
-root.wm_attributes('-topmost', 1)
-root.lift()
-f = filedialog.askdirectory(title='{safe_title}', master=root)
-root.destroy()
-if f:
-    print('PATH:' + f)
-"""
-        proc2 = subprocess.run(
-            ["python", "-c", py_code],
-            capture_output=True,
-            text=True,
-            timeout=180
-        )
-        for line in proc2.stdout.splitlines():
-            line = line.strip()
-            if line.startswith("PATH:"):
-                selected = line[5:].strip()
-                if os.path.exists(selected):
-                    return selected
-    except Exception as e2:
-        print("Python folder picker exception:", e2)
-
+    default_candidates = [
+        r"C:\Users\KARSHAK_Tamal\Desktop\Logs",
+        r"C:\Users\KARSHAK_Tamal\Downloads",
+        r"C:\Users\KARSHAK_Tamal\Desktop"
+    ]
+    for p in default_candidates:
+        if os.path.exists(p):
+            return p
     return None
 
 

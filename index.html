@@ -5210,16 +5210,21 @@
 
         function onNativeSourceFolderChosen(input) {
             if (!input || !input.files || input.files.length === 0) return;
-            const files = Array.from(input.files);
-            const validExts = ['.bin', '.log', '.tlog'];
-            const logFiles = files.filter(f => {
-                const name = f.name.toLowerCase();
-                return validExts.some(ext => name.endsWith(ext));
-            });
+            const logFiles = [];
+            let totalBytes = 0;
+            
+            for (let i = 0; i < input.files.length; i++) {
+                const f = input.files[i];
+                const lower = f.name.toLowerCase();
+                if (lower.endsWith('.bin') || lower.endsWith('.log') || lower.endsWith('.tlog')) {
+                    logFiles.push(f);
+                    totalBytes += f.size;
+                }
+            }
 
             inBrowserLogFiles = logFiles;
-            const firstRel = files[0].webkitRelativePath || files[0].name;
-            const folderName = firstRel.includes('/') ? firstRel.split('/')[0] : (files[0].name || 'Selected Folder');
+            const firstRel = input.files[0].webkitRelativePath || input.files[0].name;
+            const folderName = firstRel.includes('/') ? firstRel.split('/')[0] : (input.files[0].name || 'Selected Folder');
 
             const srcInput = document.getElementById('org-source-dir');
             if (srcInput) {
@@ -5228,8 +5233,6 @@
             }
 
             const statusSummary = document.getElementById('org-scan-summary');
-            let totalBytes = 0;
-            logFiles.forEach(f => totalBytes += f.size);
             const totalMb = (totalBytes / (1024 * 1024)).toFixed(2);
 
             if (statusSummary) {
@@ -5243,7 +5246,9 @@
                     activityList.innerHTML = `<div style="color: #64748b; padding: 16px; text-align: center;">No .bin, .log, or .tlog files found in this folder.</div>`;
                 } else {
                     let html = '';
-                    logFiles.slice(0, 100).forEach(f => {
+                    const previewCount = Math.min(logFiles.length, 100);
+                    for (let i = 0; i < previewCount; i++) {
+                        const f = logFiles[i];
                         const mb = (f.size / (1024 * 1024)).toFixed(2);
                         const dateStr = getFilenameTrueDate(f.name);
                         html += `
@@ -5257,7 +5262,7 @@
                                 </div>
                             </div>
                         `;
-                    });
+                    }
                     if (logFiles.length > 100) {
                         html += `<div style="color: #64748b; padding: 6px; text-align: center; font-size: 10px;">... and ${logFiles.length - 100} more files</div>`;
                     }
