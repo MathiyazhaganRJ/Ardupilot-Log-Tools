@@ -1326,6 +1326,163 @@
             color: var(--av-text-primary);
         }
 
+    
+        /* Aeronautical Selected Region Analytics Deck */
+        .plot-region-deck {
+            background: var(--av-panel-surface);
+            border-bottom: 1px solid var(--av-border-strong);
+            padding: 6px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            z-index: 20;
+            flex-shrink: 0;
+            animation: fadeIn 0.15s ease-out;
+        }
+
+        .region-deck-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-family: 'B612 Mono', monospace;
+            font-size: 10px;
+            color: var(--av-text-secondary);
+        }
+
+        .region-deck-title-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .region-badge-pill {
+            background: var(--av-accent);
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 9px;
+            padding: 2px 6px;
+            border-radius: 3px;
+            letter-spacing: 0.5px;
+        }
+
+        .region-meta-text {
+            color: var(--av-text-primary);
+            font-weight: 700;
+        }
+
+        .region-meta-mode {
+            color: #30d158;
+            font-weight: 700;
+        }
+
+        .region-meta-sep {
+            color: var(--av-border-strong);
+        }
+
+        .region-close-btn {
+            background: var(--av-btn-bg);
+            border: 1px solid var(--av-border);
+            color: var(--av-text-secondary);
+            font-family: 'B612 Mono', monospace;
+            font-size: 9.5px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: all 0.12s ease;
+        }
+        .region-close-btn:hover {
+            background: var(--av-surface-hover);
+            color: #ff453a;
+            border-color: #ff453a;
+        }
+
+        .region-deck-stats-row {
+            display: flex;
+            align-items: stretch;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 2px;
+            scrollbar-width: thin;
+        }
+
+        .region-stat-card {
+            background: var(--av-capsule-bg);
+            border: 1px solid var(--av-border);
+            border-radius: 4px;
+            padding: 5px 9px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 140px;
+            flex: 1;
+            transition: all 0.12s ease;
+        }
+        .region-stat-card:hover {
+            border-color: var(--av-border-strong);
+            background: var(--av-surface-hover);
+        }
+
+        .region-stat-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .region-stat-name {
+            font-family: 'B612 Mono', monospace;
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--av-text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .region-stat-avg-row {
+            display: flex;
+            align-items: baseline;
+            gap: 4px;
+            margin: 1px 0;
+        }
+
+        .region-stat-avg-label {
+            font-family: 'B612 Mono', monospace;
+            font-size: 8.5px;
+            font-weight: 700;
+            color: var(--av-text-muted);
+            letter-spacing: 0.4px;
+        }
+
+        .region-stat-avg-val {
+            font-family: 'B612 Mono', monospace;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--av-text-primary);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .region-stat-unit {
+            font-family: 'B612 Mono', monospace;
+            font-size: 9px;
+            font-weight: 500;
+            color: var(--av-text-muted);
+        }
+
+        .region-stat-envelope {
+            font-family: 'B612 Mono', monospace;
+            font-size: 8.5px;
+            color: var(--av-text-muted);
+            display: flex;
+            justify-content: space-between;
+            border-top: 1px solid var(--av-border-subtle);
+            padding-top: 2px;
+            margin-top: 1px;
+            font-variant-numeric: tabular-nums;
+        }
+
     </style>
     <script>
         window.onSitlIframeLoaded = function(){};
@@ -1503,6 +1660,10 @@
                 <div id="plot-channel-ribbon" class="plot-channel-ribbon">
                     <div id="plot-ribbon-chips" class="plot-ribbon-chips"></div>
                     <div class="plot-ribbon-actions">
+                        <div class="plot-mode-toggle-group" title="Interaction Tool: Zoom vs Box Select">
+                            <button class="plot-action-btn active" id="btn-drag-zoom" onclick="setPlotDragMode('zoom')" title="Drag to Zoom into Region">🔍 ZOOM</button>
+                            <button class="plot-action-btn" id="btn-drag-select" onclick="setPlotDragMode('select')" title="Drag to Select & Average Region">⬚ SELECT</button>
+                        </div>
                         <div class="plot-mode-toggle-group" title="Flight Mode Demarcation Style">
                             <button class="plot-action-btn active" id="btn-mode-strip" onclick="setPlotModeDisplay('strip')">STRIP</button>
                             <button class="plot-action-btn" id="btn-mode-tint" onclick="setPlotModeDisplay('tint')">TINT</button>
@@ -1513,6 +1674,24 @@
                             <span>AUTOSCALE</span>
                         </button>
                     </div>
+                </div>
+
+                <!-- Selected Region Analytics Deck -->
+                <div id="plot-region-deck" class="plot-region-deck" style="display: none;">
+                    <div class="region-deck-header">
+                        <div class="region-deck-title-group">
+                            <span class="region-badge-pill">SELECTED REGION STATS</span>
+                            <span id="region-time-span" class="region-meta-text">MET 00:00.0 → 00:00.0 (ΔT: 0.0s)</span>
+                            <span class="region-meta-sep">|</span>
+                            <span id="region-mode-tag" class="region-meta-mode">MODE: AUTO (100%)</span>
+                            <span class="region-meta-sep">|</span>
+                            <span id="region-pts-count" class="region-meta-text">0 samples</span>
+                        </div>
+                        <button class="region-close-btn" onclick="clearSelectedRegion()" title="Clear Region & Reset Selection">
+                            <span>✕ RESET RANGE</span>
+                        </button>
+                    </div>
+                    <div id="region-stats-cards" class="region-deck-stats-row"></div>
                 </div>
                 <div id="main-plot"></div>
                 <div id="plot-cursor-line">
@@ -2685,6 +2864,292 @@
             updatePlot();
         }
 
+        
+        let plotDragMode = 'zoom';
+        let currentSelectedRegion = null;
+
+        function setPlotDragMode(mode) {
+            plotDragMode = mode;
+            const btnZoom = document.getElementById('btn-drag-zoom');
+            const btnSelect = document.getElementById('btn-drag-select');
+            if (btnZoom) btnZoom.classList.toggle('active', mode === 'zoom');
+            if (btnSelect) btnSelect.classList.toggle('active', mode === 'select');
+            Plotly.relayout('main-plot', { dragmode: mode });
+        }
+
+        function computeRegionStats(tStart, tEnd) {
+            if (!currentFlightData || !currentFlightData.telemetry || currentFlightData.telemetry.length === 0) return null;
+            const tele = currentFlightData.telemetry;
+
+            const t0 = Math.min(tStart, tEnd);
+            const t1 = Math.max(tStart, tEnd);
+            const dt = t1 - t0;
+            if (dt <= 0.05) return null;
+
+            const samples = tele.filter(r => r.time >= t0 && r.time <= t1);
+            if (samples.length === 0) return null;
+
+            // Dominant mode determination
+            const modeCounts = {};
+            samples.forEach(s => {
+                if (s.mode) modeCounts[s.mode] = (modeCounts[s.mode] || 0) + 1;
+            });
+            let dominantMode = 'UNKNOWN';
+            let maxModeCount = 0;
+            for (const m in modeCounts) {
+                if (modeCounts[m] > maxModeCount) {
+                    maxModeCount = modeCounts[m];
+                    dominantMode = m;
+                }
+            }
+            const modePct = Math.round((maxModeCount / samples.length) * 100);
+
+            const channelStats = [];
+
+            activeFields.forEach(f => {
+                let key = FIELD_ALIAS_MAP[f.name];
+                if (!key) {
+                    const parts = f.name.split('.');
+                    const col = (parts.length > 1 ? parts[1] : parts[0]).toLowerCase();
+                    if (samples[0] && samples[0][col] !== undefined) key = col;
+                    else if (samples[0] && samples[0][f.name] !== undefined) key = f.name;
+                }
+
+                let vals = [];
+                let times = [];
+                if (key && samples[0][key] !== undefined) {
+                    samples.forEach(r => {
+                        const v = r[key];
+                        if (v !== null && v !== undefined && !isNaN(v)) {
+                            vals.push(v);
+                            times.push(r.time);
+                        }
+                    });
+                } else {
+                    samples.forEach(r => {
+                        const v = r[f.name] !== undefined ? r[f.name] : r.tas;
+                        if (v !== null && v !== undefined && !isNaN(v)) {
+                            vals.push(v);
+                            times.push(r.time);
+                        }
+                    });
+                }
+
+                if (vals.length === 0) return;
+
+                // Time-weighted trapezoidal integral average
+                let weightedSum = 0;
+                let totalTimeDelta = 0;
+                for (let i = 0; i < vals.length - 1; i++) {
+                    const dtStep = times[i + 1] - times[i];
+                    if (dtStep > 0 && dtStep < 5) {
+                        weightedSum += 0.5 * (vals[i] + vals[i + 1]) * dtStep;
+                        totalTimeDelta += dtStep;
+                    }
+                }
+
+                let avgVal;
+                if (totalTimeDelta > 0) {
+                    avgVal = weightedSum / totalTimeDelta;
+                } else {
+                    avgVal = vals.reduce((a, b) => a + b, 0) / vals.length;
+                }
+
+                const minVal = Math.min(...vals);
+                const maxVal = Math.max(...vals);
+
+                // Standard deviation
+                const variance = vals.reduce((sum, v) => sum + Math.pow(v - avgVal, 2), 0) / vals.length;
+                const stdDev = Math.sqrt(variance);
+
+                const unit = getFieldUnit(f.name);
+
+                channelStats.push({
+                    name: f.name,
+                    color: f.color,
+                    axis: f.axis,
+                    unit: unit,
+                    avg: avgVal,
+                    min: minVal,
+                    max: maxVal,
+                    stdDev: stdDev,
+                    delta: maxVal - minVal,
+                    count: vals.length
+                });
+            });
+
+            return {
+                tStart: t0,
+                tEnd: t1,
+                duration: dt,
+                sampleCount: samples.length,
+                rateHz: (samples.length / dt).toFixed(1),
+                dominantMode: dominantMode,
+                dominantModePct: modePct,
+                channels: channelStats
+            };
+        }
+
+        function applySelectedRegion(t0, t1, isBoxSelect = false) {
+            const stats = computeRegionStats(t0, t1);
+            if (!stats) return;
+
+            currentSelectedRegion = stats;
+            window.currentSelectedRegion = stats;
+
+            const deck = document.getElementById('plot-region-deck');
+            const timeSpan = document.getElementById('region-time-span');
+            const modeTag = document.getElementById('region-mode-tag');
+            const ptsCount = document.getElementById('region-pts-count');
+            const cardsContainer = document.getElementById('region-stats-cards');
+
+            if (timeSpan) {
+                timeSpan.textContent = `MET ${formatFlightClock(stats.tStart)} → ${formatFlightClock(stats.tEnd)} (ΔT: ${stats.duration.toFixed(1)}s)`;
+            }
+            if (modeTag) {
+                modeTag.textContent = `MODE: ${stats.dominantMode} (${stats.dominantModePct}%)`;
+                const c = FLIGHT_MODE_COLORS[stats.dominantMode] || '#30d158';
+                modeTag.style.color = c;
+            }
+            if (ptsCount) {
+                ptsCount.textContent = `${stats.sampleCount} pts @ ${stats.rateHz} Hz`;
+            }
+
+            if (cardsContainer) {
+                cardsContainer.innerHTML = '';
+                stats.channels.forEach(ch => {
+                    const card = document.createElement('div');
+                    card.className = 'region-stat-card';
+                    const unitStr = ch.unit ? ` ${ch.unit}` : '';
+                    card.innerHTML = `
+                        <div class="region-stat-card-header">
+                            <span class="region-stat-name">
+                                <span class="ribbon-color-pip" style="background:${ch.color};"></span>
+                                ${ch.name}
+                            </span>
+                            <span class="ribbon-axis-badge">Y${ch.axis + 1}</span>
+                        </div>
+                        <div class="region-stat-avg-row">
+                            <span class="region-stat-avg-label">AVERAGE:</span>
+                            <span class="region-stat-avg-val" style="color:${ch.color};">${ch.avg.toFixed(2)}</span>
+                            <span class="region-stat-unit">${ch.unit}</span>
+                        </div>
+                        <div class="region-stat-envelope">
+                            <span>MIN: ${ch.min.toFixed(1)}${unitStr}</span>
+                            <span>MAX: ${ch.max.toFixed(1)}${unitStr}</span>
+                            <span>σ: ±${ch.stdDev.toFixed(2)}</span>
+                        </div>
+                    `;
+                    cardsContainer.appendChild(card);
+                });
+            }
+
+            if (deck) {
+                deck.style.display = 'flex';
+            }
+
+            // Update ribbon channel chips to reflect region averages
+            updateChannelRibbonWithRegion(stats);
+
+            // If box select, draw temporary highlight rectangle on plot
+            if (isBoxSelect) {
+                const highlightShape = {
+                    type: 'rect',
+                    xref: 'x',
+                    yref: 'paper',
+                    x0: stats.tStart,
+                    x1: stats.tEnd,
+                    y0: 0,
+                    y1: 1.0,
+                    fillcolor: 'rgba(255, 255, 255, 0.08)',
+                    line: {
+                        color: 'rgba(255, 255, 255, 0.4)',
+                        width: 1,
+                        dash: 'dot'
+                    }
+                };
+                Plotly.relayout('main-plot', {
+                    shapes: [...basePlotShapes, highlightShape]
+                });
+            }
+        }
+
+        function updateChannelRibbonWithRegion(stats) {
+            if (!stats) return;
+            stats.channels.forEach(ch => {
+                const idSafe = ch.name.replace(/[^a-zA-Z0-9]/g, '_');
+                const chip = document.getElementById(`ribbon-val-${idSafe}`);
+                if (chip) {
+                    // Update display to indicate region average
+                    const statBadge = chip.parentElement.querySelector('.ribbon-stats');
+                    if (statBadge) {
+                        statBadge.innerHTML = `<b>AVG: ${ch.avg.toFixed(2)}${ch.unit ? ' ' + ch.unit : ''}</b> [${ch.min.toFixed(1)} / ${ch.max.toFixed(1)}]`;
+                        statBadge.style.color = 'var(--av-text-primary)';
+                        statBadge.style.background = 'var(--av-panel-surface)';
+                        statBadge.style.border = '1px solid var(--av-border-strong)';
+                    }
+                }
+            });
+        }
+
+        function clearSelectedRegion() {
+            currentSelectedRegion = null;
+            window.currentSelectedRegion = null;
+            const deck = document.getElementById('plot-region-deck');
+            if (deck) deck.style.display = 'none';
+            resetPlotZoom();
+            updateChannelRibbon();
+            updateChannelReadouts(currentTimeCursor);
+        }
+
+        window.applySelectedRegion = applySelectedRegion;
+        window.clearSelectedRegion = clearSelectedRegion;
+        window.computeRegionStats = computeRegionStats;
+
+        function setupPlotlyEventListeners() {
+            const plotEl = document.getElementById('main-plot');
+            if (!plotEl || plotEl._hasTelemetryListeners) return;
+            plotEl._hasTelemetryListeners = true;
+
+            // Relayout event (zoom or range change)
+            plotEl.on('plotly_relayout', function(eventData) {
+                if (!eventData) return;
+                if (eventData['xaxis.autorange']) {
+                    currentSelectedRegion = null;
+                    const deck = document.getElementById('plot-region-deck');
+                    if (deck) deck.style.display = 'none';
+                    updateChannelRibbon();
+                    updateChannelReadouts(currentTimeCursor);
+                    return;
+                }
+                let t0 = null, t1 = null;
+                if (eventData['xaxis.range[0]'] !== undefined && eventData['xaxis.range[1]'] !== undefined) {
+                    t0 = parseFloat(eventData['xaxis.range[0]']);
+                    t1 = parseFloat(eventData['xaxis.range[1]']);
+                } else if (Array.isArray(eventData['xaxis.range'])) {
+                    t0 = parseFloat(eventData['xaxis.range'][0]);
+                    t1 = parseFloat(eventData['xaxis.range'][1]);
+                }
+                if (t0 !== null && t1 !== null) {
+                    applySelectedRegion(t0, t1, false);
+                }
+            });
+
+            // Selected event (box select or lasso)
+            plotEl.on('plotly_selected', function(eventData) {
+                if (eventData && eventData.range && eventData.range.x) {
+                    const t0 = parseFloat(eventData.range.x[0]);
+                    const t1 = parseFloat(eventData.range.x[1]);
+                    applySelectedRegion(t0, t1, true);
+                }
+            });
+
+            // Double click to reset
+            plotEl.on('plotly_doubleclick', function() {
+                clearSelectedRegion();
+            });
+        }
+
         function updatePlot() {
             if (!currentFlightData || !currentFlightData.telemetry) return;
             const tele = currentFlightData.telemetry;
@@ -2911,6 +3376,7 @@
             };
 
             Plotly.react('main-plot', traces, layout, config);
+            setupPlotlyEventListeners();
             updateChannelRibbon();
             updateChannelReadouts(currentTimeCursor);
         }
