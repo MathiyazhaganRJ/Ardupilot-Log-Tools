@@ -293,6 +293,32 @@ class LogViewerHandler(SimpleHTTPRequestHandler):
                 self._send_json({'success': False, 'cancelled': True})
             return
 
+        # 5b. API: List Subdirectories for In-App Folder Navigation
+        elif path == '/api/list_subfolders':
+            target_dir = query.get('path', [''])[0]
+            if not target_dir:
+                drives = []
+                for letter in 'CDEFGHIJKLMNOPQRSTUVWXYZ':
+                    d = f"{letter}:\\"
+                    if os.path.exists(d):
+                        drives.append(d)
+                self._send_json({'success': True, 'folders': drives, 'is_drives': True})
+                return
+            try:
+                target_dir = os.path.normpath(target_dir)
+                if os.path.isdir(target_dir):
+                    subdirs = []
+                    for entry in os.scandir(target_dir):
+                        if entry.is_dir() and not entry.name.startswith('.'):
+                            subdirs.append({'name': entry.name, 'path': entry.path})
+                    subdirs.sort(key=lambda x: x['name'].lower())
+                    self._send_json({'success': True, 'path': target_dir, 'folders': subdirs})
+                else:
+                    self._send_json({'success': False, 'error': 'Not a directory'})
+            except Exception as e:
+                self._send_json({'success': False, 'error': str(e)})
+            return
+
         super().do_GET()
 
     def do_POST(self):

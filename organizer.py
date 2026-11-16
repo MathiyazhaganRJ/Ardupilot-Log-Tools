@@ -302,7 +302,7 @@ def organize_flight_logs(source_folder, dest_folder, structure="year_month_date"
 def pick_folder_native(title="Select Folder", initial_dir=""):
     """
     Launches a dedicated subprocess to prompt the Windows Folder Picker dialog
-    using Tkinter (matching the reference desktop tool implementation).
+    using Tkinter, directed specifically to the interactive user desktop (WinSta0\Default).
     Does not block the web server threads.
     """
     code = (
@@ -322,9 +322,13 @@ def pick_folder_native(title="Select Folder", initial_dir=""):
         "except Exception as e:\n"
         "    sys.stderr.write(str(e))\n"
     )
+    si = subprocess.STARTUPINFO()
+    si.lpDesktop = r"WinSta0\Default"
+
     try:
         p = subprocess.run(
             [sys.executable, "-c", code, initial_dir or "", title or "Select Folder"],
+            startupinfo=si,
             capture_output=True,
             text=True,
             timeout=180
