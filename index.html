@@ -5241,10 +5241,9 @@
             const originalText = btn ? btn.textContent : 'Browse...';
             if (btn) btn.textContent = 'Selecting...';
             const currentInput = document.getElementById(mode === 'source' ? 'org-source-dir' : 'org-dest-dir');
-            const currentVal = currentInput ? currentInput.value.trim() : '';
 
             try {
-                const res = await fetch(`/api/select_folder?mode=${mode}&current=${encodeURIComponent(currentVal)}`);
+                const res = await fetch(`/api/select_folder?mode=${mode}`);
                 const data = await res.json();
                 if (data.success && data.path) {
                     if (mode === 'source') {

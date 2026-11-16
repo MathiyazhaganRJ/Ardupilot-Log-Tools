@@ -302,70 +302,13 @@ def organize_flight_logs(source_folder, dest_folder, structure="year_month_date"
 
 def pick_folder_native(title="Select Folder", initial_dir=""):
     """
-    Launches a dedicated subprocess to prompt the full Windows File Explorer dialog.
-    Uses OpenFileDialog with CheckFileExists=false to open the authentic Windows File Explorer
-    allowing full navigation across This PC, all drives (C:, D:, G:, SD cards), Downloads, etc.
+    Launches a dedicated subprocess to prompt the native Windows Folder Picker dialog.
+    Directly mirrors the proven implementation from the original ArduPilot Log Manager tool.
     """
-    clean_init = os.path.normpath(initial_dir.strip(' "\'')) if initial_dir else ''
-    if not (clean_init and os.path.exists(clean_init)):
-        clean_init = ''
-
-    # Strategy 1: Modern Windows File Explorer via OpenFileDialog (full navigation pane, This PC, all drives)
-    ps_explorer_script = (
-        "Add-Type -AssemblyName System.Windows.Forms; "
-        "$d = New-Object System.Windows.Forms.OpenFileDialog; "
-        f"$d.Title = '{title} - Navigate inside desired folder and click Open'; "
-        "$d.ValidateNames = $false; "
-        "$d.CheckFileExists = $false; "
-        "$d.CheckPathExists = $true; "
-        "$d.FileName = 'Select Current Folder'; "
-    )
-    if clean_init:
-        esc_init = clean_init.replace("'", "''")
-        ps_explorer_script += f"$d.InitialDirectory = '{esc_init}'; "
-
-    ps_explorer_script += (
-        "$d.RestoreDirectory = $true; "
-        "if ($d.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { "
-        "  $raw = $d.FileName; "
-        "  if (Test-Path $raw -PathType Container) { "
-        "    Write-Output $raw "
-        "  } else { "
-        "    $parent = [System.IO.Path]::GetDirectoryName($raw); "
-        "    if ($parent -and (Test-Path $parent)) { "
-        "      Write-Output $parent "
-        "    } else { "
-        "      Write-Output $raw "
-        "    } "
-        "  } "
-        "}"
-    )
-
+    picker_script = os.path.join(os.path.dirname(os.path.abspath(__file__)), "picker.py")
     try:
         p = subprocess.run(
-            ["powershell", "-NoProfile", "-Command", ps_explorer_script],
-            capture_output=True,
-            text=True,
-            timeout=180
-        )
-        out = p.stdout.strip()
-        if out and os.path.exists(out):
-            return os.path.normpath(out)
-        # If user closed or cancelled the dialog, return None
-        if p.returncode == 0 and not p.stderr:
-            return None
-    except Exception as e:
-        print(f"[Organizer] Windows File Explorer dialog error: {e}")
-
-    # Strategy 2: Shell.Application BrowseForFolder rooted at This PC (Root = 17: ssfDRIVES)
-    try:
-        ps_shell_script = (
-            "$app = New-Object -ComObject Shell.Application; "
-            f"$f = $app.BrowseForFolder(0, '{title}', 81, 17); "
-            "if ($f -and $f.Self) { Write-Output $f.Self.Path }"
-        )
-        p = subprocess.run(
-            ["powershell", "-NoProfile", "-Command", ps_shell_script],
+            [sys.executable, picker_script, title or "Select Folder"],
             capture_output=True,
             text=True,
             timeout=180
@@ -374,40 +317,7 @@ def pick_folder_native(title="Select Folder", initial_dir=""):
         if out and os.path.exists(out):
             return os.path.normpath(out)
     except Exception as e:
-        print(f"[Organizer] Shell.Application picker error: {e}")
-
-    # Strategy 3: Tkinter askdirectory fallback
-    try:
-        code = (
-            "import tkinter as tk\n"
-            "from tkinter import filedialog\n"
-            "import sys, os\n"
-            "try:\n"
-            "    root = tk.Tk()\n"
-            "    root.withdraw()\n"
-            "    root.wm_attributes('-topmost', 1)\n"
-            "    root.focus_force()\n"
-            "    init_dir = sys.argv[1] if len(sys.argv) > 1 and os.path.exists(sys.argv[1]) else ''\n"
-            "    title_str = sys.argv[2] if len(sys.argv) > 2 else 'Select Folder'\n"
-            "    folder = filedialog.askdirectory(master=root, title=title_str, initialdir=init_dir)\n"
-            "    root.destroy()\n"
-            "    if folder:\n"
-            "        sys.stdout.write(os.path.normpath(folder))\n"
-            "except Exception as e:\n"
-            "    sys.stderr.write(str(e))\n"
-        )
-        p = subprocess.run(
-            [sys.executable, "-c", code, clean_init, title or "Select Folder"],
-            capture_output=True,
-            text=True,
-            timeout=180
-        )
-        out = p.stdout.strip()
-        if out and os.path.exists(out):
-            return os.path.normpath(out)
-    except Exception as e:
-        print(f"[Organizer] Tkinter picker fallback error: {e}")
-
+        print(f"[Organizer] Folder picker error: {e}")
     return None
 
 
