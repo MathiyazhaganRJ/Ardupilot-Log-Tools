@@ -17,10 +17,14 @@ GPS_EPOCH = datetime.datetime(1980, 1, 6, tzinfo=datetime.timezone.utc)
 
 def get_true_log_date(filepath):
     """
-    Smart Date Extraction:
-    1. Extract Date from Filename (Regex YYYY-MM-DD or YYYYMMDD).
-    2. Validity Check: Is Year >= 2022? (Avoids corrupt/pre-GPS 1980/2000 boot timestamps).
-    3. If filename date is missing or < 2022, inspect GPS/FMT metadata from file or fallback to file modification time.
+    Smart Date Extraction (Preserves original ArduPilot Log Manager logic):
+    1. Extract Date from Filename (Regex YYYY-MM-DD, YYYYMMDD, or DD-MM-YYYY).
+    2. Validity Check: The '2022 Rule' (year >= 2022).
+       - YES: Valid flight date from filename.
+       - NO (e.g. 1980, 2000): Pre-GPS boot timestamp or uninitialized RTC.
+    3. If filename has no date or year < 2022:
+       - Probes internal GPS lock timestamp from DataFlash .bin messages.
+       - Falls back to System File Modification Time (os.path.getmtime).
     """
     filename = os.path.basename(filepath)
     potential_date = None
@@ -42,11 +46,24 @@ def get_true_log_date(filepath):
             except Exception:
                 pass
 
-    # VALIDITY CHECK (The "2022 Rule")
+    # Regex 3: DD-MM-YYYY or MM-DD-YYYY
+    if not potential_date:
+        match = re.search(r"(\d{2})[-_](\d{2})[-_](\d{4})", filename)
+        if match:
+            y = int(match.group(3))
+            try:
+                potential_date = datetime.datetime(y, int(match.group(2)), int(match.group(1)))
+            except Exception:
+                try:
+                    potential_date = datetime.datetime(y, int(match.group(1)), int(match.group(2)))
+                except Exception:
+                    pass
+
+    # VALIDITY CHECK (The "2022 Rule" from original ArduPilot Log Manager)
     if potential_date and potential_date.year >= 2022:
         return potential_date
 
-    # Binary probe for GPS lock timestamp in .bin files
+    # Binary / MAVLink probe for internal GPS lock timestamp in .bin files
     if filepath.lower().endswith('.bin') and os.path.exists(filepath):
         try:
             gps_date = probe_bin_gps_date(filepath)
@@ -55,7 +72,7 @@ def get_true_log_date(filepath):
         except Exception:
             pass
 
-    # Fallback to System File Modification Time
+    # Fallback to System File Modification Time (Original Log Manager fallback)
     try:
         mtime = os.path.getmtime(filepath)
         return datetime.datetime.fromtimestamp(mtime)
@@ -65,25 +82,45 @@ def get_true_log_date(filepath):
 
 def probe_bin_gps_date(filepath):
     """
-    Quick binary scan of the first 256KB of an ArduPilot DataFlash .bin log
-    to locate GPS / GPS_RAW / FMT timestamps if filename has no date.
+    Inspects internal GPS messages inside an ArduPilot DataFlash .bin log
+    to extract the real flight date when filename has no date or pre-GPS 1980/2000 boot time.
     """
+    # 1. Pymavlink GPS fix inspection
+    try:
+        from pymavlink import mavutil
+        mlog = mavutil.mavlink_connection(filepath)
+        count = 0
+        while count < 3000:
+            msg = mlog.recv_match(type=['GPS'], blocking=False)
+            if not msg:
+                break
+            count += 1
+            if getattr(msg, 'Status', 0) >= 3:
+                gwk = getattr(msg, 'GWk', 0)
+                gms = getattr(msg, 'GMS', 0)
+                if gwk > 1500:
+                    epoch = datetime.datetime(1980, 1, 6, tzinfo=datetime.timezone.utc)
+                    dt = epoch + datetime.timedelta(weeks=gwk, milliseconds=gms)
+                    dt_local = datetime.datetime.fromtimestamp(dt.timestamp())
+                    if dt_local.year >= 2022:
+                        return dt_local
+    except Exception:
+        pass
+
+    # 2. Binary buffer text search for ISO date strings
     try:
         with open(filepath, 'rb') as f:
             chunk = f.read(262144)  # First 256KB
-            if len(chunk) < 100:
-                return None
-
-            # Look for ASCII date pattern YYYY-MM-DD in text messages inside chunk
-            text_matches = re.findall(b"(\\d{4}-\\d{2}-\\d{2})", chunk)
-            for m in text_matches:
-                try:
-                    s = m.decode('ascii', errors='ignore')
-                    dt = datetime.datetime.strptime(s, "%Y-%m-%d")
-                    if dt.year >= 2022:
-                        return dt
-                except Exception:
-                    pass
+            if len(chunk) >= 100:
+                text_matches = re.findall(b"(\\d{4}-\\d{2}-\\d{2})", chunk)
+                for m in text_matches:
+                    try:
+                        s = m.decode('ascii', errors='ignore')
+                        dt = datetime.datetime.strptime(s, "%Y-%m-%d")
+                        if dt.year >= 2022:
+                            return dt
+                    except Exception:
+                        pass
     except Exception:
         pass
     return None

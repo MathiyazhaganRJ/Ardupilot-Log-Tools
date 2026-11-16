@@ -5376,6 +5376,10 @@
             if (m && parseInt(m[1]) >= 2022) {
                 return `${m[1]}-${m[2]}-${m[3]}`;
             }
+            m = filename.match(/(\d{2})[-_](\d{2})[-_](\d{4})/);
+            if (m && parseInt(m[3]) >= 2022) {
+                return `${m[3]}-${m[2]}-${m[1]}`;
+            }
             return new Date().toISOString().slice(0, 10);
         }
 
