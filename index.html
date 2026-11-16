@@ -3394,6 +3394,10 @@
             const p1FieldElev = p1.field_elev || currentFlightData?.metadata?.field_elevation || 0;
             const interpFieldElev = p0FieldElev + (p1FieldElev - p0FieldElev) * alpha;
 
+            if (interpFieldElev > 20.0 && interpAlt < (interpFieldElev - 150.0)) {
+                interpAlt = interpFieldElev + interpRelAlt;
+            }
+
             const p0BaroTemp = (typeof p0.baro_temp === 'number' && Math.abs(p0.baro_temp) > 0.05) ? p0.baro_temp : (p0.temp || 0);
             const p1BaroTemp = (typeof p1.baro_temp === 'number' && Math.abs(p1.baro_temp) > 0.05) ? p1.baro_temp : (p1.temp || 0);
             const interpBaroTemp = p0BaroTemp + (p1BaroTemp - p0BaroTemp) * alpha;

@@ -14441,7 +14441,8 @@
                 firstPos = true;
 
                 currentPlaneAltRel = (typeof pt.rel_alt === 'number') ? pt.rel_alt : (pt.alt - (homeAlt || 0));
-                currentPlaneAltMSL = pt.alt;
+                const rawMsl = (typeof pt.alt === 'number') ? pt.alt : ((homeAlt || 0) + currentPlaneAltRel);
+                currentPlaneAltMSL = (homeAlt && homeAlt > 20.0 && rawMsl < (homeAlt - 150.0)) ? (homeAlt + currentPlaneAltRel) : rawMsl;
                 planeClimbRate = pt.crt || 0;
 
                 // Throttled map update: Stream tiles around vehicle once every 1.5s
@@ -14776,7 +14777,11 @@
             }
 
             // Current AMSL (Absolute altitude above Mean Sea Level)
-            const amsl = (typeof pt.alt === 'number') ? pt.alt : (typeof currentPlaneAltMSL === 'number' && currentPlaneAltMSL !== 0 ? currentPlaneAltMSL : fieldElev);
+            let amsl = (typeof pt.alt === 'number') ? pt.alt : (typeof currentPlaneAltMSL === 'number' && currentPlaneAltMSL !== 0 ? currentPlaneAltMSL : fieldElev);
+            if (fieldElev > 20.0 && amsl < (fieldElev - 150.0)) {
+                const relH = (typeof pt.rel_alt === 'number') ? pt.rel_alt : amsl;
+                amsl = fieldElev + relH;
+            }
 
             // Current AGL (Height above ground level)
             const agl = (typeof currentAGL === 'number' && currentAGL > 0) ? currentAGL : (typeof pt.rel_alt === 'number' ? Math.max(0, pt.rel_alt) : (typeof currentPlaneAltRel === 'number' ? Math.max(0, currentPlaneAltRel) : Math.max(0, amsl - fieldElev)));

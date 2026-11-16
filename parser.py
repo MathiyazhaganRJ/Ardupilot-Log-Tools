@@ -240,13 +240,13 @@ def parse_flight_telemetry(file_path, target_samples=6000):
             if abs(lat_raw) > 1000:
                 cur_lat = lat_raw / 1e7
                 cur_lng = lng_raw / 1e7
-            if status >= 3 and home_elevation == 0.0:
+            if status >= 3:
                 gps_a = getattr(msg, 'Alt', None)
                 if gps_a is not None and abs(gps_a) > 0.001:
-                    home_elevation = float(gps_a)
-                    if cur_alt == 0.0:
-                        cur_alt = home_elevation
-                        cur_amsl = home_elevation
+                    if home_elevation == 0.0:
+                        home_elevation = float(gps_a)
+                    cur_alt = float(gps_a)
+                    cur_amsl = cur_alt
 
         elif mtype == 'POS':
             lat_p = getattr(msg, 'Lat', 0)
@@ -258,6 +258,8 @@ def parse_flight_telemetry(file_path, target_samples=6000):
                 pos_alt = getattr(msg, 'Alt', None)
                 if pos_alt is not None and abs(pos_alt) > 10.0:
                     home_elevation = float(pos_alt)
+                    cur_alt = (home_elevation + cur_rel_alt) if home_elevation != 0.0 else cur_rel_alt
+                    cur_amsl = cur_alt
             rel_home = getattr(msg, 'RelHomeAlt', None)
             if rel_home is not None:
                 cur_rel_alt = float(rel_home)
@@ -439,8 +441,10 @@ def parse_flight_telemetry(file_path, target_samples=6000):
     # Backfill field elevation and AMSL datum across initial samples before GPS 3D fix
     if home_elevation != 0.0:
         for r in raw_records:
-            if r['field_elev'] == 0.0 or r['alt'] == 0.0:
+            if r['field_elev'] == 0.0:
                 r['field_elev'] = round(home_elevation, 1)
+            # Guarantee AMSL consistency: if alt was recorded as relative altitude or uninitialized
+            if r['alt'] == 0.0 or (abs(home_elevation) > 10.0 and abs(r['alt'] - r['rel_alt']) < 1.0) or (abs(home_elevation) > 50.0 and r['alt'] < (home_elevation - 150.0)):
                 r['alt'] = round(home_elevation + r['rel_alt'], 1)
 
     # Backfill and harmonize airspeed temperature across records
