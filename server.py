@@ -447,12 +447,39 @@ class LogViewerHandler(SimpleHTTPRequestHandler):
                         'size_mb': round(temp_size / (1024 * 1024), 2)
                     })
                 else:
+                    if os.path.exists(target_path):
+                        base_stem, ext = os.path.splitext(filename)
+                        counter = 1
+                        collision_path = os.path.join(target_dir, f"{base_stem}_{counter}{ext}")
+                        is_dup = False
+                        while os.path.exists(collision_path):
+                            if os.path.getsize(collision_path) == temp_size:
+                                is_dup = True
+                                target_path = collision_path
+                                break
+                            counter += 1
+                            collision_path = os.path.join(target_dir, f"{base_stem}_{counter}{ext}")
+
+                        if is_dup:
+                            os.remove(temp_path)
+                            self._send_json({
+                                'success': True,
+                                'status': 'skipped',
+                                'filename': os.path.basename(target_path),
+                                'dest': target_path,
+                                'date': date_str,
+                                'size_mb': round(temp_size / (1024 * 1024), 2)
+                            })
+                            return
+
+                        target_path = collision_path
+
                     import shutil
                     shutil.move(temp_path, target_path)
                     self._send_json({
                         'success': True,
                         'status': 'copied',
-                        'filename': filename,
+                        'filename': os.path.basename(target_path),
                         'dest': target_path,
                         'date': date_str,
                         'size_mb': round(temp_size / (1024 * 1024), 2)
