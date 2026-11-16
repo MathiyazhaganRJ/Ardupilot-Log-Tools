@@ -283,7 +283,9 @@ class LogViewerHandler(SimpleHTTPRequestHandler):
         elif path == '/api/select_folder':
             mode = query.get('mode', ['source'])[0]
             title = "Select Source Flight Logs Directory" if mode == 'source' else "Select Destination Directory for Organized Logs"
+            print(f"[API] Launching native folder picker: mode={mode} title='{title}'")
             selected_path = organizer.pick_folder_native(title=title)
+            print(f"[API] Folder picker result: '{selected_path}'")
             if selected_path:
                 self._send_json({'success': True, 'path': selected_path})
             else:

@@ -5221,10 +5221,16 @@
         async function pickOrganizerFolder(mode) {
             const btn = document.getElementById(mode === 'source' ? 'org-btn-browse-src' : 'org-btn-browse-dest');
             const originalText = btn ? btn.textContent : '';
-            if (btn) btn.textContent = 'Selecting...';
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = 'Browsing...';
+            }
 
             try {
-                const res = await fetch(`/api/select_folder?mode=${mode}`);
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 180000); // 3 minutes timeout
+                const res = await fetch(`/api/select_folder?mode=${mode}`, { signal: controller.signal });
+                clearTimeout(timeoutId);
                 const data = await res.json();
                 if (data.success && data.path) {
                     if (mode === 'source') {
@@ -5245,7 +5251,27 @@
             } catch (err) {
                 console.error("Folder picker error:", err);
             } finally {
-                if (btn) btn.textContent = originalText;
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = originalText;
+                }
+            }
+        }
+
+        function setOrgSourcePreset(folderPath) {
+            const srcInput = document.getElementById('org-source-dir');
+            if (srcInput) {
+                srcInput.value = folderPath;
+                localStorage.setItem('org_source_dir', folderPath);
+                scanOrganizerSource();
+            }
+        }
+
+        function setOrgDestPreset(folderPath) {
+            const destInput = document.getElementById('org-dest-dir');
+            if (destInput) {
+                destInput.value = folderPath;
+                localStorage.setItem('org_dest_dir', folderPath);
             }
         }
 
@@ -5626,6 +5652,15 @@
                     <button type="button" id="org-btn-browse-src" class="uav-pill-action-btn" onclick="pickOrganizerFolder('source')" style="padding: 6px 12px; font-size: 11px; white-space: nowrap;" title="Select folder via native Windows directory picker">Browse...</button>
                     <button type="button" class="uav-pill-action-btn" onclick="scanOrganizerSource()" style="padding: 6px 12px; font-size: 11px; white-space: nowrap; background: #22c55e22; border-color: #22c55e55; color: #22c55e;" title="Scan folder for log files">Scan</button>
                 </div>
+                <!-- Quick Preset Paths -->
+                <div style="display: flex; gap: 5px; flex-wrap: wrap; margin-top: 6px; align-items: center;">
+                    <span style="font-size: 9px; color: #64748b; font-weight: 700; text-transform: uppercase;">Quick Source:</span>
+                    <button type="button" class="expr-chip-btn" onclick="setOrgSourcePreset('C:\\Users\\KARSHAK_Tamal\\Desktop\\Logs')">Desktop Logs</button>
+                    <button type="button" class="expr-chip-btn" onclick="setOrgSourcePreset('C:\\Users\\KARSHAK_Tamal\\Downloads')">Downloads</button>
+                    <button type="button" class="expr-chip-btn" onclick="setOrgSourcePreset('C:\\Users\\KARSHAK_Tamal\\Desktop')">Desktop</button>
+                    <button type="button" class="expr-chip-btn" onclick="setOrgSourcePreset('D:\\')">SD Card (D:)</button>
+                    <button type="button" class="expr-chip-btn" onclick="setOrgSourcePreset('E:\\')">SD Card (E:)</button>
+                </div>
             </div>
 
             <!-- 2. Destination Folder Selection -->
@@ -5639,6 +5674,12 @@
                     <input type="text" id="org-dest-dir" class="modal-input" placeholder="e.g. C:\Users\KARSHAK_Tamal\Desktop\Logs" style="margin-bottom: 0; flex: 1;">
                     <button type="button" id="org-btn-browse-dest" class="uav-pill-action-btn" onclick="pickOrganizerFolder('dest')" style="padding: 6px 12px; font-size: 11px; white-space: nowrap;" title="Select folder via native Windows directory picker">Browse...</button>
                     <button type="button" class="uav-pill-action-btn" onclick="openPathInExplorer()" style="padding: 6px 12px; font-size: 11px; white-space: nowrap;" title="Open destination directory in Windows Explorer">Explorer</button>
+                </div>
+                <!-- Quick Destination Presets -->
+                <div style="display: flex; gap: 5px; flex-wrap: wrap; margin-top: 6px; align-items: center;">
+                    <span style="font-size: 9px; color: #64748b; font-weight: 700; text-transform: uppercase;">Quick Dest:</span>
+                    <button type="button" class="expr-chip-btn" onclick="setOrgDestPreset('C:\\Users\\KARSHAK_Tamal\\Desktop\\Logs')">Desktop Logs (Default)</button>
+                    <button type="button" class="expr-chip-btn" onclick="setOrgDestPreset('C:\\Users\\KARSHAK_Tamal\\Desktop')">Desktop</button>
                 </div>
             </div>
 
