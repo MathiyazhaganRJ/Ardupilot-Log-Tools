@@ -1212,6 +1212,76 @@
             justify-content: flex-end;
             gap: 8px;
         }
+
+        /* Expression Modal Keyword Selection & Autocomplete */
+        .expr-chip-btn {
+            background: #0f172a;
+            border: 1px solid #334155;
+            color: #cbd5e1;
+            font-size: 10px;
+            font-family: 'B612 Mono', monospace;
+            padding: 3px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.12s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            user-select: none;
+            white-space: nowrap;
+        }
+        .expr-chip-btn:hover {
+            border-color: #00e5ff;
+            color: #00e5ff;
+            background: rgba(0, 229, 255, 0.10);
+            transform: translateY(-1px);
+        }
+        .expr-chip-badge {
+            font-size: 8.5px;
+            font-weight: 700;
+            padding: 1px 4px;
+            border-radius: 3px;
+            text-transform: uppercase;
+            font-family: 'B612', sans-serif;
+            letter-spacing: 0.3px;
+        }
+        .expr-chip-badge.ch { background: rgba(0, 229, 255, 0.15); color: #00e5ff; }
+        .expr-chip-badge.alias { background: rgba(249, 115, 22, 0.15); color: #f97316; }
+        .expr-chip-badge.parm { background: rgba(168, 85, 247, 0.15); color: #c084fc; }
+        .expr-chip-badge.math { background: rgba(34, 197, 94, 0.15); color: #4ade80; }
+
+        .expr-autocomplete-box {
+            position: absolute;
+            top: calc(100% + 3px);
+            left: 0;
+            right: 0;
+            max-height: 200px;
+            overflow-y: auto;
+            background: #080c14;
+            border: 1px solid #00e5ff;
+            border-radius: 4px;
+            z-index: 10002;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.95);
+            font-family: 'B612 Mono', monospace;
+            font-size: 11px;
+        }
+        .expr-autocomplete-item {
+            padding: 6px 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            transition: background 0.1s;
+            color: #e2e8f0;
+        }
+        .expr-autocomplete-item:hover, .expr-autocomplete-item.active {
+            background: rgba(0, 229, 255, 0.18);
+            color: #00e5ff;
+        }
+        .expr-autocomplete-item:last-child {
+            border-bottom: none;
+        }
     
         /* Aeronautical / macOS Theme Layout Selector */
         .aero-theme-picker {
@@ -2072,12 +2142,23 @@
 
         const FIELD_ALIAS_MAP = {
             'ARSP.Airspeed': 'tas',
+            'ARSP.Temp': 'arsp_temp',
             'GPS.Spd': 'gs',
+            'GPS.Alt': 'alt',
             'BAT.Power': 'power',
             'BAT.Volt': 'volt',
             'BAT.Curr': 'curr',
+            'BAT.VoltR': 'volt',
+            'BAT.CurrTot': 'consumed_mah',
+            'BAT.RemPct': 'rem_pct',
+            'BAT.Temp': 'baro_temp',
             'CTUN.ThO': 'tho',
+            'CTUN.NavRoll': 'roll',
+            'CTUN.NavPitch': 'pitch',
+            'CTUN.Alt': 'alt',
+            'CTUN.CRt': 'crt',
             'AOA.AOA': 'aoa',
+            'AOA.SSA': 'ssa',
             'BARO.Press': 'press',
             'BARO.Temp': 'temp',
             'BARO.Alt': 'alt',
@@ -4345,6 +4426,19 @@
                     return `(r.${prop} !== undefined && r.${prop} !== null ? Number(r.${prop}) : 0)`;
                 }
 
+                // Vehicle configuration parameter constant (PARM)
+                if (typeof currentFlightParameters !== 'undefined') {
+                    if (currentFlightParameters[match] !== undefined) {
+                        const pVal = Number(currentFlightParameters[match]);
+                        if (isFinite(pVal)) return `(${pVal})`;
+                    }
+                    const up = match.toUpperCase();
+                    if (currentFlightParameters[up] !== undefined) {
+                        const pVal = Number(currentFlightParameters[up]);
+                        if (isFinite(pVal)) return `(${pVal})`;
+                    }
+                }
+
                 // Direct property on record (alt, field_elev, tas, etc.)
                 return `(r['${match}'] !== undefined ? Number(r['${match}']) : (r['${lower}'] !== undefined ? Number(r['${lower}']) : 0))`;
             });
@@ -4369,6 +4463,407 @@
             }
         }
 
+        // ---------------------------------------------------------------------------
+        // Custom Expression Keyword Selection & Autocomplete Controller
+        // ---------------------------------------------------------------------------
+        let exprAutocompleteActiveIndex = -1;
+        let exprAutocompleteItems = [];
+
+        function getAllAvailableSignals() {
+            const list = [];
+            const seen = new Set();
+
+            // 1. Direct standard aliases from FIELD_ALIAS_MAP
+            if (typeof FIELD_ALIAS_MAP !== 'undefined') {
+                Object.keys(FIELD_ALIAS_MAP).forEach(k => {
+                    if (!seen.has(k)) {
+                        seen.add(k);
+                        const isAlias = k.includes('Calc.') || ['BAT.Power'].includes(k);
+                        list.push({
+                            id: k,
+                            name: k,
+                            type: isAlias ? 'alias' : 'ch',
+                            badge: isAlias ? 'Alias' : 'Channel',
+                            label: `${k.split('.').pop()} (${k.split('.')[0]})`
+                        });
+                    }
+                });
+            }
+
+            // 2. Channels from currentFlightData.formats
+            if (currentFlightData && currentFlightData.formats) {
+                Object.keys(currentFlightData.formats).forEach(msg => {
+                    const cols = currentFlightData.formats[msg];
+                    if (Array.isArray(cols)) {
+                        cols.forEach(col => {
+                            const full = `${msg}.${col}`;
+                            if (!seen.has(full)) {
+                                seen.add(full);
+                                list.push({
+                                    id: full,
+                                    name: full,
+                                    type: 'ch',
+                                    badge: 'Channel',
+                                    label: `${col} (${msg})`
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+
+            // 3. Human & Calculated Telemetry variables
+            const commonVars = [
+                { id: 'alt', name: 'alt', label: 'Altitude AMSL (m)' },
+                { id: 'rel_alt', name: 'rel_alt', label: 'Height AGL (m)' },
+                { id: 'field_elev', name: 'field_elev', label: 'Ground Elevation (m)' },
+                { id: 'tas', name: 'tas', label: 'True Airspeed (m/s)' },
+                { id: 'gs', name: 'gs', label: 'Ground Speed (m/s)' },
+                { id: 'volt', name: 'volt', label: 'Battery Voltage (V)' },
+                { id: 'curr', name: 'curr', label: 'Battery Current (A)' },
+                { id: 'power', name: 'power', label: 'Electrical Power (W)' },
+                { id: 'tho', name: 'tho', label: 'Throttle Output (%)' },
+                { id: 'density', name: 'density', label: 'Air Density (kg/m3)' },
+                { id: 'wh_km', name: 'wh_km', label: 'Specific Energy (Wh/km)' },
+                { id: 'wind_spd', name: 'wind_spd', label: 'Estimated Wind Speed (m/s)' },
+                { id: 'aoa', name: 'aoa', label: 'Angle of Attack (deg)' },
+                { id: 'ssa', name: 'ssa', label: 'Sideslip Angle (deg)' },
+                { id: 'pitch', name: 'pitch', label: 'Pitch Attitude (deg)' },
+                { id: 'roll', name: 'roll', label: 'Roll Attitude (deg)' },
+                { id: 'yaw', name: 'yaw', label: 'Yaw Heading (deg)' }
+            ];
+            commonVars.forEach(v => {
+                if (!seen.has(v.id)) {
+                    seen.add(v.id);
+                    list.push({
+                        id: v.id,
+                        name: v.name,
+                        type: 'alias',
+                        badge: 'Signal',
+                        label: v.label
+                    });
+                }
+            });
+
+            // 4. Autopilot Vehicle Parameters (PARM)
+            if (typeof currentFlightParameters !== 'undefined') {
+                Object.keys(currentFlightParameters).forEach(p => {
+                    if (!seen.has(p)) {
+                        seen.add(p);
+                        const val = currentFlightParameters[p];
+                        list.push({
+                            id: p,
+                            name: p,
+                            type: 'parm',
+                            badge: `Param = ${val}`,
+                            label: p
+                        });
+                    }
+                });
+            }
+
+            // 5. Mathematical Functions
+            const mathOps = ['sqrt', 'abs', 'min', 'max', 'exp', 'log', 'sin', 'cos', 'tan'];
+            mathOps.forEach(fn => {
+                if (!seen.has(fn)) {
+                    seen.add(fn);
+                    list.push({
+                        id: fn,
+                        name: `${fn}()`,
+                        insertText: `${fn}()`,
+                        type: 'math',
+                        badge: 'Math',
+                        label: `${fn}() Function`
+                    });
+                }
+            });
+
+            return list;
+        }
+
+        function getExprTokenUnderCaret(input) {
+            const val = input.value || '';
+            const caret = (typeof input.selectionStart === 'number') ? input.selectionStart : val.length;
+            let start = caret;
+            while (start > 0 && /[a-zA-Z0-9_.]/.test(val[start - 1])) {
+                start--;
+            }
+            let end = caret;
+            while (end < val.length && /[a-zA-Z0-9_.]/.test(val[end])) {
+                end++;
+            }
+            return {
+                token: val.substring(start, end),
+                start: start,
+                end: end,
+                fullVal: val
+            };
+        }
+
+        function queryExprSignals(token) {
+            const all = getAllAvailableSignals();
+            const rawToken = (token || '').trim();
+            const q = rawToken.toUpperCase();
+
+            // Synonym mapping for common search terms
+            const synonyms = {
+                'BAT': ['BAT.', 'BATT_', 'VOLT', 'CURR', 'POWER', 'REMPCT', 'ENRG'],
+                'BATT': ['BAT.', 'BATT_', 'VOLT', 'CURR', 'POWER'],
+                'VOLT': ['BAT.VOLT', 'VOLT', 'BATT_'],
+                'CURR': ['BAT.CURR', 'CURR', 'BATT_'],
+                'POWER': ['BAT.POWER', 'POWER', 'WH_KM'],
+                'AIRSPEED': ['ARSP.', 'ARSPD_', 'TAS'],
+                'ARSP': ['ARSP.', 'ARSPD_', 'TAS'],
+                'SPEED': ['ARSP.', 'GPS.SPD', 'TAS', 'GS', 'SPEED'],
+                'ALT': ['ALT', 'REL_ALT', 'BARO.ALT', 'GPS.ALT', 'CTUN.ALT'],
+                'GPS': ['GPS.', 'GS', 'GPS_'],
+                'THROTTLE': ['CTUN.THO', 'THO'],
+                'WIND': ['WIND', 'XKF2.VWN', 'XKF2.VWE']
+            };
+
+            const syns = synonyms[q] || [];
+
+            if (!q) {
+                // Return high-priority default signals when empty
+                const defaults = ['BAT.Volt', 'BAT.Curr', 'BAT.Power', 'ARSP.Airspeed', 'GPS.Spd', 'alt', 'rel_alt', 'CTUN.ThO', 'AOA.AOA', 'Calc.Density', 'BATT_CAPACITY'];
+                return all.filter(s => defaults.includes(s.name));
+            }
+
+            const getSignalScore = (item, query) => {
+                const nameUp = item.name.toUpperCase();
+                let score = 0;
+
+                // Exact match or prefix match
+                if (nameUp === query) score += 200;
+                else if (nameUp.startsWith(query + '.')) score += 150;
+                else if (nameUp.startsWith(query)) score += 120;
+                else if (nameUp.includes(query)) score += 60;
+                else if (syns.some(s => nameUp.includes(s))) score += 40;
+                else return -999; // No match
+
+                // Priority telemetry fields boost
+                if (nameUp === 'BAT.VOLT' || nameUp === 'VOLT') score += 70;
+                else if (nameUp === 'BAT.CURR' || nameUp === 'CURR') score += 68;
+                else if (nameUp === 'BAT.POWER' || nameUp === 'POWER') score += 65;
+                else if (nameUp === 'ARSP.AIRSPEED' || nameUp === 'TAS') score += 70;
+                else if (nameUp === 'GPS.SPD' || nameUp === 'GS') score += 68;
+                else if (nameUp === 'ALT' || nameUp === 'REL_ALT') score += 65;
+                else if (nameUp.endsWith('.VOLT')) score += 50;
+                else if (nameUp.endsWith('.CURR')) score += 48;
+                else if (nameUp.endsWith('.POWER')) score += 46;
+                else if (nameUp.endsWith('.AIRSPEED')) score += 50;
+                else if (nameUp.endsWith('.SPD')) score += 48;
+                else if (nameUp.endsWith('.ALT')) score += 45;
+                else if (nameUp.endsWith('.PRESS')) score += 40;
+                else if (nameUp.endsWith('.THO') || nameUp === 'THO') score += 42;
+                else if (nameUp.includes('CAPACITY')) score += 35;
+                else if (nameUp.includes('REMPCT')) score += 32;
+                else if (nameUp.includes('CURRTOT')) score += 30;
+
+                // Low-value / internal timestamp penalty
+                if (nameUp.includes('TIMEUS')) score -= 40;
+                if (nameUp.endsWith('.H') || nameUp.endsWith('.SH')) score -= 45;
+                if (nameUp.endsWith('.INST')) score -= 30;
+
+                if (item.type === 'alias') score += 15;
+                else if (item.type === 'ch') score += 10;
+                return score;
+            };
+
+            const scored = [];
+            all.forEach(item => {
+                const s = getSignalScore(item, q);
+                if (s > 0) {
+                    scored.push({ item, score: s });
+                }
+            });
+
+            scored.sort((a, b) => b.score - a.score || a.item.name.localeCompare(b.item.name));
+            return scored.map(s => s.item).slice(0, 30);
+        }
+
+        function onCustomExprInput(input) {
+            const clearBtn = document.getElementById('custom-expr-clear-btn');
+            if (clearBtn) {
+                clearBtn.style.display = input.value.trim() ? 'block' : 'none';
+            }
+
+            const err = document.getElementById('custom-expr-error');
+            if (err && err.style.display === 'block') {
+                err.style.display = 'none';
+                err.innerHTML = '';
+            }
+
+            const tokenInfo = getExprTokenUnderCaret(input);
+            const matches = queryExprSignals(tokenInfo.token);
+
+            updateExprKeywordPanel(tokenInfo.token, matches);
+        }
+
+        function onCustomExprFocus(input) {
+            onCustomExprInput(input);
+        }
+
+        function clearCustomExprInput() {
+            const inp = document.getElementById('custom-expr-input');
+            if (!inp) return;
+            inp.value = '';
+            inp.focus();
+            onCustomExprInput(inp);
+        }
+
+        function filterExprKeywords(kw) {
+            const inp = document.getElementById('custom-expr-input');
+            if (!inp) return;
+            inp.value = kw;
+            inp.focus();
+            inp.setSelectionRange(kw.length, kw.length);
+            onCustomExprInput(inp);
+        }
+
+        function updateExprKeywordPanel(token, matches) {
+            const panel = document.getElementById('expr-keyword-selection-panel');
+            const title = document.getElementById('expr-matching-title');
+            const chips = document.getElementById('expr-matching-chips');
+            if (!panel || !chips) return;
+
+            if (!matches || matches.length === 0) {
+                panel.style.display = 'none';
+                chips.innerHTML = '';
+                return;
+            }
+
+            panel.style.display = 'block';
+            if (title) {
+                const qLabel = token ? `for "${token}"` : `(Common Signals)`;
+                title.textContent = `Matching Signals & Parameters ${qLabel} (${matches.length}):`;
+            }
+
+            chips.innerHTML = '';
+            matches.slice(0, 24).forEach((item, idx) => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'expr-chip-btn';
+                btn.tabIndex = 0;
+                const insertVal = item.insertText || item.name;
+
+                let badgeClass = 'ch';
+                if (item.type === 'alias') badgeClass = 'alias';
+                else if (item.type === 'parm') badgeClass = 'parm';
+                else if (item.type === 'math') badgeClass = 'math';
+
+                btn.innerHTML = `
+                    <span style="font-weight: 600;">${item.name}</span>
+                    <span class="expr-chip-badge ${badgeClass}">${item.badge}</span>
+                `;
+                btn.onclick = (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    insertExprSignal(insertVal, item.label);
+                };
+                btn.onkeydown = (e) => {
+                    if (e.key === 'ArrowRight') {
+                        e.preventDefault();
+                        const next = btn.nextElementSibling;
+                        if (next) next.focus();
+                    } else if (e.key === 'ArrowLeft') {
+                        e.preventDefault();
+                        const prev = btn.previousElementSibling;
+                        if (prev) prev.focus();
+                        else {
+                            const inp = document.getElementById('custom-expr-input');
+                            if (inp) inp.focus();
+                        }
+                    } else if (e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        const inp = document.getElementById('custom-expr-input');
+                        if (inp) inp.focus();
+                    } else if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        insertExprSignal(insertVal, item.label);
+                    }
+                };
+                chips.appendChild(btn);
+            });
+        }
+
+        function onCustomExprKeyDown(event) {
+            if (event.key === 'ArrowDown') {
+                const firstChip = document.querySelector('#expr-matching-chips .expr-chip-btn');
+                if (firstChip) {
+                    event.preventDefault();
+                    firstChip.focus();
+                }
+            } else if (event.key === 'Enter') {
+                event.preventDefault();
+                addCustomExpression();
+            }
+        }
+
+        function insertExprSignal(signalName, defaultLabel) {
+            const inp = document.getElementById('custom-expr-input');
+            const labelInp = document.getElementById('custom-expr-label');
+            const axisSelect = document.getElementById('custom-expr-axis');
+            if (!inp) return;
+
+            const tokenInfo = getExprTokenUnderCaret(inp);
+            const val = inp.value;
+            const start = tokenInfo.start;
+            const end = tokenInfo.end;
+
+            const before = val.substring(0, start);
+            const after = val.substring(end);
+            const newVal = before + signalName + after;
+            inp.value = newVal;
+
+            // Reposition caret
+            let newCaret = start + signalName.length;
+            if (signalName.endsWith('()')) {
+                newCaret = start + signalName.length - 1; // place caret inside parenthesis
+            }
+            inp.setSelectionRange(newCaret, newCaret);
+            inp.focus();
+
+            // Auto-fill curve label if empty or previously auto-set
+            if (labelInp) {
+                if (!labelInp.value.trim() || labelInp.dataset.autofilled === 'true') {
+                    if (newVal.includes('*') && (newVal.includes('Volt') || newVal.includes('volt')) && (newVal.includes('Curr') || newVal.includes('curr'))) {
+                        labelInp.value = 'Electrical Power (W)';
+                    } else if (defaultLabel) {
+                        labelInp.value = defaultLabel;
+                    } else {
+                        labelInp.value = signalName;
+                    }
+                    labelInp.dataset.autofilled = 'true';
+                }
+            }
+
+            // Intelligent target axis recommendation
+            if (axisSelect) {
+                const lower = newVal.toLowerCase();
+                if (lower.includes('power') || lower.includes('curr') || lower.includes('density') || lower.includes('press') || lower.includes('tho')) {
+                    axisSelect.value = '1'; // Y2
+                } else if (lower.includes('volt') || lower.includes('alt') || lower.includes('speed') || lower.includes('tas') || lower.includes('gs') || lower.includes('aoa')) {
+                    axisSelect.value = '0'; // Y1
+                }
+            }
+
+            hideExprAutocomplete();
+            const newTokenInfo = getExprTokenUnderCaret(inp);
+            const matches = queryExprSignals(newTokenInfo.token);
+            updateExprKeywordPanel(newTokenInfo.token, matches);
+        }
+
+        function setExpressionAndPlot(expr, label, axis) {
+            const exprInput = document.getElementById('custom-expr-input');
+            const labelInput = document.getElementById('custom-expr-label');
+            const axisSelect = document.getElementById('custom-expr-axis');
+            if (exprInput) exprInput.value = expr;
+            if (labelInput && label) labelInput.value = label;
+            if (axisSelect && axis !== undefined) axisSelect.value = String(axis);
+            addCustomExpression();
+        }
+
         function openExpressionModal() {
             const m = document.getElementById('expression-modal');
             if (m) {
@@ -4376,10 +4871,13 @@
                 const err = document.getElementById('custom-expr-error');
                 if (err) {
                     err.style.display = 'none';
-                    err.textContent = '';
+                    err.innerHTML = '';
+                }
+                const inp = document.getElementById('custom-expr-input');
+                if (inp) {
+                    onCustomExprInput(inp);
                 }
                 setTimeout(() => {
-                    const inp = document.getElementById('custom-expr-input');
                     if (inp) {
                         inp.focus();
                         inp.select();
@@ -4391,6 +4889,7 @@
         function closeExpressionModal() {
             const m = document.getElementById('expression-modal');
             if (m) m.style.display = 'none';
+            hideExprAutocomplete();
         }
 
         function setCustomExprPreset(expr, label, axis) {
@@ -4399,12 +4898,18 @@
             const axisSelect = document.getElementById('custom-expr-axis');
             const errorBox = document.getElementById('custom-expr-error');
 
-            if (exprInput) exprInput.value = expr;
-            if (labelInput) labelInput.value = label;
+            if (exprInput) {
+                exprInput.value = expr;
+                onCustomExprInput(exprInput);
+            }
+            if (labelInput) {
+                labelInput.value = label;
+                labelInput.dataset.autofilled = 'true';
+            }
             if (axisSelect && axis !== undefined) axisSelect.value = String(axis);
             if (errorBox) {
                 errorBox.style.display = 'none';
-                errorBox.textContent = '';
+                errorBox.innerHTML = '';
             }
         }
 
@@ -4416,15 +4921,37 @@
 
             if (errorBox) {
                 errorBox.style.display = 'none';
-                errorBox.textContent = '';
+                errorBox.innerHTML = '';
             }
 
             if (!exprInput) return;
             const expr = exprInput.value.trim();
             if (!expr) {
                 if (errorBox) {
-                    errorBox.textContent = "Please enter an expression formula.";
+                    errorBox.innerHTML = "Please enter an expression formula or keyword.";
                     errorBox.style.display = 'block';
+                }
+                return;
+            }
+
+            // Intercept if user submitted a bare message group name (e.g. BAT, ARSP, GPS, CTUN, ATT, BARO)
+            const upExpr = expr.toUpperCase();
+            if (currentFlightData && currentFlightData.formats && currentFlightData.formats[upExpr]) {
+                const fields = currentFlightData.formats[upExpr];
+                if (errorBox) {
+                    errorBox.style.display = 'block';
+                    errorBox.innerHTML = `
+                        <div style="margin-bottom: 6px; font-weight: 600; color: #38bdf8;">
+                            "${upExpr}" is a message group containing ${fields.length} channels. Please select which parameter to plot:
+                        </div>
+                        <div style="display: flex; flex-wrap: wrap; gap: 5px; margin-top: 4px;">
+                            ${fields.slice(0, 10).map(f => `
+                                <button type="button" class="expr-chip-btn" style="border-color: #00e5ff; color: #00e5ff; background: rgba(0, 229, 255, 0.12); padding: 4px 8px;" onclick="setExpressionAndPlot('${upExpr}.${f}', '${f} (${upExpr})')">
+                                    ${upExpr}.${f}
+                                </button>
+                            `).join('')}
+                        </div>
+                    `;
                 }
                 return;
             }
@@ -4438,7 +4965,7 @@
                 evalFn(sampleRec);
             } catch (err) {
                 if (errorBox) {
-                    errorBox.textContent = err.message || "Invalid formula syntax.";
+                    errorBox.innerHTML = err.message || "Invalid formula syntax.";
                     errorBox.style.display = 'block';
                 }
                 return;
@@ -4477,8 +5004,22 @@
 
             // Clear inputs for next usage
             exprInput.value = '';
-            if (labelInput) labelInput.value = '';
+            if (labelInput) {
+                labelInput.value = '';
+                labelInput.dataset.autofilled = 'false';
+            }
         }
+
+        // Click outside listener for expression autocomplete
+        document.addEventListener('click', (e) => {
+            const list = document.getElementById('expr-autocomplete-list');
+            const inp = document.getElementById('custom-expr-input');
+            if (list && list.style.display !== 'none') {
+                if (e.target !== list && e.target !== inp && !list.contains(e.target)) {
+                    hideExprAutocomplete();
+                }
+            }
+        });
 
         function openTestTableModal() { const m = document.getElementById('table-modal'); if (m) m.style.display = 'flex'; }
         function closeTestTableModal() { const m = document.getElementById('table-modal'); if (m) m.style.display = 'none'; }
@@ -4633,8 +5174,8 @@
             </p>
 
             <!-- Quick Preset Chips -->
-            <div style="margin-bottom: 12px;">
-                <div style="font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 5px; letter-spacing: 0.5px;">Quick Presets</div>
+            <div style="margin-bottom: 8px;">
+                <div style="font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 4px; letter-spacing: 0.5px;">Quick Presets</div>
                 <div style="display: flex; flex-wrap: wrap; gap: 5px;">
                     <button type="button" class="uav-pill-action-btn" style="font-size: 10px; padding: 2px 7px;" onclick="setCustomExprPreset('BAT.Volt * BAT.Curr', 'Power (W)', 1)">Power (W)</button>
                     <button type="button" class="uav-pill-action-btn" style="font-size: 10px; padding: 2px 7px;" onclick="setCustomExprPreset('ARSP.Airspeed * 3.6', 'Airspeed (km/h)', 0)">Airspeed (km/h)</button>
@@ -4645,11 +5186,39 @@
                 </div>
             </div>
 
-            <!-- Formula Input -->
+            <!-- Popular Keyword Quick Selector Strip -->
+            <div id="expr-quick-keywords" style="display: flex; align-items: center; gap: 4px; flex-wrap: wrap; margin-bottom: 10px;">
+                <span style="font-size: 9px; color: #64748b; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Quick Keywords:</span>
+                <button type="button" class="expr-chip-btn" onclick="filterExprKeywords('BAT')">BAT</button>
+                <button type="button" class="expr-chip-btn" onclick="filterExprKeywords('ARSP')">ARSP</button>
+                <button type="button" class="expr-chip-btn" onclick="filterExprKeywords('GPS')">GPS</button>
+                <button type="button" class="expr-chip-btn" onclick="filterExprKeywords('CTUN')">CTUN</button>
+                <button type="button" class="expr-chip-btn" onclick="filterExprKeywords('ATT')">ATT</button>
+                <button type="button" class="expr-chip-btn" onclick="filterExprKeywords('BARO')">BARO</button>
+                <button type="button" class="expr-chip-btn" onclick="filterExprKeywords('XKF')">XKF</button>
+                <button type="button" class="expr-chip-btn" onclick="filterExprKeywords('alt')">alt</button>
+                <button type="button" class="expr-chip-btn" onclick="filterExprKeywords('volt')">volt</button>
+                <button type="button" class="expr-chip-btn" onclick="filterExprKeywords('curr')">curr</button>
+                <button type="button" class="expr-chip-btn" onclick="filterExprKeywords('power')">power</button>
+            </div>
+
+            <!-- Formula Input with Keyword Autocomplete -->
             <label style="display: block; font-size: 10.5px; font-weight: 700; color: #cbd5e1; text-transform: uppercase; margin-bottom: 4px; letter-spacing: 0.5px;">
                 Mathematical Expression <span style="color: #ef4444;">*</span>
             </label>
-            <input type="text" id="custom-expr-input" class="modal-input" placeholder="e.g. BAT.Volt * BAT.Curr" style="margin-bottom: 10px;" onkeydown="if(event.key==='Enter') addCustomExpression()">
+            <div style="position: relative; margin-bottom: 8px;">
+                <input type="text" id="custom-expr-input" class="modal-input" placeholder="Type keyword or formula (e.g. BAT, ARSP, volt, alt)..." style="margin-bottom: 0; padding-right: 28px;" oninput="onCustomExprInput(this)" onkeydown="onCustomExprKeyDown(event)" onfocus="onCustomExprFocus(this)" autocomplete="off" spellcheck="false">
+                <button type="button" id="custom-expr-clear-btn" onclick="clearCustomExprInput()" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #64748b; font-size: 14px; cursor: pointer; display: none; line-height: 1;" title="Clear">&times;</button>
+            </div>
+
+            <!-- Live Keyword Parameter / Signal Selection Box -->
+            <div id="expr-keyword-selection-panel" style="margin-bottom: 12px; display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                    <span id="expr-matching-title" style="font-size: 10px; font-weight: 700; color: #38bdf8; text-transform: uppercase; letter-spacing: 0.5px;">Matching Signals & Parameters:</span>
+                    <span style="font-size: 9px; color: #64748b;">Click chip or press Down Arrow to insert</span>
+                </div>
+                <div id="expr-matching-chips" style="display: flex; flex-wrap: wrap; gap: 5px; max-height: 110px; overflow-y: auto; padding: 6px 8px; background: rgba(15, 23, 42, 0.7); border-radius: 4px; border: 1px solid #1e293b;"></div>
+            </div>
 
             <!-- Label Input -->
             <label style="display: block; font-size: 10.5px; font-weight: 700; color: #cbd5e1; text-transform: uppercase; margin-bottom: 4px; letter-spacing: 0.5px;">
