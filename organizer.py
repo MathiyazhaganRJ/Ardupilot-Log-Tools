@@ -119,7 +119,7 @@ def scan_source_logs(source_folder):
         return {'success': False, 'error': f"Source folder '{source_folder}' does not exist or is not a directory.", 'logs': [], 'count': 0, 'total_size_mb': 0.0}
 
     logs = []
-    valid_exts = ('.bin', '.log', '.tlog')
+    valid_exts = ('.bin',)
     total_bytes = 0
 
     try:
@@ -188,7 +188,7 @@ def organize_flight_logs(source_folder, dest_folder, structure="year_month_date"
     dest_folder = os.path.normpath(dest_folder.strip(' "\''))
     os.makedirs(dest_folder, exist_ok=True)
 
-    valid_exts = ('.bin', '.log', '.tlog')
+    valid_exts = ('.bin',)
     all_files = []
     seen_paths = set()
     for fld in folders:
@@ -207,17 +207,19 @@ def organize_flight_logs(source_folder, dest_folder, structure="year_month_date"
             'total': 0,
             'copied': 0,
             'moved': 0,
+            'new_organized': 0,
             'skipped': 0,
             'errors': 0,
             'files': [],
             'dest_folder': dest_folder,
-            'message': 'No .bin, .log, or .tlog files found in source folder(s).'
+            'message': 'No .bin flight logs found in source folder(s).'
         }
 
     stats = {
         'total': total,
         'copied': 0,
         'moved': 0,
+        'new_organized': 0,
         'skipped': 0,
         'errors': 0,
         'files': [],
@@ -295,6 +297,7 @@ def organize_flight_logs(source_folder, dest_folder, structure="year_month_date"
         if progress_callback:
             progress_callback(idx + 1, total, filename)
 
+    stats['new_organized'] = stats['moved'] if is_move else stats['copied']
     stats['created_folders'] = sorted(list(stats['created_folders']))
     stats['success'] = True
     return stats

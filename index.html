@@ -5383,7 +5383,7 @@
             const activityList = document.getElementById('org-activity-list');
             if (!activityList) return;
             if (logFiles.length === 0) {
-                activityList.innerHTML = `<div style="color: #64748b; padding: 16px; text-align: center;">No .bin, .log, or .tlog flight logs found.</div>`;
+                activityList.innerHTML = `<div style="color: #64748b; padding: 16px; text-align: center;">No .bin flight logs found.</div>`;
                 return;
             }
             let html = '';
@@ -5418,7 +5418,7 @@
             for (let i = 0; i < input.files.length; i++) {
                 const f = input.files[i];
                 const lower = f.name.toLowerCase();
-                if (lower.endsWith('.bin') || lower.endsWith('.log') || lower.endsWith('.tlog')) {
+                if (lower.endsWith('.bin')) {
                     logFiles.push(f);
                     totalBytes += f.size;
                 }
@@ -5438,7 +5438,7 @@
             const totalMb = (totalBytes / (1024 * 1024)).toFixed(2);
 
             if (statusSummary) {
-                statusSummary.innerHTML = `<span style="color: #22c55e; font-weight: 700;">Selected ${logFiles.length} logs (${totalMb} MB) in "${folderName}"</span>`;
+                statusSummary.innerHTML = `<span style="color: #22c55e; font-weight: 700;">Selected ${logFiles.length} .bin logs (${totalMb} MB) in "${folderName}"</span>`;
             }
 
             renderDiscoveredFilesList(logFiles);
@@ -5452,7 +5452,7 @@
             for (let i = 0; i < input.files.length; i++) {
                 const f = input.files[i];
                 const lower = f.name.toLowerCase();
-                if (lower.endsWith('.bin') || lower.endsWith('.log') || lower.endsWith('.tlog')) {
+                if (lower.endsWith('.bin')) {
                     logFiles.push(f);
                     totalBytes += f.size;
                 }
@@ -5461,14 +5461,14 @@
             inBrowserLogFiles = logFiles;
             const srcInput = document.getElementById('org-source-dir');
             if (srcInput) {
-                srcInput.value = `Selected ${logFiles.length} file(s)`;
+                srcInput.value = `Selected ${logFiles.length} .bin file(s)`;
             }
 
             const statusSummary = document.getElementById('org-scan-summary');
             const totalMb = (totalBytes / (1024 * 1024)).toFixed(2);
 
             if (statusSummary) {
-                statusSummary.innerHTML = `<span style="color: #22c55e; font-weight: 700;">Selected ${logFiles.length} logs (${totalMb} MB)</span>`;
+                statusSummary.innerHTML = `<span style="color: #22c55e; font-weight: 700;">Selected ${logFiles.length} .bin logs (${totalMb} MB)</span>`;
             }
 
             renderDiscoveredFilesList(logFiles);
@@ -5527,7 +5527,7 @@
             for (let i = 0; i < fileList.length; i++) {
                 const f = fileList[i];
                 const lower = f.name.toLowerCase();
-                if (lower.endsWith('.bin') || lower.endsWith('.log') || lower.endsWith('.tlog')) {
+                if (lower.endsWith('.bin')) {
                     logFiles.push(f);
                     totalBytes += f.size;
                 }
@@ -5535,7 +5535,7 @@
             if (logFiles.length === 0) {
                 const activityList = document.getElementById('org-activity-list');
                 if (activityList) {
-                    activityList.innerHTML = `<div style="background: #eab30815; border: 1px solid #eab30855; padding: 12px; border-radius: 4px; color: #eab308; font-size: 11px;">Please drop ArduPilot telemetry logs (.bin, .log, or .tlog).</div>`;
+                    activityList.innerHTML = `<div style="background: #eab30815; border: 1px solid #eab30855; padding: 12px; border-radius: 4px; color: #eab308; font-size: 11px;">Please drop ArduPilot .bin flight logs.</div>`;
                 }
                 return;
             }
@@ -5543,12 +5543,12 @@
             currentScannedLogs = [];
             const srcInput = document.getElementById('org-source-dir');
             if (srcInput) {
-                srcInput.value = `Dropped ${logFiles.length} file(s)`;
+                srcInput.value = `Dropped ${logFiles.length} .bin file(s)`;
             }
             const statusSummary = document.getElementById('org-scan-summary');
             const totalMb = (totalBytes / (1024 * 1024)).toFixed(2);
             if (statusSummary) {
-                statusSummary.innerHTML = `<span style="color: #22c55e; font-weight: 700;">Dropped ${logFiles.length} logs (${totalMb} MB) ready to organize</span>`;
+                statusSummary.innerHTML = `<span style="color: #22c55e; font-weight: 700;">Dropped ${logFiles.length} .bin logs (${totalMb} MB) ready to organize</span>`;
             }
             renderDiscoveredFilesList(logFiles);
         }
@@ -5593,7 +5593,7 @@
 
             localStorage.setItem('org_source_dir', sourceFolder);
             if (statusSummary) {
-                statusSummary.innerHTML = `<span style="color: #94a3b8;">Scanning for .bin, .log, .tlog files...</span>`;
+                statusSummary.innerHTML = `<span style="color: #94a3b8;">Scanning for .bin flight logs...</span>`;
             }
 
             try {
@@ -5620,15 +5620,15 @@
 
                 currentScannedLogs = data.logs || [];
                 if (statusSummary) {
-                    statusSummary.innerHTML = `<span style="color: #22c55e; font-weight: 700;">Discovered ${data.count} flight logs (${data.total_size_mb} MB)</span>`;
+                    statusSummary.innerHTML = `<span style="color: #22c55e; font-weight: 700;">Discovered ${data.count} .bin flight logs (${data.total_size_mb} MB)</span>`;
                 }
 
                 if (fileListContainer) {
                     if (data.count === 0) {
                         fileListContainer.innerHTML = `
                             <div style="background: #eab30815; border: 1px solid #eab30855; padding: 14px; border-radius: 4px; color: #eab308; font-size: 11px;">
-                                <strong>No Flight Logs Found:</strong> No .bin, .log, or .tlog files detected in <code>${sourceFolder}</code>.
-                                <div style="color: #94a3b8; font-size: 10px; margin-top: 6px;">Select a directory containing ArduPilot telemetry logs (e.g. Downloads, SD card drive, or Desktop Logs).</div>
+                                <strong>No Flight Logs Found:</strong> No .bin flight logs detected in <code>${sourceFolder}</code>.
+                                <div style="color: #94a3b8; font-size: 10px; margin-top: 6px;">Select a directory containing ArduPilot .bin flight logs (e.g. Downloads, SD card drive, or Desktop Logs).</div>
                             </div>
                         `;
                     } else {
@@ -5791,7 +5791,7 @@
                             <div style="background: #ef444415; border: 1px solid #ef444455; padding: 14px; border-radius: 4px; color: #ef4444; font-size: 11px;">
                                 <div style="font-weight: 700; margin-bottom: 4px;">Organization Error:</div>
                                 <div>${data.error || 'Failed to organize logs.'}</div>
-                                <div style="color: #94a3b8; font-size: 10px; margin-top: 8px;">Ensure the source folder exists on disk and contains .bin, .log, or .tlog files.</div>
+                                <div style="color: #94a3b8; font-size: 10px; margin-top: 8px;">Ensure the source folder exists on disk and contains .bin flight logs.</div>
                             </div>
                         `;
                     }
@@ -5804,24 +5804,26 @@
                         activityList.innerHTML = `
                             <div style="background: #eab30815; border: 1px solid #eab30855; padding: 14px; border-radius: 4px; color: #eab308; font-size: 11px;">
                                 <div style="font-weight: 700; margin-bottom: 4px;">No Flight Logs Found:</div>
-                                <div>No .bin, .log, or .tlog files were detected in <code>${sourceFolder}</code>.</div>
-                                <div style="color: #94a3b8; font-size: 10px; margin-top: 8px;">Select a folder containing telemetry logs (e.g. Downloads, SD card, or Desktop Logs).</div>
+                                <div>No .bin flight logs were detected in <code>${sourceFolder}</code>.</div>
+                                <div style="color: #94a3b8; font-size: 10px; margin-top: 8px;">Select a folder containing ArduPilot .bin flight logs (e.g. Downloads, SD card, or Desktop Logs).</div>
                             </div>
                         `;
                     }
-                    if (footerStatus) footerStatus.textContent = 'No logs found in source directory.';
+                    if (footerStatus) footerStatus.textContent = 'No .bin logs found in source directory.';
                     return;
                 }
 
                 // Update counters
+                const newCount = (mode === 'move' ? data.moved : data.copied) || 0;
+                const skippedCount = data.skipped || 0;
                 document.getElementById('org-cnt-total').textContent = data.total || 0;
-                document.getElementById('org-cnt-archived').textContent = (mode === 'move' ? data.moved : data.copied) || 0;
-                document.getElementById('org-cnt-skipped').textContent = data.skipped || 0;
+                document.getElementById('org-cnt-archived').textContent = newCount;
+                document.getElementById('org-cnt-skipped').textContent = skippedCount;
                 document.getElementById('org-cnt-errors').textContent = data.errors || 0;
 
                 if (footerStatus) {
-                    const actionName = mode === 'move' ? 'moved' : 'archived';
-                    footerStatus.innerHTML = `<span style="color: #22c55e; font-weight: 700;">Completed: ${data.copied || data.moved || 0} ${actionName}, ${data.skipped || 0} skipped duplicates.</span>`;
+                    const actionName = mode === 'move' ? 'moved' : 'copied';
+                    footerStatus.innerHTML = `<span style="color: #22c55e; font-weight: 700;">Completed: ${newCount} NEW .bin logs organized (${actionName}), ${skippedCount} duplicate logs skipped.</span>`;
                 }
 
                 renderOrganizeExecutionReport(data.files || [], destFolder, mode);
@@ -5848,14 +5850,26 @@
             const activityList = document.getElementById('org-activity-list');
             if (!activityList || !filesList) return;
 
+            const newCount = filesList.filter(f => f.status === 'copied' || f.status === 'moved').length;
+            const skippedCount = filesList.filter(f => f.status === 'skipped').length;
+            const errorCount = filesList.filter(f => f.status === 'error').length;
+            const totalCount = filesList.length;
+
             let html = '';
             const escDestFolder = (destFolder || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
             
-            // Header summary action bar
+            // Prominent completion summary header
             html += `
-                <div style="background: #12141a; border-bottom: 1px solid #24262c; padding: 6px 8px; margin: -4px -4px 6px -4px; display: flex; justify-content: space-between; align-items: center; font-size: 10px;">
-                    <span style="color: #22c55e; font-weight: 700;">Organization Completed (${filesList.length} files processed)</span>
-                    <button type="button" class="expr-chip-btn" style="border-color: #22c55e55; color: #22c55e;" onclick="openPathInExplorer('${escDestFolder}')" title="Open organized archive in Windows Explorer">Open Destination Folder</button>
+                <div style="background: #22c55e15; border: 1px solid #22c55e55; padding: 10px 12px; border-radius: 4px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <div style="color: #22c55e; font-size: 13px; font-weight: 700; letter-spacing: 0.3px;">
+                            ${newCount} New .BIN Flight Logs Organized
+                        </div>
+                        <div style="color: #94a3b8; font-size: 11px; margin-top: 2px;">
+                            ${skippedCount} duplicate logs skipped (already organized) | ${totalCount} total .bin files processed
+                        </div>
+                    </div>
+                    <button type="button" class="expr-chip-btn" style="border-color: #22c55e55; color: #22c55e; padding: 4px 10px; font-weight: 600;" onclick="openPathInExplorer('${escDestFolder}')" title="Open organized archive in Windows Explorer">Open Destination Folder</button>
                 </div>
             `;
 
@@ -6069,7 +6083,7 @@
                 <button type="button" onclick="closeOrganizerModal()" style="background: none; border: none; color: #94a3b8; font-size: 18px; line-height: 1; cursor: pointer; padding: 0 4px;" title="Close">&times;</button>
             </div>
             <p style="font-size: 11px; color: #94a3b8; margin: 0 0 14px 0; line-height: 1.4;">
-                Automatically scans unorganized telemetry logs (.bin, .log, .tlog) and organizes them into structured Year, Month, and Date folders. Identical duplicate files are automatically skipped.
+                Automatically scans unorganized ArduPilot .bin flight logs and organizes them into structured Year, Month, and Date folders. Identical duplicate files are automatically skipped.
             </p>
 
             <!-- 1. Source Folder Selection -->
@@ -6166,18 +6180,18 @@
             <!-- Metric Summary Badges -->
             <div style="display: flex; gap: 8px; margin-bottom: 8px; font-size: 10px; font-family: 'B612 Mono', monospace;">
                 <div style="flex: 1; background: #090a0c; border: 1px solid #24262c; padding: 5px 8px; border-radius: 4px; display: flex; justify-content: space-between;">
-                    <span style="color: #64748b;">TOTAL:</span>
+                    <span style="color: #64748b;">TOTAL .BIN:</span>
                     <span id="org-cnt-total" style="color: #ffffff; font-weight: 700;">0</span>
                 </div>
-                <div style="flex: 1; background: #090a0c; border: 1px solid #24262c; padding: 5px 8px; border-radius: 4px; display: flex; justify-content: space-between;">
-                    <span style="color: #64748b;">ARCHIVED:</span>
+                <div style="flex: 1.2; background: #090a0c; border: 1px solid #22c55e55; padding: 5px 8px; border-radius: 4px; display: flex; justify-content: space-between;">
+                    <span style="color: #4ade80;">NEW ORGANIZED:</span>
                     <span id="org-cnt-archived" style="color: #22c55e; font-weight: 700;">0</span>
                 </div>
-                <div style="flex: 1; background: #090a0c; border: 1px solid #24262c; padding: 5px 8px; border-radius: 4px; display: flex; justify-content: space-between;">
-                    <span style="color: #64748b;">SKIPPED:</span>
+                <div style="flex: 1.2; background: #090a0c; border: 1px solid #24262c; padding: 5px 8px; border-radius: 4px; display: flex; justify-content: space-between;">
+                    <span style="color: #eab308;">DUPLICATES SKIPPED:</span>
                     <span id="org-cnt-skipped" style="color: #eab308; font-weight: 700;">0</span>
                 </div>
-                <div style="flex: 1; background: #090a0c; border: 1px solid #24262c; padding: 5px 8px; border-radius: 4px; display: flex; justify-content: space-between;">
+                <div style="flex: 0.8; background: #090a0c; border: 1px solid #24262c; padding: 5px 8px; border-radius: 4px; display: flex; justify-content: space-between;">
                     <span style="color: #64748b;">ERRORS:</span>
                     <span id="org-cnt-errors" style="color: #ef4444; font-weight: 700;">0</span>
                 </div>

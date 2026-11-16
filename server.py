@@ -401,6 +401,9 @@ class LogViewerHandler(SimpleHTTPRequestHandler):
                 dest_dir = query.get('dest', [None])[0] or self.headers.get('X-Dest-Folder', r'C:\Users\KARSHAK_Tamal\Desktop\Logs')
                 structure = query.get('structure', ['year_month_date'])[0]
                 filename = os.path.basename(filename)
+                if not filename.lower().endswith('.bin'):
+                    self._send_json({'success': False, 'error': f"Only .bin flight logs are supported. '{filename}' was rejected."})
+                    return
 
                 temp_dir = os.path.join(BASE_DIR, 'uploads', '_temp_org')
                 os.makedirs(temp_dir, exist_ok=True)
