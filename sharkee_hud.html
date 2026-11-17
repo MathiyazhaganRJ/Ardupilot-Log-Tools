@@ -4848,11 +4848,17 @@
         var latestNedX = 0;
         var latestNedY = 0;
         var hasNedPos = false;
+        var terrain3DEnabled = false;
+        var corvModeActive = false;
+        var planeClimbRate = 0.0;
+        var homeElevationMSL = null;
         window.homeLat = null;
         window.homeLon = null;
         window.missionAnchorLat = null;
         window.initialGpsCalibrated = false;
         window.ekfHomeInitialized = false;
+        window.terrain3DEnabled = false;
+        window.corvModeActive = false;
 
         const SVG_MOON = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
         const SVG_SUN = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>';
@@ -5494,7 +5500,7 @@
         }
 
         // 3D Topographic DEM Elevation Controls (Corv-GCS Engine)
-        let terrain3DEnabled = false;
+        terrain3DEnabled = false;
         window.terrain3DEnabled = terrain3DEnabled;
         let terrainExaggeration = 1.0; // Default 1.0x True 1:1 Physical Scale
         let terrainWireframeMode = false;
@@ -7181,7 +7187,7 @@
         // ============================================================
         currentLxnavPage = 1; // Default to Page 1: PFD Horizon
         lxnavWidgetVisible = true;
-        let planeClimbRate = 0.0; // m/s
+        planeClimbRate = 0.0; // m/s
         const lxnavPageTitles = [
             "",
             "PFD HORIZON",
@@ -10532,7 +10538,7 @@
         // ==========================================
         const TILE_SEGS = 40; // 40x40 segments per tile (1600 quads for buttery smooth 60 FPS performance)
         const demCache = new Map(); // key: `${demZ}_${demX}_${demY}` -> Uint8ClampedArray
-        let homeElevationMSL = null;
+        homeElevationMSL = null;
 
         function decodeTerrariumElev(raw, idx) {
             if (!raw || idx + 3 >= raw.length || raw[idx + 3] < 64) return 0.0;
@@ -13794,7 +13800,7 @@
         // ==========================================
         // CORV-GCS 3D MAP & TACTICAL HUD CONTROLLER
         // ==========================================
-        let corvModeActive = false;
+        corvModeActive = !!terrain3DEnabled;
         let corvMiniMapZoom = 15;
         const corvTileImgCache = new Map();
         let corvFrameCount = 0;
@@ -14078,18 +14084,18 @@
 
             // Battery Warning & Indicator
             const battAlert = document.getElementById('corv-val-batt-alert');
+            const battV = (typeof am32Telemetry !== 'undefined' && am32Telemetry && am32Telemetry.pack_voltage) ? am32Telemetry.pack_voltage : 12.2;
+            const battP = (typeof am32Telemetry !== 'undefined' && am32Telemetry && am32Telemetry.battery_remaining_pct) ? am32Telemetry.battery_remaining_pct : 85;
             if (battAlert) {
-                const v = batteryVoltage || 12.2;
-                const p = batteryPercent || 85;
-                battAlert.innerText = `BATT ${v.toFixed(1)}V (${p}%)`;
+                battAlert.innerText = `BATT ${battV.toFixed(1)}V (${battP}%)`;
             }
 
             // Bottom Action Bar Telemetry
             const btmMode = document.getElementById('corv-flight-mode-badge');
-            if (btmMode) btmMode.innerText = currentFlightMode || 'GUIDED';
+            if (btmMode) btmMode.innerText = (typeof currentFlightMode !== 'undefined' && currentFlightMode) ? currentFlightMode : 'GUIDED';
 
             const btmBatt = document.getElementById('corv-btm-batt');
-            if (btmBatt) btmBatt.innerText = `${(batteryVoltage || 12.2).toFixed(1)}V  ${(batteryPercent || 85)}%`;
+            if (btmBatt) btmBatt.innerText = `${battV.toFixed(1)}V  ${battP}%`;
 
             const btmGps = document.getElementById('corv-btm-gps');
             if (btmGps) {
