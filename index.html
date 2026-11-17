@@ -2416,6 +2416,7 @@
 
         /* ==========================================================================
            Mid-Screen Aerospace Log Loading Progress Bar & Circular Radar Overlay
+           Green / Black / White Aviation Palette
            ========================================================================== */
         #log-loading-overlay {
             position: absolute;
@@ -2427,9 +2428,9 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: rgba(10, 15, 24, 0.72);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+            background: rgba(4, 6, 8, 0.78);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1);
@@ -2441,14 +2442,14 @@
         }
 
         .aero-loader-card {
-            background: rgba(15, 23, 42, 0.92);
-            border: 1px solid rgba(56, 189, 248, 0.28);
+            background: rgba(8, 11, 10, 0.94);
+            border: 1px solid rgba(34, 197, 94, 0.38);
             border-radius: 16px;
             padding: 26px 36px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.75), 0 0 30px rgba(56, 189, 248, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.9), 0 0 30px rgba(34, 197, 94, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.12);
             min-width: 330px;
             max-width: 440px;
             user-select: none;
@@ -2462,13 +2463,13 @@
         }
 
         [data-theme="light-clean"] #log-loading-overlay {
-            background: rgba(241, 245, 249, 0.70);
+            background: rgba(245, 247, 248, 0.72);
         }
 
         [data-theme="light-clean"] .aero-loader-card {
-            background: rgba(255, 255, 255, 0.95);
-            border: 1px solid rgba(14, 165, 233, 0.35);
-            box-shadow: 0 20px 50px rgba(15, 23, 42, 0.14), 0 0 24px rgba(14, 165, 233, 0.12);
+            background: rgba(255, 255, 255, 0.96);
+            border: 1px solid rgba(22, 163, 74, 0.36);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.12), 0 0 24px rgba(22, 163, 74, 0.14);
         }
 
         .aero-radar-spinner {
@@ -2486,42 +2487,52 @@
 
         .radar-track {
             fill: none;
-            stroke: rgba(56, 189, 248, 0.18);
+            stroke: rgba(255, 255, 255, 0.14);
             stroke-width: 2.5;
         }
 
         [data-theme="light-clean"] .radar-track {
-            stroke: rgba(14, 165, 233, 0.18);
+            stroke: rgba(0, 0, 0, 0.12);
         }
 
         .radar-sweep {
             fill: none;
-            stroke: #38bdf8;
+            stroke: #22c55e;
             stroke-width: 2.5;
             stroke-linecap: round;
             stroke-dasharray: 60 160;
             transform-origin: 40px 40px;
             animation: radarSpin 1.35s linear infinite;
-            filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.75));
+            filter: drop-shadow(0 0 7px rgba(34, 197, 94, 0.85));
         }
 
         [data-theme="light-clean"] .radar-sweep {
-            stroke: #0284c7;
-            filter: drop-shadow(0 0 5px rgba(2, 132, 199, 0.45));
+            stroke: #16a34a;
+            filter: drop-shadow(0 0 5px rgba(22, 163, 74, 0.45));
         }
 
         .radar-inner {
             fill: none;
-            stroke: rgba(56, 189, 248, 0.12);
+            stroke: rgba(34, 197, 94, 0.22);
             stroke-width: 1.5;
             stroke-dasharray: 4 4;
         }
 
+        [data-theme="light-clean"] .radar-inner {
+            stroke: rgba(22, 163, 74, 0.22);
+        }
+
         .radar-aircraft {
-            fill: #ee3424;
+            fill: #22c55e;
             stroke: #ffffff;
             stroke-width: 1.2;
-            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.7));
+        }
+
+        [data-theme="light-clean"] .radar-aircraft {
+            fill: #16a34a;
+            stroke: #ffffff;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
         }
 
         @keyframes radarSpin {
@@ -2532,22 +2543,22 @@
         .aero-loader-title {
             font-size: 11px;
             font-weight: 700;
-            letter-spacing: 1.6px;
-            color: #38bdf8;
+            letter-spacing: 1.8px;
+            color: #22c55e;
             text-transform: uppercase;
             margin-bottom: 6px;
             font-family: 'B612', monospace;
         }
 
         [data-theme="light-clean"] .aero-loader-title {
-            color: #0284c7;
+            color: #16a34a;
         }
 
         .aero-loader-filename {
             font-size: 14px;
             font-weight: 700;
-            color: #f1f5f9;
-            letter-spacing: 0.3px;
+            color: #ffffff;
+            letter-spacing: 0.4px;
             margin-bottom: 6px;
             text-align: center;
             max-width: 320px;
@@ -2558,43 +2569,48 @@
         }
 
         [data-theme="light-clean"] .aero-loader-filename {
-            color: #0f172a;
+            color: #000000;
         }
 
         .aero-loader-status {
             font-size: 11px;
-            color: #94a3b8;
+            color: #cbd5e1;
             margin-bottom: 16px;
             text-align: center;
             min-height: 16px;
         }
 
         [data-theme="light-clean"] .aero-loader-status {
-            color: #475569;
+            color: #334155;
         }
 
         .aero-linear-track {
             width: 270px;
             height: 5px;
-            background: rgba(255, 255, 255, 0.10);
+            background: rgba(255, 255, 255, 0.12);
             border-radius: 4px;
             overflow: hidden;
             position: relative;
-            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5);
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.6);
         }
 
         [data-theme="light-clean"] .aero-linear-track {
-            background: rgba(0, 0, 0, 0.08);
-            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+            background: rgba(0, 0, 0, 0.10);
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.12);
         }
 
         .aero-linear-bar {
             height: 100%;
             width: 0%;
-            background: linear-gradient(90deg, #0284c7, #38bdf8, #22c55e);
+            background: linear-gradient(90deg, #15803d, #22c55e, #4ade80);
             border-radius: 4px;
             transition: width 0.16s ease-out;
-            box-shadow: 0 0 10px rgba(56, 189, 248, 0.7);
+            box-shadow: 0 0 12px rgba(34, 197, 94, 0.85);
+        }
+
+        [data-theme="light-clean"] .aero-linear-bar {
+            background: linear-gradient(90deg, #16a34a, #22c55e);
+            box-shadow: 0 0 10px rgba(22, 163, 74, 0.5);
         }
 
         .aero-loader-bottom {
@@ -2606,7 +2622,7 @@
             font-family: 'B612 Mono', monospace;
             font-weight: 600;
             letter-spacing: 0.6px;
-            color: #64748b;
+            color: #94a3b8;
         }
 
         [data-theme="light-clean"] .aero-loader-bottom {
@@ -2614,12 +2630,12 @@
         }
 
         #aero-loader-pct {
-            color: #38bdf8;
+            color: #22c55e;
             font-weight: 700;
         }
 
         [data-theme="light-clean"] #aero-loader-pct {
-            color: #0284c7;
+            color: #16a34a;
         }
 
     </style>
