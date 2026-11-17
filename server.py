@@ -601,17 +601,46 @@ def start_server():
 
 
 if __name__ == '__main__':
+    import argparse
+    parser_cli = argparse.ArgumentParser(description="ArduPilot Flight Log Analyser Server")
+    parser_cli.add_argument('--browser', action='store_true', help="Open in standard browser tab instead of app window")
+    parser_cli.add_argument('--headless', action='store_true', help="Run server without opening any window")
+    parser_cli.add_argument('--app', action='store_true', help="Open in standalone native app window (default)")
+    cli_args, _ = parser_cli.parse_known_args()
+
     httpd = start_server()
     server_thread = threading.Thread(target=httpd.serve_forever, daemon=True)
     server_thread.start()
 
     url = f"http://localhost:{PORT}/index.html"
-    print(f"Opening {url} ...")
-    webbrowser.open(url)
 
-    try:
-        while True:
-            time.sleep(1)
-    except KeyboardInterrupt:
-        print("Server shutdown requested.")
-        httpd.shutdown()
+    if cli_args.headless:
+        print("Running in headless server mode. Press Ctrl+C to stop.")
+        try:
+            while True:
+                time.sleep(1)
+        except KeyboardInterrupt:
+            print("Server shutdown requested.")
+            httpd.shutdown()
+    elif cli_args.browser:
+        print(f"Opening in default browser: {url} ...")
+        webbrowser.open(url)
+        try:
+            while True:
+                time.sleep(1)
+        except KeyboardInterrupt:
+            print("Server shutdown requested.")
+            httpd.shutdown()
+    else:
+        # Default mode: launch native application window
+        import app
+        print("Launching application window...")
+        try:
+            app.launch_native_window(httpd)
+        finally:
+            print("Application window closed. Shutting down server...")
+            try:
+                httpd.shutdown()
+            except Exception:
+                pass
+            sys.exit(0)
