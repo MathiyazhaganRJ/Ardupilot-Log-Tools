@@ -1498,12 +1498,14 @@
             margin-bottom: 5px;
         }
         .uav-field-pill-box {
+            box-sizing: border-box;
             flex: 1;
             background: #18191d;
             color: #ffffff;
             border: 1px solid #282a32;
             border-radius: 6px;
-            padding: 3px 8px;
+            padding: 0 8px;
+            height: 26px;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -1519,6 +1521,7 @@
             text-overflow: ellipsis;
         }
         .uav-axis-select {
+            box-sizing: border-box;
             background: #101216 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") no-repeat calc(100% - 6px) center;
             appearance: none;
             -webkit-appearance: none;
@@ -1529,13 +1532,13 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             font-size: 12px;
             font-weight: 700;
-            padding: 2px 18px 2px 8px;
+            padding: 0 16px 0 8px;
             cursor: pointer;
             width: 44px;
-            height: 24px;
+            height: 26px;
+            line-height: 24px;
             text-align: left;
             flex-shrink: 0;
-            line-height: 1.2;
             box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.4);
         }
         .uav-axis-select:focus {
@@ -1550,15 +1553,16 @@
             padding: 4px 6px;
         }
         .uav-style-preview {
+            box-sizing: border-box;
             background: #0f1013;
             border: 1px solid #282a32;
             border-radius: 4px;
-            padding: 2px 6px;
+            padding: 0 6px;
             display: flex;
             align-items: center;
             justify-content: center;
             min-width: 28px;
-            height: 22px;
+            height: 26px;
         }
         .uav-trash-btn {
             background: transparent;
@@ -2772,16 +2776,56 @@
             renderDrawerMessagesList();
         }
 
+        function extractHudTrajectory(traj) {
+            if (!traj || traj.length === 0) return [];
+            return traj.map(p => ({
+                time: p.time,
+                lat: p.lat,
+                lng: p.lng,
+                alt: p.alt,
+                rel_alt: p.rel_alt,
+                field_elev: p.field_elev,
+                roll: p.roll,
+                pitch: p.pitch,
+                yaw: p.yaw,
+                tas: p.tas,
+                gs: p.gs,
+                mode: p.mode,
+                volt: p.volt,
+                curr: p.curr,
+                power: p.power,
+                consumed_mah: p.consumed_mah,
+                rem_pct: p.rem_pct,
+                tho: p.tho,
+                aoa: p.aoa,
+                ssa: p.ssa,
+                press: p.press,
+                press_hpa: p.press_hpa,
+                temp: p.temp,
+                baro_temp: p.baro_temp,
+                arsp_temp: p.arsp_temp,
+                has_arsp: p.has_arsp,
+                density: p.density,
+                wind_spd: p.wind_spd,
+                wind_dir: p.wind_dir,
+                vwn: p.vwn,
+                vwe: p.vwe,
+                servos: p.servos,
+                rcin: p.rcin
+            }));
+        }
+
         function onSitlIframeLoaded() {
             if (currentTrajectory && currentTrajectory.length > 0) {
                 const iframe = document.getElementById('sitl-viewer-frame');
                 if (iframe && iframe.contentWindow) {
+                    const hudTraj = extractHudTrajectory(currentTrajectory);
                     iframe.contentWindow.postMessage({
                         type: 'LOAD_FLIGHT_LOG',
-                        trajectory: currentTrajectory,
+                        trajectory: hudTraj,
                         messages: currentFlightMessages
                     }, '*');
-                    const firstValid = currentTrajectory.find(p => p.lat && p.lng && Math.abs(p.lat) > 0.001) || currentTrajectory[0];
+                    const firstValid = hudTraj.find(p => p.lat && p.lng && Math.abs(p.lat) > 0.001) || hudTraj[0];
                     if (firstValid) {
                         iframe.contentWindow.postMessage({
                             type: 'SYNC_TELEMETRY',
@@ -2790,10 +2834,10 @@
                     }
                     try {
                         if (typeof iframe.contentWindow.renderLogFlightCorridor === 'function') {
-                            iframe.contentWindow.renderLogFlightCorridor(currentTrajectory);
+                            iframe.contentWindow.renderLogFlightCorridor(hudTraj);
                         }
                         if (typeof iframe.contentWindow.loadFlightLogTrajectory === 'function') {
-                            iframe.contentWindow.loadFlightLogTrajectory(currentTrajectory);
+                            iframe.contentWindow.loadFlightLogTrajectory(hudTraj);
                         }
                         if (typeof iframe.contentWindow.loadFlightLogMessages === 'function') {
                             iframe.contentWindow.loadFlightLogMessages(currentFlightMessages);
@@ -2938,10 +2982,17 @@
             try {
                 const url = targetPath ? `/api/load?path=${encodeURIComponent(targetPath)}` : '/api/load';
                 const res = await fetch(url);
+                if (!res.ok) {
+                    throw new Error(`Server returned HTTP ${res.status}: ${res.statusText}`);
+                }
                 const data = await res.json();
+                if (!data.success && data.error) {
+                    throw new Error(data.error);
+                }
                 applyParsedFlightData(data);
             } catch (e) {
                 console.error("Error loading log:", e);
+                if (metaDate) metaDate.textContent = "Error: " + e.message;
                 alert("Error loading log: " + e.message);
             }
         }
@@ -3053,14 +3104,21 @@
                     },
                     body: file
                 });
+                if (!res.ok) {
+                    throw new Error(`Server returned HTTP ${res.status}: ${res.statusText}`);
+                }
                 const data = await res.json();
                 if (data.success) {
                     applyParsedFlightData(data);
                 } else {
+                    const metaDate = document.getElementById('meta-date');
+                    if (metaDate) metaDate.textContent = "Upload error";
                     alert("Upload error: " + (data.error || "Unknown"));
                 }
             } catch (e) {
                 console.error("Upload error:", e);
+                const metaDate = document.getElementById('meta-date');
+                if (metaDate) metaDate.textContent = "Upload failed: " + e.message;
                 alert("Upload failed: " + e.message);
             }
         }
@@ -3285,13 +3343,6 @@
                     if (chevron) {
                         chevron.style.transform = fContainer.classList.contains('expanded') ? 'rotate(180deg)' : 'rotate(0deg)';
                     }
-                };
-
-                node.appendChild(header);
-                node.appendChild(fContainer);
-                treeContainer.appendChild(node);
-            });
-        }
                 };
 
                 node.appendChild(header);

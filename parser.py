@@ -87,6 +87,21 @@ INST_MSGS = {
 
 SKIP_TYPES = {'FMT', 'FMTU', 'UNIT', 'MULT', 'PARM', 'MSG', 'STAK', 'VER', 'FILE'}
 
+TARGET_TYPES = [
+    'FMT', 'MODE', 'ATT', 'CTUN', 'NTUN', 'QTUN', 'RATE', 'AETR',
+    'PIDR', 'PIDP', 'PIDY', 'PIDA', 'BARO', 'BAT', 'ARSP', 'GPS',
+    'GPA', 'POS', 'AOA', 'TECS', 'RCOU', 'RCIN', 'RCO2', 'RCI2',
+    'VIBE', 'DCM', 'AHR2', 'XKF1', 'XKF2', 'XKF4', 'ARM', 'ERR',
+    'EV', 'MSG', 'PARM', 'CMD', 'DSF', 'ESC', 'AUXF', 'MNT'
+]
+
+def clean_num(v, decimals=4):
+    if isinstance(v, float):
+        if math.isnan(v) or math.isinf(v):
+            return None
+        return round(v, decimals)
+    return v
+
 def resolve_flight_mode(val, is_copter=False):
     if val is None:
         return 'MANUAL'
@@ -183,8 +198,8 @@ def get_log_formats(file_path):
     fmts = {}
     logged_formats = {}
     count = 0
-    while count < 25000:
-        msg = mlog.recv_match(blocking=False)
+    while count < 8000:
+        msg = mlog.recv_match(type=TARGET_TYPES, blocking=False)
         if not msg:
             break
         count += 1
@@ -195,7 +210,7 @@ def get_log_formats(file_path):
             if name and cols:
                 fmts[name] = cols
             continue
-        if mtype in SKIP_TYPES:
+        if mtype in ('PARM', 'MSG', 'CMD', 'DSF'):
             continue
         inst_col = INST_MSGS.get(mtype)
         inst = getattr(msg, inst_col, None) if inst_col else None
@@ -209,7 +224,7 @@ def get_log_formats(file_path):
     return logged_formats
 
 
-def parse_flight_telemetry(file_path, target_samples=8000):
+def parse_flight_telemetry(file_path, target_samples=4000):
     """
     Parses ArduPilot .bin log into a synchronized timeline of flight telemetry.
     Returns:
@@ -251,11 +266,10 @@ def parse_flight_telemetry(file_path, target_samples=8000):
     board = "Autopilot Board"
 
     last_sample_t = 0.0
-    last_imu_t = 0.0
     sample_interval = 0.05  # 20 Hz timeline
 
     while True:
-        msg = mlog.recv_match(blocking=False)
+        msg = mlog.recv_match(type=TARGET_TYPES, blocking=False)
         if not msg:
             break
         mtype = msg.get_type()
@@ -300,19 +314,10 @@ def parse_flight_telemetry(file_path, target_samples=8000):
                 flight_messages.append({'time': round(t_s, 2), 'text': txt, 'severity': sev})
             continue
 
-        if mtype in SKIP_TYPES:
-            continue
-
         t_us = getattr(msg, 'TimeUS', None)
         if t_us is None:
             continue
         t_s = t_us / 1e6
-
-        # Downsample IMU to 25 Hz
-        if mtype == 'IMU':
-            if (t_s - last_imu_t) < 0.04:
-                continue
-            last_imu_t = t_s
 
         # Determine instance prefix
         inst_col = INST_MSGS.get(mtype)
@@ -324,17 +329,16 @@ def parse_flight_telemetry(file_path, target_samples=8000):
             col_list = [c for c in fmts[mtype] if c not in ('TimeUS', inst_col)]
             logged_formats[prefix] = col_list
 
-        # Extract numeric fields for state tracking
-        cols = fmts.get(mtype, [])
-        for col in cols:
-            if col in ('TimeUS', inst_col):
+        # Fast dictionary extraction & float sanitization (no NaN/Inf)
+        d = msg.to_dict()
+        for k, v in d.items():
+            if k in ('mavpackettype', 'TimeUS', inst_col):
                 continue
-            v = getattr(msg, col, None)
             if isinstance(v, (int, float)):
-                v_clean = round(v, 4) if isinstance(v, float) else v
-                current_state[f"{prefix}.{col}"] = v_clean
+                v_clean = clean_num(v)
+                current_state[f"{prefix}.{k}"] = v_clean
                 if inst == 0:
-                    current_state[f"{mtype}.{col}"] = v_clean
+                    current_state[f"{mtype}.{k}"] = v_clean
 
         # Standard navigation & attitude updates
         if mtype == 'GPS':
@@ -441,57 +445,67 @@ def parse_flight_telemetry(file_path, target_samples=8000):
             rec = dict(current_state)
             rec['time'] = round(t_s, 2)
             rec['mode'] = cur_mode
-            rec['roll'] = round(cur_roll, 1)
-            rec['pitch'] = round(cur_pitch, 1)
-            rec['yaw'] = round(cur_yaw, 1)
-            rec['lat'] = round(cur_lat, 7)
-            rec['lng'] = round(cur_lng, 7)
-            rec['alt'] = round(cur_alt, 1)
-            rec['rel_alt'] = round(cur_rel_alt, 1)
-            rec['field_elev'] = round(home_elevation, 1)
-            rec['crt'] = round(cur_crt, 2)
-            rec['tas'] = round(cur_tas, 2)
-            rec['gs'] = round(cur_gs, 2)
-            rec['spdem'] = round(cur_spdem, 1)
-            rec['tho'] = round(cur_tho, 1)
+            rec['roll'] = clean_num(cur_roll, 1) or 0.0
+            rec['pitch'] = clean_num(cur_pitch, 1) or 0.0
+            rec['yaw'] = clean_num(cur_yaw, 1) or 0.0
+            rec['lat'] = clean_num(cur_lat, 7) or 0.0
+            rec['lng'] = clean_num(cur_lng, 7) or 0.0
+            rec['alt'] = clean_num(cur_alt, 1) or 0.0
+            rec['rel_alt'] = clean_num(cur_rel_alt, 1) or 0.0
+            rec['field_elev'] = clean_num(home_elevation, 1) or 0.0
+            rec['crt'] = clean_num(cur_crt, 2) or 0.0
+            rec['tas'] = clean_num(cur_tas, 2) or 0.0
+            rec['gs'] = clean_num(cur_gs, 2) or 0.0
+            rec['spdem'] = clean_num(cur_spdem, 1) or 0.0
+            rec['tho'] = clean_num(cur_tho, 1) or 0.0
 
             # BAT fields
-            v = current_state.get('BAT[0].Volt', current_state.get('BAT.Volt', 0.0))
-            i = current_state.get('BAT[0].Curr', current_state.get('BAT.Curr', 0.0))
-            curr_tot = current_state.get('BAT[0].CurrTot', current_state.get('BAT.CurrTot', 0.0))
+            v_val = current_state.get('BAT[0].Volt', current_state.get('BAT.Volt', 0.0)) or 0.0
+            i_val = current_state.get('BAT[0].Curr', current_state.get('BAT.Curr', 0.0)) or 0.0
+            curr_tot = current_state.get('BAT[0].CurrTot', current_state.get('BAT.CurrTot', 0.0)) or 0.0
             rem_pct = current_state.get('BAT[0].RemPct', current_state.get('BAT.RemPct', 100))
-            pwr = round(v * i, 1)
-            wh_km = (pwr / (cur_tas * 3.6)) if cur_tas > 2.0 else 0.0
+            if rem_pct is None or (isinstance(rem_pct, float) and math.isnan(rem_pct)):
+                rem_pct = 100
+            pwr = clean_num(v_val * i_val, 1) or 0.0
+            wh_km = clean_num((pwr / (cur_tas * 3.6)), 2) if (cur_tas and cur_tas > 2.0) else 0.0
 
-            rec['volt'] = round(v, 2)
-            rec['curr'] = round(i, 2)
+            rec['volt'] = clean_num(v_val, 2) or 0.0
+            rec['curr'] = clean_num(i_val, 2) or 0.0
             rec['power'] = pwr
-            rec['consumed_mah'] = round(curr_tot, 1)
-            rec['rem_pct'] = int(rem_pct) if rem_pct is not None else 100
-            rec['wh_km'] = round(wh_km, 2)
+            rec['consumed_mah'] = clean_num(curr_tot, 1) or 0.0
+            rec['rem_pct'] = int(rem_pct)
+            rec['wh_km'] = wh_km or 0.0
 
             # Atmospheric & Aerodynamic metrics
-            rec['aoa'] = round(cur_aoa, 2)
-            rec['ssa'] = round(cur_ssa, 2)
-            rec['press'] = round(cur_press, 1)
-            rec['press_hpa'] = round(cur_press / 100.0, 1) if cur_press > 2000 else round(cur_press, 1)
-            rec['qnh_hpa'] = round((cur_press / 100.0 if cur_press > 2000 else cur_press) * (max(0.001, 1.0 - ((cur_amsl if cur_amsl != 0.0 else cur_alt) / 44330.77)) ** -5.25588), 1)
-            rec['temp'] = round(cur_temp, 1)
-            rec['baro_temp'] = round(cur_baro_temp, 1)
-            rec['arsp_temp'] = round(cur_arsp_temp, 1) if cur_arsp_temp is not None else 0.0
+            rec['aoa'] = clean_num(cur_aoa, 2) or 0.0
+            rec['ssa'] = clean_num(cur_ssa, 2) or 0.0
+            rec['press'] = clean_num(cur_press, 1) or 101325.0
+            rec['press_hpa'] = clean_num(cur_press / 100.0, 1) if (cur_press and cur_press > 2000) else (clean_num(cur_press, 1) or 1013.2)
+            
+            try:
+                base_p = cur_press / 100.0 if cur_press > 2000 else cur_press
+                ref_a = cur_amsl if cur_amsl != 0.0 else cur_alt
+                qnh = base_p * (max(0.001, 1.0 - (ref_a / 44330.77)) ** -5.25588)
+            except Exception:
+                qnh = 1013.2
+            rec['qnh_hpa'] = clean_num(qnh, 1) or 1013.2
+
+            rec['temp'] = clean_num(cur_temp, 1) or 25.0
+            rec['baro_temp'] = clean_num(cur_baro_temp, 1) or 25.0
+            rec['arsp_temp'] = clean_num(cur_arsp_temp, 1) if cur_arsp_temp is not None else 0.0
             rec['has_arsp'] = cur_arsp_temp is not None
 
             amb_temp = cur_arsp_temp if cur_arsp_temp is not None else cur_baro_temp
-            tk = amb_temp + 273.15
-            rho = cur_press / (287.05 * tk) if tk > 0 else 1.225
-            rec['density'] = round(rho, 4)
+            tk = (amb_temp or 25.0) + 273.15
+            rho = (cur_press / (287.05 * tk)) if tk > 0 else 1.225
+            rec['density'] = clean_num(rho, 4) or 1.225
 
-            w_spd = math.sqrt(cur_vwn**2 + cur_vwe**2)
+            w_spd = math.sqrt(cur_vwn**2 + cur_vwe**2) if (cur_vwn is not None and cur_vwe is not None) else 0.0
             w_dir = (math.degrees(math.atan2(-cur_vwe, -cur_vwn)) + 360.0) % 360.0 if w_spd > 0.05 else 0.0
-            rec['wind_spd'] = round(w_spd, 1)
-            rec['wind_dir'] = round(w_dir, 0)
-            rec['vwn'] = round(cur_vwn, 2)
-            rec['vwe'] = round(cur_vwe, 2)
+            rec['wind_spd'] = clean_num(w_spd, 1) or 0.0
+            rec['wind_dir'] = clean_num(w_dir, 0) or 0.0
+            rec['vwn'] = clean_num(cur_vwn, 2) or 0.0
+            rec['vwe'] = clean_num(cur_vwe, 2) or 0.0
 
             rec['servos'] = cur_servos[:]
             rec['rcin'] = cur_rcin[:]

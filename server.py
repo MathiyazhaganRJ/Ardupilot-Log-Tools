@@ -561,7 +561,19 @@ class LogViewerHandler(SimpleHTTPRequestHandler):
         self.send_error(404, "Not found")
 
     def _send_json(self, data):
-        payload = json.dumps(data).encode('utf-8')
+        try:
+            payload = json.dumps(data, allow_nan=False).encode('utf-8')
+        except (ValueError, TypeError):
+            import math
+            def sanitize(obj):
+                if isinstance(obj, float):
+                    return None if (math.isnan(obj) or math.isinf(obj)) else obj
+                elif isinstance(obj, dict):
+                    return {k: sanitize(v) for k, v in obj.items()}
+                elif isinstance(obj, list):
+                    return [sanitize(v) for v in obj]
+                return obj
+            payload = json.dumps(sanitize(data), allow_nan=False).encode('utf-8')
         self.send_response(200)
         self.send_header('Content-Type', 'application/json')
         self.send_header('Content-Length', str(len(payload)))

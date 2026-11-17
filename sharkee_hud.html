@@ -5480,20 +5480,16 @@
         const selTerrainScale = document.getElementById('sel-terrain-scale');
         const selTerrainStyle = document.getElementById('sel-terrain-style');
 
-        // Default to 2D Flat Satellite Map unless explicitly requested
-        let savedTerrain3D = localStorage.getItem('pilot_terrain_3d_v2');
-        if (savedTerrain3D === null) {
-            terrain3DEnabled = false;
-            localStorage.setItem('pilot_terrain_3d_v2', '2d');
-            localStorage.setItem('pilot_terrain_3d', 'false');
-        } else {
-            terrain3DEnabled = (savedTerrain3D === '3d');
-        }
-        window.terrain3DEnabled = terrain3DEnabled;
-        if (chkToggleTerrain3D) chkToggleTerrain3D.checked = terrain3DEnabled;
+        // Default to 2D Flat Satellite Map as primary baseline on launch
+        terrain3DEnabled = false;
+        window.terrain3DEnabled = false;
+        corvModeActive = false;
+        localStorage.setItem('pilot_terrain_3d_v2', '2d');
+        localStorage.setItem('pilot_terrain_3d', 'false');
+        if (chkToggleTerrain3D) chkToggleTerrain3D.checked = false;
         if (terrain3DStatus) {
-            terrain3DStatus.innerText = terrain3DEnabled ? '3D ACTIVE' : 'FLAT MESH';
-            terrain3DStatus.style.color = terrain3DEnabled ? 'var(--success)' : 'var(--text-secondary)';
+            terrain3DStatus.innerText = 'FLAT MESH';
+            terrain3DStatus.style.color = 'var(--text-secondary)';
         }
 
         if (chkToggleTerrain3D) {
