@@ -1621,6 +1621,12 @@
         }
 
         /* 2D Leaflet Tactical Map Elements */
+        .plane-marker-icon,
+        .home-marker-icon {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
         #map-pane {
             flex: 1;
             height: 100%;
@@ -2972,17 +2978,24 @@
                 attributionControl: false
             }).setView([18.3385, 83.9322], 15);
 
-            // Plane Icon (SVG Arrow/Airplane)
+            // Garmin 3D Faceted Navigation Aircraft Icon (Matching NAV Compass Style)
             const planeSvg = `
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="#00d2ff" stroke="#060910" stroke-width="1.2" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8));">
-                    <path d="M12 2L15 9L22 11L15 13L13 22L12 17L11 22L9 13L2 11L9 9Z" />
+                <svg width="32" height="44" viewBox="-16 -24 32 44" style="overflow: visible; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.85));">
+                    <!-- Left Shaded Facet (Crimson Red) -->
+                    <polygon points="0,-22 -14,18 0,8" fill="#c72b27" />
+                    <!-- Right High-Contrast Facet (Vibrant Scarlet Red) -->
+                    <polygon points="0,-22 0,8 14,18" fill="#ee3424" />
+                    <!-- Center Crease Seam Line -->
+                    <line x1="0" y1="-22" x2="0" y2="8" stroke="#ffffff" stroke-width="1.2" stroke-linecap="round" />
+                    <!-- Outer Perimeter Crisp White Border -->
+                    <polygon points="0,-22 14,18 0,8 -14,18" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linejoin="round" />
                 </svg>
             `;
             const planeCustomIcon = L.divIcon({
                 className: 'plane-marker-icon',
-                html: `<div id="map-plane-icon-wrapper" style="transform-origin: center center; width:28px; height:28px;">${planeSvg}</div>`,
-                iconSize: [28, 28],
-                iconAnchor: [14, 14]
+                html: `<div id="map-plane-icon-wrapper" style="transform-origin: 16px 24px; width:32px; height:44px; display:flex; align-items:center; justify-content:center;">${planeSvg}</div>`,
+                iconSize: [32, 44],
+                iconAnchor: [16, 24]
             });
 
             planeMarker = L.marker([18.3385, 83.9322], { icon: planeCustomIcon }).addTo(mapInstance);
@@ -3062,6 +3075,7 @@
 
                 // Add Home Marker at start
                 const homeIcon = L.divIcon({
+                    className: 'home-marker-icon',
                     html: '<div style="background:#22c55e; width:12px; height:12px; border-radius:50%; border:2px solid #ffffff; box-shadow:0 0 6px rgba(0,0,0,0.8);"></div>',
                     iconSize: [12, 12],
                     iconAnchor: [6, 6]
