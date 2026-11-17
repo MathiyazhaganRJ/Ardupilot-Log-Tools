@@ -2678,8 +2678,8 @@
                     <div class="map-overlay-ctrls">
                         <select id="map-layer-select" class="map-select" onchange="changeMapLayer(this.value)">
                             <option value="esri" selected>Satellite (ESRI World Imagery)</option>
+                            <option value="google">Google Satellite</option>
                             <option value="local">Satellite (Airfield Cache)</option>
-                            <option value="carto">Dark Canvas</option>
                             <option value="osm">Street (OSM)</option>
                         </select>
                         <button class="btn" style="padding:2px 8px; font-size:10px;" onclick="recenterMap()">Center Plane</button>
@@ -2963,9 +2963,10 @@
                 attribution: 'Tiles &copy; Esri',
                 maxZoom: 19
             });
-            mapLayers.carto = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-                attribution: '&copy; CartoDB',
-                maxZoom: 19
+            mapLayers.google = L.tileLayer('https://mt{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+                subdomains: ['0', '1', '2', '3'],
+                attribution: '&copy; Google Maps',
+                maxZoom: 20
             });
             mapLayers.osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; OpenStreetMap',
