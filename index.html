@@ -346,56 +346,25 @@
             color: #16a34a;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
         }
-        [data-theme="light-clean"] 
-        /* Dark / Light Mode Toggle Button */
-        .aero-btn-theme-toggle {
-            background: var(--av-btn-bg);
-            border: 1px solid var(--av-border);
-            color: var(--av-text-secondary);
-            width: 28px;
-            height: 27px;
-            border-radius: 4px;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.14s ease;
-            padding: 0;
-            flex-shrink: 0;
-        }
-        .aero-btn-theme-toggle:hover {
-            background: var(--av-surface-hover);
-            border-color: var(--av-border-strong);
-            color: var(--av-text-primary);
-        }
-        .aero-btn-theme-toggle .theme-icon-moon {
-            display: none;
-        }
-        .aero-btn-theme-toggle .theme-icon-sun {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-        }
-        html[data-theme="light-clean"] .aero-btn-theme-toggle {
+        [data-theme="light-clean"] .aero-btn-theme-toggle {
             background: #ffffff;
             border-color: #cbd5e1;
             color: #334155;
         }
-        html[data-theme="light-clean"] .aero-btn-theme-toggle:hover {
+        [data-theme="light-clean"] .aero-btn-theme-toggle:hover {
             background: #f1f5f9;
             border-color: #94a3b8;
             color: #0f172a;
         }
-        html[data-theme="light-clean"] .aero-btn-theme-toggle .theme-icon-sun {
+        [data-theme="light-clean"] .aero-btn-theme-toggle .theme-icon-sun {
             display: none;
         }
-        html[data-theme="light-clean"] .aero-btn-theme-toggle .theme-icon-moon {
+        [data-theme="light-clean"] .aero-btn-theme-toggle .theme-icon-moon {
             display: inline-flex;
             align-items: center;
             justify-content: center;
         }
-
-        .aero-btn-graph {
+        [data-theme="light-clean"] .aero-btn-graph {
             background: #ffffff;
             border-color: #cbd5e1;
             color: #334155;
@@ -917,6 +886,40 @@
             border: 1px solid #22c55e;
             color: #22c55e;
             box-shadow: none;
+        }
+
+        /* Dark / Light Mode Toggle Button (Base / Dark Mode) */
+        .aero-btn-theme-toggle {
+            appearance: none;
+            -webkit-appearance: none;
+            background: var(--av-btn-bg, #18191d);
+            border: 1px solid var(--av-border, #24262c);
+            color: var(--av-text-secondary, #9ca3af);
+            width: 28px;
+            height: 27px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.14s ease;
+            padding: 0;
+            outline: none;
+            box-sizing: border-box;
+            flex-shrink: 0;
+        }
+        .aero-btn-theme-toggle:hover {
+            background: var(--av-surface-hover, #22242a);
+            border-color: var(--av-border-strong, #33363e);
+            color: var(--av-text-primary, #ffffff);
+        }
+        .aero-btn-theme-toggle .theme-icon-moon {
+            display: none;
+        }
+        .aero-btn-theme-toggle .theme-icon-sun {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
         }
 
         /* Graph Toggle */
@@ -2524,28 +2527,6 @@
         </div>
 
         <div class="header-right">
-            <!-- Workstation Dark / Light Mode Toggle Button -->
-            <button class="aero-btn-theme-toggle" id="btn-theme-toggle" onclick="toggleDarkLightMode()" title="Switch to Light Mode">
-                <span class="theme-icon-sun">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="4"></circle>
-                        <path d="M12 2v2"></path>
-                        <path d="M12 20v2"></path>
-                        <path d="M4.93 4.93l1.41 1.41"></path>
-                        <path d="M17.66 17.66l1.41 1.41"></path>
-                        <path d="M2 12h2"></path>
-                        <path d="M20 12h2"></path>
-                        <path d="M4.93 19.07l1.41-1.41"></path>
-                        <path d="M17.66 6.34l1.41-1.41"></path>
-                    </svg>
-                </span>
-                <span class="theme-icon-moon">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                </span>
-            </button>
-
             <!-- Avionic Rocker Switcher (3D Spatial vs 2D Tactical) -->
             <div class="aero-rocker-group view-mode-group">
                 <button class="aero-rocker-btn view-mode-btn active" id="btn-view-sitl" onclick="setViewMode('sitl')" title="3D Digital Twin Spatial Visualizer">3D SPATIAL TWIN</button>
@@ -2557,6 +2538,28 @@
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
                 </svg>
+            </button>
+
+            <!-- Dark / Light Mode Toggle Button -->
+            <button class="aero-btn-theme-toggle" id="btn-theme-toggle" onclick="toggleDarkLightMode()" title="Switch to Light Mode">
+                <span class="theme-icon-sun">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="4.5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </span>
+                <span class="theme-icon-moon">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                </span>
             </button>
         </div>
     </header>
