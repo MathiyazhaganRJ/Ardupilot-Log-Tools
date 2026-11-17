@@ -2762,7 +2762,9 @@
             // If in SITL iframe visualizer mode, also toggle HUD messages tab
             const sitlIframe = document.getElementById('sitl-viewer-frame');
             if (sitlIframe && sitlIframe.contentWindow && typeof sitlIframe.contentWindow.switchPanelTab === 'function') {
-                sitlIframe.contentWindow.switchPanelTab(isOpen ? 'telemetry' : 'messages');
+                try {
+                    sitlIframe.contentWindow.switchPanelTab(isOpen ? 'telemetry' : 'messages');
+                } catch(e) {}
             }
         }
 
@@ -4190,14 +4192,24 @@
             // Synchronize SITL Digital Twin Frame (Shark Hawk + PFD Horizon + NAV Compass + Atmosphere Panel)
             const sitlIframe = document.getElementById('sitl-viewer-frame');
             if (sitlIframe && sitlIframe.contentWindow) {
-                if (typeof sitlIframe.contentWindow.applyFlightLogTelemetry === 'function') {
-                    sitlIframe.contentWindow.applyFlightLogTelemetry(sample, isJump);
-                } else {
-                    sitlIframe.contentWindow.postMessage({
-                        type: 'SYNC_TELEMETRY',
-                        telemetry: sample,
-                        isJump: isJump
-                    }, '*');
+                try {
+                    if (typeof sitlIframe.contentWindow.applyFlightLogTelemetry === 'function') {
+                        sitlIframe.contentWindow.applyFlightLogTelemetry(sample, isJump);
+                    } else {
+                        sitlIframe.contentWindow.postMessage({
+                            type: 'SYNC_TELEMETRY',
+                            telemetry: sample,
+                            isJump: isJump
+                        }, '*');
+                    }
+                } catch (err) {
+                    try {
+                        sitlIframe.contentWindow.postMessage({
+                            type: 'SYNC_TELEMETRY',
+                            telemetry: sample,
+                            isJump: isJump
+                        }, '*');
+                    } catch (e2) {}
                 }
             }
         }

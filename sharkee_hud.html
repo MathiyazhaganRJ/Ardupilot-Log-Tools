@@ -4830,6 +4830,30 @@
         var vehicleConnected = false;
         var waypointGroup = null;
 
+        // Core Geodetic Anchor & EKF Origin State (hoisted to script top to prevent TDZ)
+        var homeLat = null;
+        var homeLon = null;
+        var homeAlt = 0;
+        var tileSize = 0;
+        var homeTileXFloat = 0;
+        var homeTileYFloat = 0;
+        var missionAnchorLat = null;
+        var missionAnchorLon = null;
+        var missionAnchorX = 0;
+        var missionAnchorZ = 0;
+        var initialGpsCalibrated = false;
+        var ekfHomeInitialized = false;
+        var isArmed = false;
+        var firstPos = false;
+        var latestNedX = 0;
+        var latestNedY = 0;
+        var hasNedPos = false;
+        window.homeLat = null;
+        window.homeLon = null;
+        window.missionAnchorLat = null;
+        window.initialGpsCalibrated = false;
+        window.ekfHomeInitialized = false;
+
         const SVG_MOON = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
         const SVG_SUN = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>';
 
@@ -8423,7 +8447,7 @@
 
         let isDeadReckoning = false;
         let simulatedDR = false;
-        let isArmed = false;
+        isArmed = false;
         let lastGpsFixType = 0;
         let lastGpsSats = 0;
         let lastGpsFixName = 'NO FIX';
@@ -9370,10 +9394,10 @@
         let latestServos = [1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000];
         let rawTargetPos = new THREE.Vector3(), targetPos = new THREE.Vector3();
         let rawTargetRot = new THREE.Euler(0, 0, 0, 'YXZ'), targetRot = new THREE.Euler(0, 0, 0, 'YXZ');
-        let firstPos = false;
-        let initialGpsCalibrated = false;
-        let ekfHomeInitialized = false;
-        let latestNedX = 0, latestNedY = 0, hasNedPos = false;
+        firstPos = false;
+        initialGpsCalibrated = false;
+        ekfHomeInitialized = false;
+        latestNedX = 0; latestNedY = 0; hasNedPos = false;
 
         // Unified Geodetic EKF Origin Lock - Anchors map, waypoints, and vehicle to exact same coordinate
         function initEkfHome(hLat, hLon, forceRecenter = false, isUserCommand = false) {
@@ -9449,8 +9473,8 @@
         scene.add(airspaceRingGroup);
         const mapTiles = new Map();
         const horizonTiles = new Map();
-        let homeLat = null, homeLon = null, homeAlt = 0, tileSize = 0, homeTileXFloat = 0, homeTileYFloat = 0;
-        let missionAnchorLat = null, missionAnchorLon = null, missionAnchorX = 0, missionAnchorZ = 0;
+        homeLat = null; homeLon = null; homeAlt = 0; tileSize = 0; homeTileXFloat = 0; homeTileYFloat = 0;
+        missionAnchorLat = null; missionAnchorLon = null; missionAnchorX = 0; missionAnchorZ = 0;
         window.homeLat = null;
         window.homeLon = null;
         window.missionAnchorLat = null;
