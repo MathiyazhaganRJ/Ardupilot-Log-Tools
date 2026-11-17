@@ -3212,26 +3212,27 @@
         function initLeafletMap() {
             // High-Speed Local & Offline Satellite Tile Layer (Proxy through server)
             mapLayers.local = L.tileLayer('/tiles/{z}/{x}/{y}.jpg', {
-                maxZoom: 19
+                maxZoom: 18
             });
             mapLayers.esri = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
                 attribution: 'Tiles &copy; Esri',
-                maxZoom: 19
+                maxZoom: 18
             });
             mapLayers.google = L.tileLayer('https://mt{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
                 subdomains: ['0', '1', '2', '3'],
                 attribution: '&copy; Google Maps',
-                maxZoom: 20
+                maxZoom: 18
             });
             mapLayers.osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; OpenStreetMap',
-                maxZoom: 19
+                maxZoom: 18
             });
 
             mapInstance = L.map('leaflet-map', {
                 layers: [mapLayers.esri],
                 zoomControl: true,
-                attributionControl: false
+                attributionControl: false,
+                maxZoom: 18
             }).setView([18.3385, 83.9322], 15);
 
             // Garmin 3D Faceted Navigation Aircraft Icon (Matching NAV Compass Style)
@@ -3345,10 +3346,8 @@
                 planeMarker.setLatLng(validPoints[0]);
 
                 const mapPaneEl = document.getElementById('map-pane');
-                if (mapPaneEl && mapPaneEl.offsetWidth > 50 && mapPaneEl.offsetHeight > 50 && trackPolyline) {
-                    try {
-                        mapInstance.fitBounds(trackPolyline.getBounds(), { padding: [30, 30] });
-                    } catch(e) {}
+                if (mapPaneEl && mapPaneEl.offsetWidth > 50 && mapPaneEl.offsetHeight > 50) {
+                    fitFlightBoundsToMap();
                 }
             }
         }
@@ -3367,18 +3366,53 @@
             }
         }
 
+        // Smart Zoom & Bounds Management: ensures map is always at a clear, visible zoom when no waypoints exist
+        function fitFlightBoundsToMap() {
+            if (!mapInstance) return;
+
+            // Check if we have valid track polyline with geographic displacement
+            if (trackPolyline && trackLayers && trackLayers.length > 0) {
+                try {
+                    const bounds = trackPolyline.getBounds();
+                    if (bounds.isValid()) {
+                        const latSpan = Math.abs(bounds.getNorth() - bounds.getSouth());
+                        const lngSpan = Math.abs(bounds.getEast() - bounds.getWest());
+
+                        // If there are no waypoints, or points are clustered / stationary (< ~350m span)
+                        if (latSpan < 0.0035 && lngSpan < 0.0035) {
+                            const center = bounds.getCenter();
+                            mapInstance.setView(center, 15);
+                            return;
+                        }
+
+                        // For flight trajectories with waypoints, fit bounds capped at a safe maxZoom (16)
+                        mapInstance.fitBounds(bounds, {
+                            padding: [35, 35],
+                            maxZoom: 16
+                        });
+                        return;
+                    }
+                } catch(e) {}
+            }
+
+            // Fallback when no waypoints / stationary test: maintain proper visible airfield zoom (level 15)
+            if (currentPlaneLat !== 0 && currentPlaneLng !== 0) {
+                mapInstance.setView([currentPlaneLat, currentPlaneLng], 15);
+            } else {
+                mapInstance.setView([18.3385, 83.9322], 15);
+            }
+        }
+
         function recenterMap() {
             if (mapInstance && currentPlaneLat !== 0) {
-                mapInstance.panTo([currentPlaneLat, currentPlaneLng], { animate: true });
+                const curZoom = mapInstance.getZoom();
+                const targetZoom = (curZoom > 16) ? 15 : curZoom;
+                mapInstance.setView([currentPlaneLat, currentPlaneLng], targetZoom);
             }
         }
 
         function fitFlightBounds() {
-            if (mapInstance && trackPolyline) {
-                try {
-                    mapInstance.fitBounds(trackPolyline.getBounds(), { padding: [30, 30] });
-                } catch(e) {}
-            }
+            fitFlightBoundsToMap();
         }
 
         // View Mode Switcher (SITL Visualizer vs 2D Satellite Map)
@@ -3405,13 +3439,7 @@
                     setTimeout(() => {
                         if (mapInstance) {
                             mapInstance.invalidateSize(true);
-                            if (trackPolyline) {
-                                try {
-                                    mapInstance.fitBounds(trackPolyline.getBounds(), { padding: [35, 35] });
-                                } catch(e) {}
-                            } else if (currentPlaneLat !== 0) {
-                                mapInstance.setView([currentPlaneLat, currentPlaneLng], 15);
-                            }
+                            fitFlightBoundsToMap();
                         }
                     }, 80);
                 }
