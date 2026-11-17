@@ -346,7 +346,56 @@
             color: #16a34a;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
         }
-        [data-theme="light-clean"] .aero-btn-graph {
+        [data-theme="light-clean"] 
+        /* Dark / Light Mode Toggle Button */
+        .aero-btn-theme-toggle {
+            background: var(--av-btn-bg);
+            border: 1px solid var(--av-border);
+            color: var(--av-text-secondary);
+            width: 28px;
+            height: 27px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.14s ease;
+            padding: 0;
+            flex-shrink: 0;
+        }
+        .aero-btn-theme-toggle:hover {
+            background: var(--av-surface-hover);
+            border-color: var(--av-border-strong);
+            color: var(--av-text-primary);
+        }
+        .aero-btn-theme-toggle .theme-icon-moon {
+            display: none;
+        }
+        .aero-btn-theme-toggle .theme-icon-sun {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        html[data-theme="light-clean"] .aero-btn-theme-toggle {
+            background: #ffffff;
+            border-color: #cbd5e1;
+            color: #334155;
+        }
+        html[data-theme="light-clean"] .aero-btn-theme-toggle:hover {
+            background: #f1f5f9;
+            border-color: #94a3b8;
+            color: #0f172a;
+        }
+        html[data-theme="light-clean"] .aero-btn-theme-toggle .theme-icon-sun {
+            display: none;
+        }
+        html[data-theme="light-clean"] .aero-btn-theme-toggle .theme-icon-moon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .aero-btn-graph {
             background: #ffffff;
             border-color: #cbd5e1;
             color: #334155;
@@ -2360,12 +2409,18 @@
     <script>
         window.onSitlIframeLoaded = function(){};
 
+        function toggleDarkLightMode() {
+            var currentTheme = document.documentElement.getAttribute('data-theme') || 'uav-official';
+            var newTheme = (currentTheme === 'light-clean') ? 'uav-official' : 'light-clean';
+            setWorkstationTheme(newTheme);
+        }
+
         function setWorkstationTheme(themeName) {
             document.documentElement.setAttribute('data-theme', themeName);
             localStorage.setItem('sharkee_workstation_theme', themeName);
-            var sel = document.getElementById('theme-layout-select');
-            if (sel && sel.value !== themeName) {
-                sel.value = themeName;
+            var btn = document.getElementById('btn-theme-toggle');
+            if (btn) {
+                btn.title = (themeName === 'light-clean') ? 'Switch to Dark Mode' : 'Switch to Light Mode';
             }
             if (typeof updatePlot === 'function') {
                 updatePlot();
@@ -2376,10 +2431,15 @@
 
         (function initWorkstationTheme() {
             var savedTheme = localStorage.getItem('sharkee_workstation_theme') || 'uav-official';
+            if (savedTheme !== 'light-clean') {
+                savedTheme = 'uav-official';
+            }
             document.documentElement.setAttribute('data-theme', savedTheme);
             window.addEventListener('DOMContentLoaded', function() {
-                var sel = document.getElementById('theme-layout-select');
-                if (sel) sel.value = savedTheme;
+                var btn = document.getElementById('btn-theme-toggle');
+                if (btn) {
+                    btn.title = (savedTheme === 'light-clean') ? 'Switch to Dark Mode' : 'Switch to Light Mode';
+                }
             });
         })();
     </script>
@@ -2464,27 +2524,27 @@
         </div>
 
         <div class="header-right">
-            <!-- Workstation Layout Theme Selector (macOS Style) -->
-            <div class="aero-theme-picker" title="Workstation Outer Layout Color Theme">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="4"></circle>
-                    <path d="M12 2v2"></path>
-                    <path d="M12 20v2"></path>
-                    <path d="M4.93 4.93l1.41 1.41"></path>
-                    <path d="M17.66 17.66l1.41 1.41"></path>
-                    <path d="M2 12h2"></path>
-                    <path d="M20 12h2"></path>
-                    <path d="M4.93 19.07l1.41-1.41"></path>
-                    <path d="M17.66 6.34l1.41-1.41"></path>
-                </svg>
-                <select id="theme-layout-select" class="aero-theme-select" onchange="setWorkstationTheme(this.value)">
-                    <option value="uav-official" selected>UAV Black, Grey & Green</option>
-                    <option value="light-clean">Clean Aerospace Light</option>
-                    <option value="macos-pro">Matte Space Gray</option>
-                    <option value="tactical-titanium">Tactical Dark Titanium</option>
-                    <option value="garmin-slate">Aviation Cockpit Slate</option>
-                </select>
-            </div>
+            <!-- Workstation Dark / Light Mode Toggle Button -->
+            <button class="aero-btn-theme-toggle" id="btn-theme-toggle" onclick="toggleDarkLightMode()" title="Switch to Light Mode">
+                <span class="theme-icon-sun">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="4"></circle>
+                        <path d="M12 2v2"></path>
+                        <path d="M12 20v2"></path>
+                        <path d="M4.93 4.93l1.41 1.41"></path>
+                        <path d="M17.66 17.66l1.41 1.41"></path>
+                        <path d="M2 12h2"></path>
+                        <path d="M20 12h2"></path>
+                        <path d="M4.93 19.07l1.41-1.41"></path>
+                        <path d="M17.66 6.34l1.41-1.41"></path>
+                    </svg>
+                </span>
+                <span class="theme-icon-moon">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                </span>
+            </button>
 
             <!-- Avionic Rocker Switcher (3D Spatial vs 2D Tactical) -->
             <div class="aero-rocker-group view-mode-group">
