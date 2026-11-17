@@ -2414,6 +2414,214 @@
             pointer-events: none !important;
         }
 
+        /* ==========================================================================
+           Mid-Screen Aerospace Log Loading Progress Bar & Circular Radar Overlay
+           ========================================================================== */
+        #log-loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(10, 15, 24, 0.72);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        #log-loading-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .aero-loader-card {
+            background: rgba(15, 23, 42, 0.92);
+            border: 1px solid rgba(56, 189, 248, 0.28);
+            border-radius: 16px;
+            padding: 26px 36px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.75), 0 0 30px rgba(56, 189, 248, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            min-width: 330px;
+            max-width: 440px;
+            user-select: none;
+            font-family: 'B612', 'Share Tech Mono', sans-serif;
+            transform: scale(0.96);
+            transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        #log-loading-overlay.active .aero-loader-card {
+            transform: scale(1);
+        }
+
+        [data-theme="light-clean"] #log-loading-overlay {
+            background: rgba(241, 245, 249, 0.70);
+        }
+
+        [data-theme="light-clean"] .aero-loader-card {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(14, 165, 233, 0.35);
+            box-shadow: 0 20px 50px rgba(15, 23, 42, 0.14), 0 0 24px rgba(14, 165, 233, 0.12);
+        }
+
+        .aero-radar-spinner {
+            width: 68px;
+            height: 68px;
+            margin-bottom: 16px;
+            position: relative;
+        }
+
+        .radar-svg {
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+        }
+
+        .radar-track {
+            fill: none;
+            stroke: rgba(56, 189, 248, 0.18);
+            stroke-width: 2.5;
+        }
+
+        [data-theme="light-clean"] .radar-track {
+            stroke: rgba(14, 165, 233, 0.18);
+        }
+
+        .radar-sweep {
+            fill: none;
+            stroke: #38bdf8;
+            stroke-width: 2.5;
+            stroke-linecap: round;
+            stroke-dasharray: 60 160;
+            transform-origin: 40px 40px;
+            animation: radarSpin 1.35s linear infinite;
+            filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.75));
+        }
+
+        [data-theme="light-clean"] .radar-sweep {
+            stroke: #0284c7;
+            filter: drop-shadow(0 0 5px rgba(2, 132, 199, 0.45));
+        }
+
+        .radar-inner {
+            fill: none;
+            stroke: rgba(56, 189, 248, 0.12);
+            stroke-width: 1.5;
+            stroke-dasharray: 4 4;
+        }
+
+        .radar-aircraft {
+            fill: #ee3424;
+            stroke: #ffffff;
+            stroke-width: 1.2;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
+        }
+
+        @keyframes radarSpin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .aero-loader-title {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.6px;
+            color: #38bdf8;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+            font-family: 'B612', monospace;
+        }
+
+        [data-theme="light-clean"] .aero-loader-title {
+            color: #0284c7;
+        }
+
+        .aero-loader-filename {
+            font-size: 14px;
+            font-weight: 700;
+            color: #f1f5f9;
+            letter-spacing: 0.3px;
+            margin-bottom: 6px;
+            text-align: center;
+            max-width: 320px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-family: 'B612 Mono', monospace;
+        }
+
+        [data-theme="light-clean"] .aero-loader-filename {
+            color: #0f172a;
+        }
+
+        .aero-loader-status {
+            font-size: 11px;
+            color: #94a3b8;
+            margin-bottom: 16px;
+            text-align: center;
+            min-height: 16px;
+        }
+
+        [data-theme="light-clean"] .aero-loader-status {
+            color: #475569;
+        }
+
+        .aero-linear-track {
+            width: 270px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.10);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        [data-theme="light-clean"] .aero-linear-track {
+            background: rgba(0, 0, 0, 0.08);
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .aero-linear-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #0284c7, #38bdf8, #22c55e);
+            border-radius: 4px;
+            transition: width 0.16s ease-out;
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.7);
+        }
+
+        .aero-loader-bottom {
+            width: 270px;
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            font-size: 10px;
+            font-family: 'B612 Mono', monospace;
+            font-weight: 600;
+            letter-spacing: 0.6px;
+            color: #64748b;
+        }
+
+        [data-theme="light-clean"] .aero-loader-bottom {
+            color: #64748b;
+        }
+
+        #aero-loader-pct {
+            color: #38bdf8;
+            font-weight: 700;
+        }
+
+        [data-theme="light-clean"] #aero-loader-pct {
+            color: #0284c7;
+        }
+
     </style>
     <script>
         window.onSitlIframeLoaded = function(){};
@@ -2654,6 +2862,30 @@
         </div>
 
         <div id="content-area">
+
+            <!-- Mid Log Loading Progress Overlay (Avionics Circular Radar + Precision Linear Progress Bar) -->
+            <div id="log-loading-overlay">
+                <div class="aero-loader-card">
+                    <div class="aero-radar-spinner">
+                        <svg class="radar-svg" viewBox="0 0 80 80">
+                            <circle class="radar-track" cx="40" cy="40" r="34" />
+                            <circle class="radar-sweep" cx="40" cy="40" r="34" />
+                            <circle class="radar-inner" cx="40" cy="40" r="20" />
+                            <path class="radar-aircraft" d="M40 26 L46 44 L40 40 L34 44 Z" />
+                        </svg>
+                    </div>
+                    <div class="aero-loader-title">LOADING FLIGHT TELEMETRY</div>
+                    <div id="aero-loader-filename" class="aero-loader-filename">Loading...</div>
+                    <div id="aero-loader-status" class="aero-loader-status">Parsing binary dataflash frames...</div>
+                    <div class="aero-linear-track">
+                        <div id="aero-linear-bar" class="aero-linear-bar"></div>
+                    </div>
+                    <div class="aero-loader-bottom">
+                        <span id="aero-loader-stage">EXTRACTING PACKETS</span>
+                        <span id="aero-loader-pct">0%</span>
+                    </div>
+                </div>
+            </div>
 
             <!-- Top Pane: Multi-Channel Telemetry Oscillograph -->
             <div id="plot-container" class="collapsed">
@@ -3595,23 +3827,116 @@
             setTimeout(onSitlIframeLoaded, 1200);
         }
 
+        // Mid-Screen Log Loading Progress Indicator Management
+        let logLoadingProgressTimer = null;
+
+        function showLogLoadingProgress(filename, customStatus) {
+            const overlay = document.getElementById('log-loading-overlay');
+            if (!overlay) return;
+            const fnEl = document.getElementById('aero-loader-filename');
+            const statusEl = document.getElementById('aero-loader-status');
+            const barEl = document.getElementById('aero-linear-bar');
+            const pctEl = document.getElementById('aero-loader-pct');
+            const stageEl = document.getElementById('aero-loader-stage');
+
+            if (fnEl) fnEl.textContent = filename || 'Loading Flight Log...';
+            if (statusEl) statusEl.textContent = customStatus || 'Connecting to telemetry server...';
+            if (barEl) {
+                barEl.style.width = '12%';
+                barEl.style.background = '';
+            }
+            if (pctEl) pctEl.textContent = '12%';
+            if (stageEl) stageEl.textContent = 'INITIALIZING STREAM';
+
+            overlay.classList.add('active');
+
+            if (logLoadingProgressTimer) clearInterval(logLoadingProgressTimer);
+            let progress = 12;
+            logLoadingProgressTimer = setInterval(() => {
+                if (progress < 85) {
+                    progress += Math.max(1, Math.floor((88 - progress) * 0.12));
+                    if (barEl) barEl.style.width = `${progress}%`;
+                    if (pctEl) pctEl.textContent = `${progress}%`;
+                    if (progress > 30 && progress < 65) {
+                        if (statusEl) statusEl.textContent = 'Parsing binary dataflash frames...';
+                        if (stageEl) stageEl.textContent = 'EXTRACTING PACKETS';
+                    } else if (progress >= 65) {
+                        if (statusEl) statusEl.textContent = 'Synthesizing 3D Spatial Twin & Trajectory...';
+                        if (stageEl) stageEl.textContent = 'BUILDING SPATIAL TWIN';
+                    }
+                }
+            }, 110);
+        }
+
+        function updateLogLoadingProgress(progress, statusText, stageText) {
+            const barEl = document.getElementById('aero-linear-bar');
+            const pctEl = document.getElementById('aero-loader-pct');
+            const statusEl = document.getElementById('aero-loader-status');
+            const stageEl = document.getElementById('aero-loader-stage');
+            if (barEl) barEl.style.width = `${progress}%`;
+            if (pctEl) pctEl.textContent = `${progress}%`;
+            if (statusText && statusEl) statusEl.textContent = statusText;
+            if (stageText && stageEl) stageEl.textContent = stageText;
+        }
+
+        function hideLogLoadingProgress(success = true, errorMessage = null) {
+            if (logLoadingProgressTimer) {
+                clearInterval(logLoadingProgressTimer);
+                logLoadingProgressTimer = null;
+            }
+            const overlay = document.getElementById('log-loading-overlay');
+            const barEl = document.getElementById('aero-linear-bar');
+            const pctEl = document.getElementById('aero-loader-pct');
+            const statusEl = document.getElementById('aero-loader-status');
+            const stageEl = document.getElementById('aero-loader-stage');
+
+            if (!overlay) return;
+
+            if (success) {
+                if (barEl) barEl.style.width = '100%';
+                if (pctEl) pctEl.textContent = '100%';
+                if (statusEl) statusEl.textContent = 'Telemetry Synchronized';
+                if (stageEl) stageEl.textContent = 'COMPLETE';
+                setTimeout(() => {
+                    overlay.classList.remove('active');
+                }, 280);
+            } else {
+                if (barEl) {
+                    barEl.style.width = '100%';
+                    barEl.style.background = '#ef4444';
+                }
+                if (statusEl) statusEl.textContent = errorMessage || 'Failed to parse log telemetry';
+                if (stageEl) stageEl.textContent = 'PARSING ERROR';
+                setTimeout(() => {
+                    overlay.classList.remove('active');
+                    if (barEl) barEl.style.background = '';
+                }, 1200);
+            }
+        }
+
         async function loadLogByPath(targetPath) {
             const metaDate = document.getElementById('meta-date');
             if (metaDate) metaDate.textContent = "Parsing flight telemetry...";
+            const fname = targetPath ? targetPath.replace(/\\/g, '/').split('/').pop() : 'Default Flight Log';
+            showLogLoadingProgress(fname, "Connecting to telemetry server...");
             try {
                 const url = targetPath ? `/api/load?path=${encodeURIComponent(targetPath)}` : '/api/load';
                 const res = await fetch(url);
                 if (!res.ok) {
                     throw new Error(`Server returned HTTP ${res.status}: ${res.statusText}`);
                 }
+                updateLogLoadingProgress(75, "Extracting telemetry frames & GNSS coordinates...", "EXTRACTING PACKETS");
                 const data = await res.json();
                 if (!data.success && data.error) {
                     throw new Error(data.error);
                 }
+                updateLogLoadingProgress(90, "Synthesizing 3D Spatial Twin & Trajectory...", "BUILDING SPATIAL TWIN");
                 applyParsedFlightData(data);
+                hideLogLoadingProgress(true);
             } catch (e) {
                 console.error("Error loading log:", e);
                 if (metaDate) metaDate.textContent = "Error: " + e.message;
+                hideLogLoadingProgress(false, e.message);
                 alert("Error loading log: " + e.message);
             }
         }
@@ -3714,6 +4039,7 @@
         async function uploadAndLoadFile(file) {
             if (!file) return;
             document.getElementById('meta-date').textContent = `Uploading ${file.name}...`;
+            showLogLoadingProgress(file.name, `Uploading binary dataflash (${(file.size / (1024 * 1024)).toFixed(1)} MB)...`);
             try {
                 const res = await fetch(`/api/upload?filename=${encodeURIComponent(file.name)}`, {
                     method: 'POST',
@@ -3726,18 +4052,23 @@
                 if (!res.ok) {
                     throw new Error(`Server returned HTTP ${res.status}: ${res.statusText}`);
                 }
+                updateLogLoadingProgress(70, "Parsing binary dataflash frames...", "EXTRACTING PACKETS");
                 const data = await res.json();
                 if (data.success) {
+                    updateLogLoadingProgress(92, "Rendering spatial flight telemetry...", "BUILDING SPATIAL TWIN");
                     applyParsedFlightData(data);
+                    hideLogLoadingProgress(true);
                 } else {
                     const metaDate = document.getElementById('meta-date');
                     if (metaDate) metaDate.textContent = "Upload error";
+                    hideLogLoadingProgress(false, data.error || "Unknown upload error");
                     alert("Upload error: " + (data.error || "Unknown"));
                 }
             } catch (e) {
                 console.error("Upload error:", e);
                 const metaDate = document.getElementById('meta-date');
                 if (metaDate) metaDate.textContent = "Upload failed: " + e.message;
+                hideLogLoadingProgress(false, e.message);
                 alert("Upload failed: " + e.message);
             }
         }

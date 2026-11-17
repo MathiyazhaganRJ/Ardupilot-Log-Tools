@@ -3389,7 +3389,7 @@
                 <line x1="3" y1="18" x2="21" y2="18"></line>
             </svg>
         </button>
-        <button class="toolbar-btn active" id="btn-toggle-lxnav" title="Toggle LXNAV Glass Cockpit PFD (Hotkey 'H')">
+        <button class="toolbar-btn" id="btn-toggle-lxnav" title="Toggle LXNAV Glass Cockpit PFD (Hotkey 'H')">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="10"></circle>
                 <line x1="12" y1="2" x2="12" y2="6"></line>
@@ -3398,14 +3398,14 @@
                 <line x1="18" y1="12" x2="22" y2="12"></line>
             </svg>
         </button>
-        <button class="toolbar-btn active" id="btn-toggle-compass" title="Toggle Avionics Compass Rose">
+        <button class="toolbar-btn" id="btn-toggle-compass" title="Toggle Avionics Compass Rose">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="10"></circle>
                 <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" fill="currentColor" fill-opacity="0.3"></polygon>
             </svg>
         </button>
-        <button class="toolbar-btn active" id="btn-toggle-waypoints" title="Toggle Waypoints Display (Hotkey 'W')">
+        <button class="toolbar-btn" id="btn-toggle-waypoints" title="Toggle Waypoints Display (Hotkey 'W')">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <polygon points="12 2 22 12 12 22 2 12 12 2"></polygon>
                 <circle cx="12" cy="12" r="2.5" fill="currentColor"></circle>
@@ -3424,13 +3424,13 @@
                 <line x1="12" y1="4" x2="12" y2="20"></line>
             </svg>
         </button>
-        <button class="toolbar-btn active" id="btn-toggle-graph" title="Toggle Atmosphere & Environmental Telemetry">
+        <button class="toolbar-btn" id="btn-toggle-graph" title="Toggle Atmosphere & Environmental Telemetry">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round">
                 <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
             </svg>
         </button>
-        <button class="toolbar-btn active" id="btn-toggle-eis" title="Toggle Engine & EIS Instrument (GI 275)" onclick="toggleEisWidget()">
+        <button class="toolbar-btn" id="btn-toggle-eis" title="Toggle Engine & EIS Instrument (GI 275)" onclick="toggleEisWidget()">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="9"></circle>
                 <path d="M12 7v5l3 3"></path>
@@ -3907,7 +3907,7 @@
     </div>
 
     <!-- Avionics Grade Compass Rose Widget -->
-    <div id="compass-widget">
+    <div id="compass-widget" style="display: none;">
         <div class="compass-header">
             <div style="display:flex; align-items:center; gap:6px;">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.2">
@@ -4050,7 +4050,7 @@
     </div>
 
     <!-- LXNAV Glass Cockpit Multi-Function Display (MFD) Widget -->
-    <div id="lxnav-mfd-widget">
+    <div id="lxnav-mfd-widget" style="display: none;">
         <div class="lxnav-header">
             <div class="lxnav-title-group">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.2" style="flex-shrink: 0;">
@@ -4192,7 +4192,7 @@
 
     
     <!-- Garmin GI 275 EIS Aviation-Grade Instrument -->
-    <div id="eis-widget">
+    <div id="eis-widget" style="display: none;">
         <!-- Minimal Top Bar with Controls -->
         <div class="gi-top-bar" id="gi-header">
             <span class="gi-inst-title">GI 275 EIS</span>
@@ -4567,7 +4567,7 @@
 
     <!-- Garmin Atmospheric & Environmental Telemetry Panel -->
     <div id="terrain-graph-container" class="env-telemetry-panel"
-        style="position: absolute; bottom: 10px; right: 20px; width: min(580px, calc(100vw - 360px)); height: 172px; box-sizing: border-box; overflow: hidden; background: #000000; border-radius: 12px; border: 2px solid #1a2332; padding: 7px 10px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 16px 45px rgba(0, 0, 0, 0.95), inset 0 1px 2px rgba(255, 255, 255, 0.08); z-index: 90; pointer-events: auto; font-family: 'B612', 'B612 Mono', 'JetBrains Mono', monospace; user-select: none;">
+        style="position: absolute; bottom: 10px; right: 20px; width: min(580px, calc(100vw - 360px)); height: 172px; box-sizing: border-box; overflow: hidden; background: #000000; border-radius: 12px; border: 2px solid #1a2332; padding: 7px 10px; display: none; flex-direction: column; justify-content: space-between; box-shadow: 0 16px 45px rgba(0, 0, 0, 0.95), inset 0 1px 2px rgba(255, 255, 255, 0.08); z-index: 90; pointer-events: auto; font-family: 'B612', 'B612 Mono', 'JetBrains Mono', monospace; user-select: none;">
         
         <!-- Garmin Top Bar -->
         <div style="display: flex; justify-content: space-between; align-items: center; padding: 0 2px 4px 2px; flex-shrink: 0; border-bottom: 1px solid #141c28;">
@@ -4874,7 +4874,7 @@
             }
         }, 100);
         var currentMissionSeq = 0;
-        var waypointsVisible = true;
+        var waypointsVisible = false;
         var currentLxnavPage = 1;
         var lxnavWidgetVisible = true;
         var currentPlaneAltRel = 0.0;
@@ -6941,7 +6941,7 @@
         }
 
         // Restore user toggle preferences
-        if (localStorage.getItem('compass_visible') === '0') {
+        if (localStorage.getItem('compass_visible') !== '1') {
             compassWidget.style.display = 'none';
             btnToggleCompass.classList.remove('active');
         } else {
@@ -7362,7 +7362,7 @@
 
         // LXNAV / PFD Horizon Widget Toggle
         const btnToggleLxnav = document.getElementById('btn-toggle-lxnav');
-        var lxnavWidgetVisible = localStorage.getItem('lxnav_widget_visible') !== '0';
+        var lxnavWidgetVisible = localStorage.getItem('lxnav_widget_visible') === '1';
 
         function toggleLxnavWidget(forceState) {
             const w = document.getElementById('lxnav-mfd-widget');
@@ -7697,7 +7697,7 @@
         const scene = new THREE.Scene();
         window.scene = scene;
         waypointGroup = new THREE.Group();
-        waypointGroup.visible = true;
+        waypointGroup.visible = false;
         scene.add(waypointGroup);
         window.waypointGroup = waypointGroup;
         let gridHelper;
@@ -13018,7 +13018,7 @@
         const eisBtnSingle = document.getElementById('eis-btn-single');
         const eisBtnTwin = document.getElementById('eis-btn-twin');
         const eisBtnCh = document.getElementById('eis-btn-ch');
-        var eisWidgetVisible = localStorage.getItem('eis_widget_visible') !== '0';
+        var eisWidgetVisible = localStorage.getItem('eis_widget_visible') === '1';
         if (eisWidget) eisWidget.style.display = eisWidgetVisible ? 'flex' : 'none';
         if (btnToggleEis) btnToggleEis.classList.toggle('active', eisWidgetVisible);
 
