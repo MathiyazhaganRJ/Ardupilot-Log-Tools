@@ -20,6 +20,48 @@
     <script src="libs/leaflet.js"></script>
 
             <style>
+        /* Unified Avionics Red Dot Close Button */
+        .avionics-close-dot {
+            width: 13px !important;
+            height: 13px !important;
+            min-width: 13px !important;
+            min-height: 13px !important;
+            max-width: 13px !important;
+            max-height: 13px !important;
+            border-radius: 50% !important;
+            background: #ff5f56 !important;
+            border: 1px solid rgba(0, 0, 0, 0.3) !important;
+            box-shadow: 0 0 6px rgba(255, 95, 86, 0.55), inset 0 1px 1px rgba(255, 255, 255, 0.4) !important;
+            cursor: pointer !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            position: relative !important;
+            color: rgba(70, 0, 0, 0.7) !important;
+            font-size: 8.5px !important;
+            font-weight: 900 !important;
+            line-height: 1 !important;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+            transition: all 0.16s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            outline: none !important;
+            user-select: none !important;
+            flex-shrink: 0 !important;
+            box-sizing: border-box !important;
+            text-align: center !important;
+        }
+        .avionics-close-dot:hover {
+            background: #ff3b30 !important;
+            color: #ffffff !important;
+            box-shadow: 0 0 10px rgba(255, 59, 48, 0.95), inset 0 1px 1px rgba(255, 255, 255, 0.6) !important;
+            transform: scale(1.18) !important;
+        }
+        .avionics-close-dot:active {
+            transform: scale(0.92) !important;
+            box-shadow: 0 0 4px rgba(255, 59, 48, 0.7) !important;
+        }
+
         :root, [data-theme="macos-pro"] {
             /* Theme 1: Matte Black, Grey, Green and White */
             --av-bg-dark: #0a0b0d;
@@ -6312,7 +6354,7 @@
         <div class="modal-box" style="width: 520px; max-width: 95vw; border: 1px solid #282a32; box-shadow: 0 15px 40px rgba(0, 0, 0, 0.95); background: #0f1013;">
             <div class="modal-title" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                 <span>ADD CUSTOM EXPRESSION</span>
-                <button type="button" onclick="closeExpressionModal()" style="background: none; border: none; color: #94a3b8; font-size: 18px; line-height: 1; cursor: pointer; padding: 0 4px;" title="Close">&times;</button>
+                <button type="button" class="avionics-close-dot" onclick="closeExpressionModal()" title="Close">&times;</button>
             </div>
             <p style="font-size: 11px; color: #94a3b8; margin: 0 0 12px 0; line-height: 1.4;">
                 Enter a mathematical formula using telemetry signals (e.g. <code>BAT.Volt * BAT.Curr</code>, <code>ARSP.Airspeed * 3.6</code>, <code>alt - field_elev</code>, <code>sqrt(XKF2.VWN^2 + XKF2.VWE^2)</code>).
@@ -6395,7 +6437,7 @@
         <div class="modal-box" style="width: 760px; max-width: 95vw; max-height: 85vh; display: flex; flex-direction: column; border: 1px solid #282a32; box-shadow: 0 15px 40px rgba(0, 0, 0, 0.95); padding: 18px 22px; background: #0f1013;">
             <div class="modal-title" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
                 <span>ARDUPILOT VEHICLE PARAMETERS REGISTER (PARM)</span>
-                <button type="button" onclick="closeParametersModal()" style="background: none; border: none; color: #94a3b8; font-size: 18px; line-height: 1; cursor: pointer; padding: 0 4px;" title="Close">&times;</button>
+                <button type="button" class="avionics-close-dot" onclick="closeParametersModal()" title="Close">&times;</button>
             </div>
             <p style="font-size: 11px; color: #94a3b8; margin: 0 0 12px 0;">
                 All vehicle configuration parameters extracted from the flight controller dataflash log.
@@ -6457,7 +6499,7 @@
                     </svg>
                     <span style="font-size: 13px; font-weight: 700; letter-spacing: 0.6px; color: #ffffff;">ARDUPILOT FLIGHT LOG ORGANIZER & ARCHIVER</span>
                 </div>
-                <button type="button" onclick="closeOrganizerModal()" style="background: none; border: none; color: #94a3b8; font-size: 20px; line-height: 1; cursor: pointer; padding: 0 4px;" title="Close">&times;</button>
+                <button type="button" class="avionics-close-dot" onclick="closeOrganizerModal()" title="Close">&times;</button>
             </div>
 
             <!-- 1. Source Folder Selection -->

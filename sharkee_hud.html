@@ -800,21 +800,69 @@
         #compass-widget:active {
             cursor: grabbing;
         }
-        .compass-btn-close, .lxnav-btn-close {
-            background: transparent;
-            border: none;
-            color: #8b949e;
-            font-size: 16px;
-            font-weight: 700;
-            cursor: pointer;
-            padding: 0 4px;
-            margin-left: 2px;
-            line-height: 1;
-            transition: color 0.15s ease, transform 0.15s ease;
+        /* Unified Avionics Red Dot Close Button for All Floating Instruments & Tabs */
+        .avionics-close-dot,
+        .compass-btn-close,
+        .lxnav-btn-close,
+        .gi-btn-close,
+        .weather-btn-close,
+        .cdu-close-btn,
+        .sixpack-btn-close,
+        .panel-btn-close {
+            width: 13px !important;
+            height: 13px !important;
+            min-width: 13px !important;
+            min-height: 13px !important;
+            max-width: 13px !important;
+            max-height: 13px !important;
+            border-radius: 50% !important;
+            background: #ff5f56 !important;
+            border: 1px solid rgba(0, 0, 0, 0.3) !important;
+            box-shadow: 0 0 6px rgba(255, 95, 86, 0.55), inset 0 1px 1px rgba(255, 255, 255, 0.4) !important;
+            cursor: pointer !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            padding: 0 !important;
+            margin: 0 0 0 4px !important;
+            position: relative !important;
+            color: rgba(70, 0, 0, 0.7) !important;
+            font-size: 8.5px !important;
+            font-weight: 900 !important;
+            line-height: 1 !important;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+            transition: all 0.16s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            outline: none !important;
+            user-select: none !important;
+            flex-shrink: 0 !important;
+            box-sizing: border-box !important;
+            text-align: center !important;
         }
-        .compass-btn-close:hover, .lxnav-btn-close:hover {
-            color: #ff453a;
-            transform: scale(1.15);
+
+        .avionics-close-dot:hover,
+        .compass-btn-close:hover,
+        .lxnav-btn-close:hover,
+        .gi-btn-close:hover,
+        .weather-btn-close:hover,
+        .cdu-close-btn:hover,
+        .sixpack-btn-close:hover,
+        .panel-btn-close:hover {
+            background: #ff3b30 !important;
+            color: #ffffff !important;
+            box-shadow: 0 0 10px rgba(255, 59, 48, 0.95), inset 0 1px 1px rgba(255, 255, 255, 0.6) !important;
+            transform: scale(1.18) !important;
+        }
+
+        .avionics-close-dot:active,
+        .compass-btn-close:active,
+        .lxnav-btn-close:active,
+        .gi-btn-close:active,
+        .weather-btn-close:active,
+        .cdu-close-btn:active,
+        .sixpack-btn-close:active,
+        .panel-btn-close:active {
+            transform: scale(0.92) !important;
+            box-shadow: 0 0 4px rgba(255, 59, 48, 0.7) !important;
         }
 
         .compass-header {
@@ -1455,26 +1503,7 @@
             text-shadow: 0 0 5px #00e5ff;
         }
 
-        .cdu-close-btn {
-            background: #242933;
-            border: 1px solid #3c4454;
-            color: #8c98a8;
-            font-size: 13px;
-            font-weight: 700;
-            width: 18px;
-            height: 18px;
-            line-height: 16px;
-            text-align: center;
-            border-radius: 3px;
-            cursor: pointer;
-            box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), 0 1px 2px rgba(0,0,0,0.6);
-            transition: all 0.15s;
-            margin-left: 6px;
-        }
-        .cdu-close-btn:hover {
-            color: #ff453a;
-            border-color: #ff453a;
-        }
+
 
         /* Main Cockpit Faceplate (Left LSKs | CRT Screen | Right LSKs) */
         .cdu-faceplate {
@@ -1850,17 +1879,7 @@
             border-color: #00e5ff;
             color: #00e5ff;
         }
-        .gi-btn-close {
-            background: transparent;
-            border: none;
-            color: #5c6c80;
-            font-size: 15px;
-            cursor: pointer;
-            padding: 0 2px;
-            line-height: 1;
-            transition: color 0.15s;
-        }
-        .gi-btn-close:hover { color: #ff3b30; }
+
 
         /* Top RPM Arch Box (Authentic Garmin Arch Capsule) */
         .gi-rpm-capsule {
@@ -2249,20 +2268,7 @@
             color: #ffffff;
         }
 
-        .sixpack-btn-close {
-            background: none;
-            border: none;
-            color: #8b949e;
-            font-size: 16px;
-            font-weight: 700;
-            cursor: pointer;
-            line-height: 1;
-            padding: 0 4px;
-            transition: color 0.15s ease;
-        }
-        .sixpack-btn-close:hover {
-            color: #ff453a;
-        }
+
 
         .sixpack-body {
             display: flex;
@@ -3444,6 +3450,7 @@
                         <polyline points="15 18 9 12 15 6"></polyline>
                     </svg>
                 </button>
+                <button class="panel-btn-close avionics-close-dot" onclick="toggleUiPanel()" title="Close Flight Telemetry Panel (Hotkey 'U')">&times;</button>
             </div>
         </div>
 
@@ -3825,13 +3832,11 @@
                     </svg>
                     <span style="font-size: 11px; font-weight: 700; letter-spacing: 0.05em;">SYSTEM CONSOLE</span>
                 </div>
-                <div style="display: flex; gap: 5px; align-items: center;">
+                <div style="display: flex; gap: 6px; align-items: center;">
                     <button id="btn-clear-messages" class="msg-action-btn" title="Clear Message History">
                         Clear
                     </button>
-                    <button id="btn-close-messages" class="msg-action-btn close-btn" title="Close Messages Tab (Esc / M)">
-                        Close
-                    </button>
+                    <button id="btn-close-messages" class="avionics-close-dot" title="Close Messages Tab (Esc / M)">&times;</button>
                 </div>
             </div>
 
@@ -3883,7 +3888,7 @@
             <div style="display:flex; gap:6px; align-items:center;">
                 <div id="btn-toggle-dr" class="compass-badge dr-toggle-badge" title="Toggle Dead Reckoning Simulation (Hotkey 'D')">DR TEST</div>
                 <div id="compass-mode-btn" class="compass-badge" title="Click to toggle Heading-Up / North-Up">HDG UP</div>
-                <button class="compass-btn-close" onclick="toggleCompassWidget()" title="Close Compass (Hotkey 'C')">&times;</button>
+                <button class="compass-btn-close avionics-close-dot" onclick="toggleCompassWidget()" title="Close Compass (Hotkey 'C')">&times;</button>
             </div>
         </div>
 
@@ -4027,7 +4032,7 @@
                 <button class="lxnav-knob-btn" onclick="prevLxnavPage()" title="Previous Page (Knob CCW)">◀</button>
                 <div class="lxnav-page-badge" id="lxnav-page-badge" onclick="togglePrimaryDuo()" title="Click to toggle Horizon / Vario">PAGE 1</div>
                 <button class="lxnav-knob-btn" onclick="nextLxnavPage()" title="Next Page (Knob CW)">▶</button>
-                <button class="lxnav-btn-close" onclick="toggleLxnavWidget()" title="Close PFD (Hotkey 'H')">&times;</button>
+                <button class="lxnav-btn-close avionics-close-dot" onclick="toggleLxnavWidget()" title="Close PFD (Hotkey 'H')">&times;</button>
             </div>
         </div>
 
@@ -4162,7 +4167,7 @@
             <div class="gi-controls-row">
                 <button class="gi-mode-btn active" id="eis-btn-page-p" onclick="setEisPage('P')" title="Power / Electrical Systems">P</button>
                 <button class="gi-mode-btn" id="eis-btn-page-e" onclick="setEisPage('E')" title="Engine / Propulsion Systems">E</button>
-                <button class="gi-btn-close" onclick="toggleEisWidget()" title="Close EIS">&times;</button>
+                <button class="gi-btn-close avionics-close-dot" onclick="toggleEisWidget()" title="Close EIS">&times;</button>
             </div>
         </div>
 
@@ -4331,7 +4336,7 @@
                     </svg>
                     Fetch
                 </button>
-                
+                <button class="weather-btn-close avionics-close-dot" onclick="toggleWeatherWidget()" title="Close Weather">&times;</button>
             </div>
         </div>
 
@@ -4464,7 +4469,7 @@
                 <span id="cdu-annun-dr" class="cdu-annun">DR</span>
                 <span id="cdu-annun-msg" class="cdu-annun">MSG</span>
                 <span id="cdu-annun-ofst" class="cdu-annun">OFST</span>
-                <button id="btn-close-fms" class="cdu-close-btn" title="Close MCDU">&times;</button>
+                <button id="btn-close-fms" class="cdu-close-btn avionics-close-dot" title="Close MCDU">&times;</button>
             </div>
         </div>
 
@@ -4681,7 +4686,7 @@
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                     <span style="font-size: 14px; font-weight: 800; letter-spacing: 0.3px;">Save Offline Map Area</span>
                 </div>
-                <button id="btn-close-name-modal" style="background: none; border: none; color: #86868b; cursor: pointer; font-size: 20px; line-height: 1; padding: 2px 6px;">&times;</button>
+                <button id="btn-close-name-modal" class="avionics-close-dot" title="Close Modal">&times;</button>
             </div>
 
             <p style="font-size: 11.5px; color: #a1a1a6; margin: 0; line-height: 1.45;">
@@ -4744,7 +4749,7 @@
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0071e3" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
                     <span style="font-size: 14px; font-weight: 800; letter-spacing: 0.3px; text-transform: uppercase;">MAVLink Link Setup</span>
                 </div>
-                <button id="btn-close-mavlink-modal" onclick="closeMavlinkModal()" style="background: none; border: none; color: #86868b; cursor: pointer; font-size: 22px; line-height: 1; padding: 2px 6px;">&times;</button>
+                <button id="btn-close-mavlink-modal" class="avionics-close-dot" onclick="closeMavlinkModal()" title="Close Modal">&times;</button>
             </div>
 
             <p style="font-size: 11.5px; color: #a1a1a6; margin: 0; line-height: 1.45;">
