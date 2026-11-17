@@ -635,6 +635,52 @@ def parse_flight_telemetry(file_path, target_samples=4000):
 
     duration_s = (raw_records[-1]['time'] - raw_records[0]['time']) if raw_records else 0.0
 
+    # Airborne Flight Time & Airspeed Alive Window Detection
+    alive_start = None
+    alive_end = None
+    flight_dur = 0.0
+    if raw_records:
+        home_a = raw_records[0].get('alt', 0) or 0
+        # Criterion 1: Sustained flight: tas >= 7.0 & (gs >= 3.0 or deltaAlt >= 2.0) for >= 3 points
+        for i in range(len(raw_records) - 3):
+            if ((raw_records[i].get('tas') or 0) >= 7.0 and 
+                (raw_records[i+1].get('tas') or 0) >= 7.0 and 
+                (raw_records[i+2].get('tas') or 0) >= 7.0 and 
+                ((raw_records[i].get('gs') or 0) >= 3.0 or abs((raw_records[i].get('alt') or 0) - home_a) >= 2.0)):
+                alive_start = raw_records[i]['time']
+                break
+
+        # Criterion 2 fallback: tas >= 5.0 for >= 2 points
+        if alive_start is None:
+            for i in range(len(raw_records) - 2):
+                if (raw_records[i].get('tas') or 0) >= 5.0 and (raw_records[i+1].get('tas') or 0) >= 5.0:
+                    alive_start = raw_records[i]['time']
+                    break
+
+        # Criterion 3 fallback for VTOL/multirotors without pitot: gs >= 2.5 & deltaAlt >= 2.0
+        if alive_start is None:
+            for i in range(len(raw_records) - 3):
+                if ((raw_records[i].get('gs') or 0) >= 2.5 and abs((raw_records[i].get('alt') or 0) - home_a) >= 2.0):
+                    alive_start = raw_records[i]['time']
+                    break
+
+        if alive_start is not None:
+            for i in range(len(raw_records) - 1, 2, -1):
+                if ((raw_records[i].get('tas') or 0) >= 7.0 and 
+                    (raw_records[i-1].get('tas') or 0) >= 7.0 and 
+                    (raw_records[i-2].get('tas') or 0) >= 7.0 and 
+                    ((raw_records[i].get('gs') or 0) >= 3.0 or abs((raw_records[i].get('alt') or 0) - home_a) >= 2.0)):
+                    alive_end = raw_records[i]['time']
+                    break
+            if alive_end is None:
+                for i in range(len(raw_records) - 1, 1, -1):
+                    if (raw_records[i].get('tas') or 0) >= 5.0 and (raw_records[i-1].get('tas') or 0) >= 5.0:
+                        alive_end = raw_records[i]['time']
+                        break
+            if alive_end is None:
+                alive_end = raw_records[-1]['time']
+            flight_dur = max(0.0, alive_end - alive_start)
+
     metadata = {
         'filename': os.path.basename(file_path),
         'path': file_path,
@@ -642,6 +688,9 @@ def parse_flight_telemetry(file_path, target_samples=4000):
         'firmware': firmware,
         'board': board,
         'duration_s': round(duration_s, 1),
+        'flight_time_s': round(flight_dur, 1) if alive_start is not None else 0.0,
+        'airspeed_alive_start_s': round(alive_start, 1) if alive_start is not None else None,
+        'airspeed_alive_end_s': round(alive_end, 1) if alive_end is not None else None,
         'field_elevation': round(home_elevation, 1),
         'total_samples': total_recs,
         'plotted_samples': len(downsampled)

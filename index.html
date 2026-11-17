@@ -1996,7 +1996,9 @@
                 <span class="aero-meta-sep">|</span>
                 <span id="meta-board" class="aero-meta-item">BOARD: ---</span>
                 <span class="aero-meta-sep">|</span>
-                <span id="meta-dur" class="aero-meta-item">MET: ---</span>
+                <span id="meta-dur" class="aero-meta-item" title="Mission Elapsed Time (Total Session Duration)">MET: ---</span>
+                <span class="aero-meta-sep">|</span>
+                <span id="meta-flight-time" class="aero-meta-item" title="Airborne Flight Time (From Airspeed Alive to Touchdown)">FLT: ---</span>
             </div>
         </div>
 
@@ -2778,6 +2780,57 @@
             renderDrawerMessagesList();
         }
 
+        function computeAirspeedAliveFlightTime(traj) {
+            if (!Array.isArray(traj) || traj.length < 5) return { duration_s: 0, start_s: 0, end_s: 0 };
+            const homeA = (traj[0] && typeof traj[0].alt === 'number') ? traj[0].alt : 0;
+            let startT = null;
+            let endT = null;
+
+            for (let i = 0; i < traj.length - 3; i++) {
+                if ((traj[i].tas || 0) >= 7.0 && (traj[i+1].tas || 0) >= 7.0 && (traj[i+2].tas || 0) >= 7.0 &&
+                    ((traj[i].gs || 0) >= 3.0 || Math.abs((traj[i].alt || 0) - homeA) >= 2.0)) {
+                    startT = traj[i].time;
+                    break;
+                }
+            }
+            if (startT === null) {
+                for (let i = 0; i < traj.length - 2; i++) {
+                    if ((traj[i].tas || 0) >= 5.0 && (traj[i+1].tas || 0) >= 5.0) {
+                        startT = traj[i].time;
+                        break;
+                    }
+                }
+            }
+            if (startT === null) {
+                for (let i = 0; i < traj.length - 3; i++) {
+                    if ((traj[i].gs || 0) >= 2.5 && Math.abs((traj[i].alt || 0) - homeA) >= 2.0) {
+                        startT = traj[i].time;
+                        break;
+                    }
+                }
+            }
+            if (startT !== null) {
+                for (let i = traj.length - 1; i >= 3; i--) {
+                    if ((traj[i].tas || 0) >= 7.0 && (traj[i-1].tas || 0) >= 7.0 && (traj[i-2].tas || 0) >= 7.0 &&
+                        ((traj[i].gs || 0) >= 3.0 || Math.abs((traj[i].alt || 0) - homeA) >= 2.0)) {
+                        endT = traj[i].time;
+                        break;
+                    }
+                }
+                if (endT === null) {
+                    for (let i = traj.length - 1; i >= 2; i--) {
+                        if ((traj[i].tas || 0) >= 5.0 && (traj[i-1].tas || 0) >= 5.0) {
+                            endT = traj[i].time;
+                            break;
+                        }
+                    }
+                }
+                if (endT === null) endT = traj[traj.length - 1].time;
+                return { duration_s: Math.max(0, endT - startT), start_s: Math.round(startT * 10) / 10, end_s: Math.round(endT * 10) / 10 };
+            }
+            return { duration_s: 0, start_s: 0, end_s: 0 };
+        }
+
         function extractHudTrajectory(traj) {
             if (!traj || traj.length === 0) return [];
             return traj.map(p => ({
@@ -2921,9 +2974,33 @@
             const metaDate = document.getElementById('meta-date');
             const metaBoard = document.getElementById('meta-board');
             const metaDur = document.getElementById('meta-dur');
+            const metaFlt = document.getElementById('meta-flight-time');
             if (metaDate) metaDate.textContent = "DATE: " + (data.metadata?.date_str || "---");
             if (metaBoard) metaBoard.textContent = "BOARD: " + (data.metadata?.board || "---");
             if (metaDur) metaDur.textContent = data.metadata ? `MET: ${Math.floor(data.metadata.duration_s / 60)}m ${Math.floor(data.metadata.duration_s % 60)}s` : "---";
+
+            if (metaFlt) {
+                let fltSec = (data.metadata && typeof data.metadata.flight_time_s === 'number') ? data.metadata.flight_time_s : null;
+                let startT = data.metadata?.airspeed_alive_start_s;
+                let endT = data.metadata?.airspeed_alive_end_s;
+
+                if ((fltSec === null || fltSec === 0) && currentTrajectory && currentTrajectory.length > 5) {
+                    const computed = computeAirspeedAliveFlightTime(currentTrajectory);
+                    fltSec = computed.duration_s;
+                    startT = computed.start_s;
+                    endT = computed.end_s;
+                }
+
+                if (typeof fltSec === 'number' && fltSec > 0) {
+                    const mins = Math.floor(fltSec / 60);
+                    const secs = Math.floor(fltSec % 60);
+                    metaFlt.textContent = `FLT: ${mins}m ${secs}s`;
+                    metaFlt.title = `Airborne Flight Time: ${mins}m ${secs}s (Airspeed Alive from t=${startT}s to t=${endT}s)`;
+                } else {
+                    metaFlt.textContent = "FLT: 0m 0s";
+                    metaFlt.title = "No sustained airborne flight detected (ground test only)";
+                }
+            }
 
             // Display active log name in the header badge (no dropdown)
             const logNameEl = document.getElementById('loaded-log-name');
