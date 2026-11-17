@@ -2011,8 +2011,8 @@
 
             <!-- Avionic Rocker Switcher (3D Spatial vs 2D Tactical) -->
             <div class="aero-rocker-group view-mode-group">
-                <button class="aero-rocker-btn view-mode-btn" id="btn-view-sitl" onclick="setViewMode('sitl')" title="3D Digital Twin Spatial Visualizer">3D SPATIAL TWIN</button>
-                <button class="aero-rocker-btn view-mode-btn active" id="btn-view-map" onclick="setViewMode('map')" title="2D Tactical Satellite Map">2D TACTICAL MAP</button>
+                <button class="aero-rocker-btn view-mode-btn active" id="btn-view-sitl" onclick="setViewMode('sitl')" title="3D Digital Twin Spatial Visualizer">3D SPATIAL TWIN</button>
+                <button class="aero-rocker-btn view-mode-btn" id="btn-view-map" onclick="setViewMode('map')" title="2D Tactical Satellite Map">2D TACTICAL MAP</button>
             </div>
 
             <!-- Graph Toggle Button -->
@@ -2122,12 +2122,12 @@
 
             <div id="lower-viewports-wrapper" class="fullscreen" style="flex: 1; position: relative; width: 100%; height: 100%; min-height: 0;">
                 <!-- 3D Flight Visualizer View (3D Terrain + PFD Horizon + NAV Compass + Atmosphere Panel) -->
-                <div id="sitl-pane" style="display: none; width: 100%; height: 100%; position: absolute; top: 0; left: 0; right: 0; bottom: 0;">
-                    <iframe id="sitl-viewer-frame" src="sharkee_hud.html?v=20261114_REV8_APPLE_GREEN" style="width: 100%; height: 100%; border: none; display: block;" onload="onSitlIframeLoaded()"></iframe>
+                <div id="sitl-pane" style="width: 100%; height: 100%; position: absolute; top: 0; left: 0; right: 0; bottom: 0;">
+                    <iframe id="sitl-viewer-frame" src="sharkee_hud.html?v=20261117_DEFAULT_2D_MAP" style="width: 100%; height: 100%; border: none; display: block;" onload="onSitlIframeLoaded()"></iframe>
                 </div>
 
                 <!-- 2D Leaflet Satellite Map View -->
-                <div id="map-pane" style="display: block; width: 100%; height: 100%; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: #0a0f18;">
+                <div id="map-pane" style="display: none; width: 100%; height: 100%; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: #0a0f18;">
                     <div class="viewport-badge">Flight Track & Satellite Map</div>
                     <div class="map-overlay-ctrls">
                         <select id="map-layer-select" class="map-select" onchange="changeMapLayer(this.value)">
@@ -2373,10 +2373,10 @@
             await loadLogByPath();
 
             const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('view') === 'sitl') {
-                setViewMode('sitl');
-            } else {
+            if (urlParams.get('view') === 'map') {
                 setViewMode('map');
+            } else {
+                setViewMode('sitl');
             }
         });
 

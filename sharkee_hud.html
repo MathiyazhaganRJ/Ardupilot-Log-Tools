@@ -5480,9 +5480,15 @@
         const selTerrainScale = document.getElementById('sel-terrain-scale');
         const selTerrainStyle = document.getElementById('sel-terrain-style');
 
-        // Default to 3D Topography unless explicitly set to false
-        const savedTerrain3D = localStorage.getItem('pilot_terrain_3d');
-        terrain3DEnabled = (savedTerrain3D === null || savedTerrain3D === 'true');
+        // Default to 2D Flat Satellite Map unless explicitly requested
+        let savedTerrain3D = localStorage.getItem('pilot_terrain_3d_v2');
+        if (savedTerrain3D === null) {
+            terrain3DEnabled = false;
+            localStorage.setItem('pilot_terrain_3d_v2', '2d');
+            localStorage.setItem('pilot_terrain_3d', 'false');
+        } else {
+            terrain3DEnabled = (savedTerrain3D === '3d');
+        }
         window.terrain3DEnabled = terrain3DEnabled;
         if (chkToggleTerrain3D) chkToggleTerrain3D.checked = terrain3DEnabled;
         if (terrain3DStatus) {
@@ -5497,6 +5503,7 @@
                 } else {
                     terrain3DEnabled = e.target.checked;
                     localStorage.setItem('pilot_terrain_3d', terrain3DEnabled ? 'true' : 'false');
+            localStorage.setItem('pilot_terrain_3d_v2', terrain3DEnabled ? '3d' : '2d');
                     if (typeof updateAllTileElevations === 'function') updateAllTileElevations();
                 }
             };
@@ -13848,6 +13855,7 @@
             window.terrain3DEnabled = terrain3DEnabled;
             corvModeActive = terrain3DEnabled;
             localStorage.setItem('pilot_terrain_3d', terrain3DEnabled ? 'true' : 'false');
+            localStorage.setItem('pilot_terrain_3d_v2', terrain3DEnabled ? '3d' : '2d');
 
             updateMapModeUI();
 
