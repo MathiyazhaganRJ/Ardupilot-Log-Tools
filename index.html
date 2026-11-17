@@ -1519,19 +1519,19 @@
             text-overflow: ellipsis;
         }
         .uav-axis-select {
-            background: #101216 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") no-repeat calc(100% - 5px) center;
+            background: #101216 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") no-repeat calc(100% - 6px) center;
             appearance: none;
             -webkit-appearance: none;
             -moz-appearance: none;
             color: #ffffff;
             border: 1px solid #282a32;
             border-radius: 4px;
-            font-family: 'B612 Mono', monospace;
-            font-size: 11.5px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-size: 12px;
             font-weight: 700;
-            padding: 2px 14px 2px 7px;
+            padding: 2px 18px 2px 8px;
             cursor: pointer;
-            width: 36px;
+            width: 44px;
             height: 24px;
             text-align: left;
             flex-shrink: 0;
@@ -1856,22 +1856,31 @@
             text-align: center;
         }
         .uav-legend-stat-cell {
-            padding: 0 6px;
-            text-align: right;
-            font-variant-numeric: tabular-nums;
+            padding: 0 8px;
+            text-align: left;
+            white-space: nowrap;
         }
         .uav-legend-stat-lbl {
             color: #64748b;
             font-size: 10px;
-            margin-right: 2px;
+            display: inline-block;
+            width: 32px;
         }
         .uav-legend-stat-val {
             color: #e2e8f0;
             font-weight: 500;
+            display: inline-block;
+            width: 52px;
+            text-align: right;
+            font-variant-numeric: tabular-nums;
         }
         .uav-legend-mean-val {
             font-weight: 700;
             color: #4ade80;
+            display: inline-block;
+            width: 52px;
+            text-align: right;
+            font-variant-numeric: tabular-nums;
         }
 
         .native-hidden-file-input {
@@ -2255,21 +2264,38 @@
         function getTelemetryFieldValue(r, fieldName) {
             if (!r || !fieldName) return null;
 
-            // 1. Check direct field alias map
+            // 1. Direct exact property match on record (e.g. ATT.DesRoll, ATT.Roll, BARO[0].Press, BARO.Press)
+            if (r[fieldName] !== undefined && r[fieldName] !== null) {
+                return r[fieldName];
+            }
+
+            // 2. Direct field alias map
             const alias = FIELD_ALIAS_MAP[fieldName];
             if (alias && r[alias] !== undefined && r[alias] !== null) {
                 return r[alias];
             }
 
-            // 2. Direct exact property match on record
-            if (r[fieldName] !== undefined && r[fieldName] !== null) {
-                return r[fieldName];
+            // 3. Instance normalization fallback:
+            // If fieldName is BARO[0].Press, check BARO.Press
+            // If fieldName is BARO.Press, check BARO[0].Press
+            if (fieldName.includes('[')) {
+                const unbracketed = fieldName.replace(/\[\d+\]/, '');
+                if (r[unbracketed] !== undefined && r[unbracketed] !== null) {
+                    return r[unbracketed];
+                }
+            } else if (fieldName.includes('.')) {
+                const parts = fieldName.split('.');
+                const bracketed = `${parts[0]}[0].${parts[1]}`;
+                if (r[bracketed] !== undefined && r[bracketed] !== null) {
+                    return r[bracketed];
+                }
             }
 
-            // 3. RCOU regex match (e.g. RCOU.C1 .. RCOU.C16)
+            // 4. RCOU regex match (e.g. RCOU.C1 .. RCOU.C16)
             const rcouMatch = fieldName.match(/^RCOU\.C(\d+)$/i);
             if (rcouMatch) {
                 const ch = parseInt(rcouMatch[1], 10);
+                if (r[`RCOU.C${ch}`] !== undefined && r[`RCOU.C${ch}`] !== null) return r[`RCOU.C${ch}`];
                 if (r[`rcou_c${ch}`] !== undefined && r[`rcou_c${ch}`] !== null) return r[`rcou_c${ch}`];
                 if (r[`c${ch}`] !== undefined && r[`c${ch}`] !== null) return r[`c${ch}`];
                 if (Array.isArray(r.servos) && ch >= 1 && ch <= r.servos.length) {
@@ -2277,17 +2303,18 @@
                 }
             }
 
-            // 4. RCIN regex match (e.g. RCIN.C1 .. RCIN.C16)
+            // 5. RCIN regex match (e.g. RCIN.C1 .. RCIN.C16)
             const rcinMatch = fieldName.match(/^RCIN\.C(\d+)$/i);
             if (rcinMatch) {
                 const ch = parseInt(rcinMatch[1], 10);
+                if (r[`RCIN.C${ch}`] !== undefined && r[`RCIN.C${ch}`] !== null) return r[`RCIN.C${ch}`];
                 if (r[`rcin_c${ch}`] !== undefined && r[`rcin_c${ch}`] !== null) return r[`rcin_c${ch}`];
                 if (Array.isArray(r.rcin) && ch >= 1 && ch <= r.rcin.length) {
                     return r.rcin[ch - 1];
                 }
             }
 
-            // 5. Short channel match (e.g. c1 .. c16)
+            // 6. Short channel match (e.g. c1 .. c16)
             const cMatch = fieldName.match(/^c(\d+)$/i);
             if (cMatch) {
                 const ch = parseInt(cMatch[1], 10);
@@ -2297,7 +2324,7 @@
                 }
             }
 
-            // 6. Dot notation fallback (e.g. BARO.Press -> press)
+            // 7. Dot notation fallback (e.g. BARO.Press -> press)
             const parts = fieldName.split('.');
             const col = (parts.length > 1 ? parts[1] : parts[0]).toLowerCase();
             if (r[col] !== undefined && r[col] !== null) {
@@ -3082,44 +3109,83 @@
         // Message Tree Construction (UAV Log Viewer format)
         // ---------------------------------------------------------------------------
         
-        // Official ArduPilot Message Descriptions
+        // Official ArduPilot Message Descriptions matching UAV Log Viewer
         const ARDUPILOT_MSG_DESCRIPTIONS = {
             'AETR': 'Normalised pre-mixer control surfaces',
             'AHR2': 'Backup AHRS data',
+            'ANG': 'Attitude control angles and rates',
             'AOA': 'Angle of attack and Side Slip Angle',
             'ARM': 'Arming status changes',
             'ARSP': 'Airspeed sensor data',
             'ATT': 'Canonical vehicle attitude',
-            'AUXF': 'Auxiliary function invocation info',
+            'AUXF': 'Auxiliary function invocation information',
             'BARO': 'Gathered Barometer data',
             'BAT': 'Gathered battery data',
-            'CMD': 'Uploaded mission command info',
+            'CAND': 'CAN driver debug diagnostics',
+            'CANS': 'CAN bus statistical telemetry',
+            'CMD': 'Uploaded mission command information',
+            'CTRL': 'Attitude control loop RMS metrics',
             'CTUN': 'Control Tuning information',
             'DCM': 'DCM Estimator Data',
             'DSF': 'Onboard logging statistics',
+            'EAHR': 'External AHRS navigation data',
             'ERR': 'Specifically coded error messages',
             'ESC': 'ESC Telemetry Data',
-            'EV': 'Event ID and Timestamp',
+            'EV': 'Specifically coded event messages',
+            'FILE': 'File data',
             'FTLE': 'Flight Time and Energy statistics',
-            'GPS': 'GPS Receiver Position & Velocity',
-            'IMU': 'Inertial Measurement Unit sensor',
-            'MAG': '3-Axis Magnetometer Data',
-            'MODE': 'Autopilot Vehicle Flight Mode',
-            'MSG': 'System and Warning Text Messages',
+            'GPA': 'GPS accuracy information',
+            'GPS': 'Information received from GNSS system',
+            'HEAT': 'IMU heater controller telemetry',
+            'IMU': 'Inertial Measurement Unit data',
+            'IOMC': 'I/O MCU status and health',
+            'LAND': 'Landing detector state and flags',
+            'MAG': 'Information received from compass',
+            'MAVC': 'MAVLink command we have just executed',
+            'MAV': 'GCS MAVLink link statistics',
+            'MCU': 'Microcontroller internal telemetry',
+            'MISE': 'Executed mission command information',
+            'MNT': "Mount's desired and actual roll, pitch and yaw",
+            'MODE': 'Vehicle control mode information',
+            'MOTB': 'Motor test battery and power telemetry',
+            'MSG': 'System and warning text messages',
             'NKF1': 'EKF3 Primary State Data',
             'NKF2': 'EKF3 Innovation Data',
-            'PARM': 'Parameter Changes and Values',
+            'NTUN': 'Navigation Tuning information',
+            'ORGN': 'Navigation origin position data',
+            'PARM': 'Parameter changes and values',
+            'PIDP': 'Rate pitch PID information',
+            'PIDR': 'Rate roll PID information',
+            'PIDY': 'Rate yaw PID information',
+            'PIDA': 'Altitude PID information',
             'PM': 'Performance Monitoring Statistics',
             'POS': 'Position & Velocity Estimates',
+            'POWR': 'Power supply rail telemetry',
+            'PSCD': 'Position controller dynamics telemetry',
+            'QTUN': 'QuadPlane VTOL control tuning',
+            'RATE': 'Desired and achieved angular rates',
+            'RCI2': 'Radio Control Receiver Inputs 2',
             'RCIN': 'Radio Control Receiver Inputs',
+            'RCO2': 'Radio Control Servo Outputs 2',
             'RCOU': 'Radio Control Servo Outputs',
+            'RFND': 'Rangefinder Distance Data',
             'SIM': 'Simulated Vehicle Dynamics',
+            'STAK': 'Free stack memory per thread',
+            'STAT': 'Vehicle flying and armed state',
             'TERR': 'Terrain Altitude & Database',
+            'TILT': 'Tiltrotor mechanism angles',
+            'TSYN': 'Time synchronization statistics',
+            'UART': 'Serial UART port statistics',
+            'VER': 'Firmware build and version info',
             'VIBE': '3-Axis Vibration and Clipping',
             'XKF1': 'EKF3 Kalman Filter State',
             'XKF2': 'EKF3 Kalman Filter Covariance',
-            'RATE': 'Desired and achieved angular rates',
-            'RFND': 'Rangefinder Distance Data'
+            'XKF3': 'EKF3 Kalman Filter Innovations',
+            'XKF4': 'EKF3 Kalman Filter Optflow / Sensor Innovations',
+            'XKF5': 'EKF3 Sensor Switch Innovations',
+            'XKFS': 'EKF3 Sensor Selection State',
+            'XKQ': 'EKF3 Quaternion State Vector',
+            'XKT': 'EKF3 Timing Statistics'
         };
 
         function toggleUavSection(contentId, headerEl) {
@@ -3173,17 +3239,19 @@
             if (!treeContainer) return;
             treeContainer.innerHTML = '';
 
-            const sortedKeys = Object.keys(formats).sort();
+            const sortedKeys = Object.keys(formats).sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
             const chBadge = document.getElementById('telemetry-ch-count');
             if (chBadge) chBadge.textContent = sortedKeys.length;
 
             sortedKeys.forEach(msgName => {
                 const cols = formats[msgName];
+                if (!cols || cols.length === 0) return;
                 const node = document.createElement('div');
                 node.className = 'msg-node';
                 node.dataset.msg = msgName;
 
-                const desc = ARDUPILOT_MSG_DESCRIPTIONS[msgName] || '';
+                const baseName = msgName.replace(/\[.*\]/, '');
+                const desc = ARDUPILOT_MSG_DESCRIPTIONS[msgName] || ARDUPILOT_MSG_DESCRIPTIONS[baseName] || '';
                 const header = document.createElement('div');
                 header.className = 'msg-header';
                 header.innerHTML = `
@@ -3198,6 +3266,7 @@
                 fContainer.className = 'msg-fields-container';
 
                 cols.forEach(col => {
+                    if (col === 'TimeUS') return;
                     const fItem = document.createElement('div');
                     fItem.className = 'field-item';
                     fItem.dataset.field = col;
@@ -3216,6 +3285,13 @@
                     if (chevron) {
                         chevron.style.transform = fContainer.classList.contains('expanded') ? 'rotate(180deg)' : 'rotate(0deg)';
                     }
+                };
+
+                node.appendChild(header);
+                node.appendChild(fContainer);
+                treeContainer.appendChild(node);
+            });
+        }
                 };
 
                 node.appendChild(header);
@@ -4527,8 +4603,8 @@
                 });
             }
 
-            // Replace identifier tokens (e.g. BAT.Volt, sqrt, alt, etc.)
-            code = code.replace(/([a-zA-Z_][a-zA-Z0-9_.]*)/g, (match) => {
+            // Replace identifier tokens (e.g. BAT.Volt, BARO[0].Press, sqrt, alt, etc.)
+            code = code.replace(/([a-zA-Z_][a-zA-Z0-9_.\[\]]*)/g, (match) => {
                 const lower = match.toLowerCase();
 
                 // Math function or constant
@@ -4548,11 +4624,9 @@
                     return `(r.${prop} !== undefined && r.${prop} !== null ? Number(r.${prop}) : 0)`;
                 }
 
-                // Dot notation (e.g. MSG.Field)
-                if (match.includes('.')) {
-                    const parts = match.split('.');
-                    const fieldPart = parts[parts.length - 1].toLowerCase();
-                    return `(r['${fieldPart}'] !== undefined ? Number(r['${fieldPart}']) : (r['${match}'] !== undefined ? Number(r['${match}']) : 0))`;
+                // Dot notation or bracketed signal (e.g. ATT.DesRoll, BARO[0].Press)
+                if (match.includes('.') || match.includes('[')) {
+                    return `(getTelemetryFieldValue(r, '${match}') !== null ? Number(getTelemetryFieldValue(r, '${match}')) : 0)`;
                 }
 
                 // Human alias

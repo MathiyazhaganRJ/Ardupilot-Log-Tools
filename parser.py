@@ -68,6 +68,25 @@ COPTER_MODE_MAP = {
 
 MODE_MAP = PLANE_MODE_MAP
 
+INST_MSGS = {
+    'ARSP': 'I',
+    'BARO': 'I',
+    'BAT': 'Inst',
+    'GPA': 'I',
+    'GPS': 'I',
+    'IMU': 'I',
+    'MAG': 'I',
+    'MAV': 'chan',
+    'ESC': 'Instance',
+    'VIBE': 'IMU',
+    'AUXF': 'function',
+    'MNT': 'I',
+    'RCO2': 'I',
+    'RCI2': 'I',
+}
+
+SKIP_TYPES = {'FMT', 'FMTU', 'UNIT', 'MULT', 'PARM', 'MSG', 'STAK', 'VER', 'FILE'}
+
 def resolve_flight_mode(val, is_copter=False):
     if val is None:
         return 'MANUAL'
@@ -157,43 +176,58 @@ def discover_flight_logs(base_dir=None):
 
 def get_log_formats(file_path):
     """
-    Quickly scans the beginning of the .bin log to extract FMT message formats.
-    Returns a dictionary of all available message types and their field names.
+    Scans the beginning of the .bin log to extract discovered message formats
+    with instance identifiers (matching UAV Log Viewer).
     """
-    formats = {}
     mlog = mavutil.mavlink_connection(file_path)
+    fmts = {}
+    logged_formats = {}
     count = 0
-    while count < 4000:
+    while count < 25000:
         msg = mlog.recv_match(blocking=False)
         if not msg:
             break
         count += 1
-        if msg.get_type() == 'FMT':
+        mtype = msg.get_type()
+        if mtype == 'FMT':
             name = getattr(msg, 'Name', '')
             cols = [c.strip() for c in getattr(msg, 'Columns', '').split(',')]
             if name and cols:
-                formats[name] = cols
+                fmts[name] = cols
+            continue
+        if mtype in SKIP_TYPES:
+            continue
+        inst_col = INST_MSGS.get(mtype)
+        inst = getattr(msg, inst_col, None) if inst_col else None
+        prefix = f"{mtype}[{inst}]" if inst is not None else mtype
+        if prefix not in logged_formats and mtype in fmts:
+            col_list = [c for c in fmts[mtype] if c not in ('TimeUS', inst_col)]
+            logged_formats[prefix] = col_list
     mlog.close()
-    return formats
+    if not logged_formats:
+        return fmts
+    return logged_formats
 
 
-def parse_flight_telemetry(file_path, target_samples=6000):
+def parse_flight_telemetry(file_path, target_samples=8000):
     """
     Parses ArduPilot .bin log into a synchronized timeline of flight telemetry.
     Returns:
       - metadata: dict of flight information
-      - formats: dict of all message types and fields discovered
+      - formats: dict of all message types and fields discovered (matching UAV Log Viewer)
       - telemetry: dict of synchronized time series arrays
       - mode_segments: list of flight mode intervals
       - speed_steps: list of detected airspeed test steps in AUTO mode
     """
     mlog = mavutil.mavlink_connection(file_path)
-    target_types = ['FMT', 'MODE', 'ATT', 'BARO', 'BAT', 'ARSP', 'XKF1', 'XKF2', 'AHR2', 'CTUN', 'GPS', 'POS', 'AOA', 'TECS', 'MSG', 'RCOU', 'RCIN', 'PARM']
 
-    formats = {}
+    fmts = {}
+    logged_formats = {}
     parameters = {}
     raw_records = []
-    
+    flight_messages = []
+    current_state = {}
+
     cur_mode = 'MANUAL'
     cur_roll = cur_pitch = cur_yaw = 0.0
     cur_alt = cur_crt = 0.0
@@ -209,16 +243,19 @@ def parse_flight_telemetry(file_path, target_samples=6000):
     cur_lat = cur_lng = 0.0
     cur_servos = [1000] * 16
     cur_rcin = [1500] * 16
-    
+
     true_flight_date = None
     gps_week = 0
     gps_ms = 0
     firmware = "ArduPlane"
     board = "Autopilot Board"
-    flight_messages = []
+
+    last_sample_t = 0.0
+    last_imu_t = 0.0
+    sample_interval = 0.05  # 20 Hz timeline
 
     while True:
-        msg = mlog.recv_match(type=target_types, blocking=False)
+        msg = mlog.recv_match(blocking=False)
         if not msg:
             break
         mtype = msg.get_type()
@@ -227,7 +264,8 @@ def parse_flight_telemetry(file_path, target_samples=6000):
             name = getattr(msg, 'Name', '')
             cols = [c.strip() for c in getattr(msg, 'Columns', '').split(',')]
             if name and cols:
-                formats[name] = cols
+                fmts[name] = cols
+            continue
 
         elif mtype == 'PARM':
             p_name = getattr(msg, 'Name', '')
@@ -238,8 +276,68 @@ def parse_flight_telemetry(file_path, target_samples=6000):
                     parameters[p_name] = round(vf, 5) if vf != int(vf) else int(vf)
                 except (ValueError, TypeError):
                     parameters[p_name] = p_val
+            continue
 
-        elif mtype == 'GPS':
+        elif mtype == 'MSG':
+            txt = getattr(msg, 'Message', '').strip()
+            t_s = getattr(msg, 'TimeUS', 0) / 1e6
+            if 'Ardu' in txt:
+                firmware = txt.split('(')[0].strip()
+            if 'Matek' in txt: board = 'Matek F405/H743'
+            elif 'Cube' in txt: board = 'Cube Orange/Black'
+            elif 'Speedy' in txt: board = 'SpeedyBee'
+            elif 'Pixhawk' in txt: board = 'Pixhawk'
+
+            if txt:
+                txt_lower = txt.lower()
+                sev = 6
+                if any(w in txt_lower for w in ['fail', 'error', 'bad', 'fatal', 'panic', 'crash']):
+                    sev = 3
+                elif any(w in txt_lower for w in ['warn', 'glitch', 'drift', 'high', 'low', 'denied']):
+                    sev = 4
+                elif any(w in txt_lower for w in ['calibrat', 'init', 'arm', 'mode', 'ready', 'complete', 'active']):
+                    sev = 5
+                flight_messages.append({'time': round(t_s, 2), 'text': txt, 'severity': sev})
+            continue
+
+        if mtype in SKIP_TYPES:
+            continue
+
+        t_us = getattr(msg, 'TimeUS', None)
+        if t_us is None:
+            continue
+        t_s = t_us / 1e6
+
+        # Downsample IMU to 25 Hz
+        if mtype == 'IMU':
+            if (t_s - last_imu_t) < 0.04:
+                continue
+            last_imu_t = t_s
+
+        # Determine instance prefix
+        inst_col = INST_MSGS.get(mtype)
+        inst = getattr(msg, inst_col, None) if inst_col else None
+        prefix = f"{mtype}[{inst}]" if inst is not None else mtype
+
+        # Register in logged formats
+        if prefix not in logged_formats and mtype in fmts:
+            col_list = [c for c in fmts[mtype] if c not in ('TimeUS', inst_col)]
+            logged_formats[prefix] = col_list
+
+        # Extract numeric fields for state tracking
+        cols = fmts.get(mtype, [])
+        for col in cols:
+            if col in ('TimeUS', inst_col):
+                continue
+            v = getattr(msg, col, None)
+            if isinstance(v, (int, float)):
+                v_clean = round(v, 4) if isinstance(v, float) else v
+                current_state[f"{prefix}.{col}"] = v_clean
+                if inst == 0:
+                    current_state[f"{mtype}.{col}"] = v_clean
+
+        # Standard navigation & attitude updates
+        if mtype == 'GPS':
             status = getattr(msg, 'Status', 0)
             gwk = getattr(msg, 'GWk', 0)
             gms = getattr(msg, 'GMS', 0)
@@ -305,28 +403,6 @@ def parse_flight_telemetry(file_path, target_samples=6000):
                     cur_alt = (home_elevation + cur_rel_alt) if home_elevation != 0.0 else cur_rel_alt
                     cur_amsl = cur_alt
 
-        elif mtype == 'XKF1':
-            pd = getattr(msg, 'PD', None)
-            if pd is not None and getattr(msg, 'C', 0) == 0:
-                if 'POS' not in formats:
-                    cur_rel_alt = -pd
-                    cur_alt = (home_elevation + cur_rel_alt) if home_elevation != 0.0 else cur_rel_alt
-                    cur_amsl = cur_alt
-            vd = getattr(msg, 'VD', None)
-            if vd is not None:
-                cur_crt = -vd
-
-        elif mtype == 'AHR2':
-            lat_a = getattr(msg, 'Lat', 0)
-            lng_a = getattr(msg, 'Lng', 0)
-            if abs(lat_a) > 0.01:
-                cur_lat = lat_a
-                cur_lng = lng_a
-            if cur_alt == 0.0:
-                alt_a = getattr(msg, 'Alt', None)
-                if alt_a is not None:
-                    cur_alt = alt_a
-
         elif mtype == 'ARSP':
             cur_tas = getattr(msg, 'Airspeed', cur_tas)
             arsp_t = getattr(msg, 'Temp', None)
@@ -350,33 +426,6 @@ def parse_flight_telemetry(file_path, target_samples=6000):
         elif mtype == 'TECS':
             cur_spdem = getattr(msg, 'spdem', cur_spdem)
 
-        elif mtype == 'MSG':
-            txt = getattr(msg, 'Message', '').strip()
-            t_s = getattr(msg, 'TimeUS', 0) / 1e6
-            if 'Ardu' in txt:
-                firmware = txt.split('(')[0].strip()
-            if 'Matek' in txt: board = 'Matek F405/H743'
-            elif 'Cube' in txt: board = 'Cube Orange/Black'
-            elif 'Speedy' in txt: board = 'SpeedyBee'
-            elif 'Pixhawk' in txt: board = 'Pixhawk'
-
-            if txt:
-                txt_lower = txt.lower()
-                if any(w in txt_lower for w in ['fail', 'error', 'bad', 'fatal', 'panic', 'crash']):
-                    sev = 3  # ERROR
-                elif any(w in txt_lower for w in ['warn', 'glitch', 'drift', 'high', 'low', 'denied']):
-                    sev = 4  # WARN
-                elif any(w in txt_lower for w in ['calibrat', 'init', 'arm', 'mode', 'ready', 'complete', 'active']):
-                    sev = 5  # NOTICE
-                else:
-                    sev = 6  # INFO
-
-                flight_messages.append({
-                    'time': round(t_s, 2),
-                    'text': txt,
-                    'severity': sev
-                })
-
         elif mtype == 'RCOU':
             cur_servos = [
                 int(getattr(msg, f'C{ch}', 1000) or 1000) for ch in range(1, 17)
@@ -387,73 +436,73 @@ def parse_flight_telemetry(file_path, target_samples=6000):
                 int(getattr(msg, f'C{ch}', 1500) or 1500) for ch in range(1, 17)
             ]
 
-        elif mtype == 'BAT':
-            t_s = getattr(msg, 'TimeUS', 0) / 1e6
-            v = getattr(msg, 'Volt', 0.0)
-            i = getattr(msg, 'Curr', 0.0)
-            curr_tot = getattr(msg, 'CurrTot', 0.0)
-            rem_pct = getattr(msg, 'RemPct', 100)
-            bat_temp = getattr(msg, 'Temp', None)
-            if bat_temp is not None and bat_temp > 0.0:
-                cur_temp = bat_temp
-            if v > 10.0 and t_s > 0:
-                # Calculate instantaneous density: rho = P / (R * T) using ambient/airspeed sensor temp
-                amb_temp = cur_arsp_temp if cur_arsp_temp is not None else cur_baro_temp
-                tk = amb_temp + 273.15
-                rho = cur_press / (287.05 * tk) if tk > 0 else 1.225
-                
-                # Wind speed & direction
-                w_spd = math.sqrt(cur_vwn**2 + cur_vwe**2)
-                w_dir = (math.degrees(math.atan2(-cur_vwe, -cur_vwn)) + 360.0) % 360.0 if w_spd > 0.05 else 0.0
+        # Sample onto the synchronized timeline at 20 Hz
+        if (t_s - last_sample_t) >= sample_interval and t_s > 0:
+            rec = dict(current_state)
+            rec['time'] = round(t_s, 2)
+            rec['mode'] = cur_mode
+            rec['roll'] = round(cur_roll, 1)
+            rec['pitch'] = round(cur_pitch, 1)
+            rec['yaw'] = round(cur_yaw, 1)
+            rec['lat'] = round(cur_lat, 7)
+            rec['lng'] = round(cur_lng, 7)
+            rec['alt'] = round(cur_alt, 1)
+            rec['rel_alt'] = round(cur_rel_alt, 1)
+            rec['field_elev'] = round(home_elevation, 1)
+            rec['crt'] = round(cur_crt, 2)
+            rec['tas'] = round(cur_tas, 2)
+            rec['gs'] = round(cur_gs, 2)
+            rec['spdem'] = round(cur_spdem, 1)
+            rec['tho'] = round(cur_tho, 1)
 
-                pwr = v * i
-                wh_km = (pwr / (cur_tas * 3.6)) if cur_tas > 2.0 else 0.0
+            # BAT fields
+            v = current_state.get('BAT[0].Volt', current_state.get('BAT.Volt', 0.0))
+            i = current_state.get('BAT[0].Curr', current_state.get('BAT.Curr', 0.0))
+            curr_tot = current_state.get('BAT[0].CurrTot', current_state.get('BAT.CurrTot', 0.0))
+            rem_pct = current_state.get('BAT[0].RemPct', current_state.get('BAT.RemPct', 100))
+            pwr = round(v * i, 1)
+            wh_km = (pwr / (cur_tas * 3.6)) if cur_tas > 2.0 else 0.0
 
-                record = {
-                    'time': round(t_s, 2),
-                    'mode': cur_mode,
-                    'roll': round(cur_roll, 1),
-                    'pitch': round(cur_pitch, 1),
-                    'yaw': round(cur_yaw, 1),
-                    'lat': round(cur_lat, 7),
-                    'lng': round(cur_lng, 7),
-                    'alt': round(cur_alt, 1),
-                    'rel_alt': round(cur_rel_alt, 1),
-                    'field_elev': round(home_elevation, 1),
-                    'crt': round(cur_crt, 2),
-                    'tas': round(cur_tas, 2),
-                    'gs': round(cur_gs, 2),
-                    'spdem': round(cur_spdem, 1),
-                    'tho': round(cur_tho, 1),
-                    'volt': round(v, 2),
-                    'curr': round(i, 2),
-                    'power': round(pwr, 1),
-                    'consumed_mah': round(curr_tot, 1),
-                    'rem_pct': int(rem_pct) if rem_pct is not None else 100,
-                    'wh_km': round(wh_km, 2),
-                    'aoa': round(cur_aoa, 2),
-                    'ssa': round(cur_ssa, 2),
-                    'press': round(cur_press, 1),
-                    'press_hpa': round(cur_press / 100.0, 1) if cur_press > 2000 else round(cur_press, 1),
-                    'qnh_hpa': round((cur_press / 100.0 if cur_press > 2000 else cur_press) * (max(0.001, 1.0 - ((cur_amsl if cur_amsl != 0.0 else cur_alt) / 44330.77)) ** -5.25588), 1),
-                    'temp': round(cur_temp, 1),
-                    'baro_temp': round(cur_baro_temp, 1),
-                    'arsp_temp': round(cur_arsp_temp, 1) if cur_arsp_temp is not None else 0.0,
-                    'has_arsp': cur_arsp_temp is not None,
-                    'density': round(rho, 4),
-                    'wind_spd': round(w_spd, 1),
-                    'wind_dir': round(w_dir, 0),
-                    'vwn': round(cur_vwn, 2),
-                    'vwe': round(cur_vwe, 2),
-                    'servos': cur_servos[:],
-                    'rcin': cur_rcin[:]
-                }
-                for ch_num, s_val in enumerate(cur_servos, start=1):
-                    record[f'rcou_c{ch_num}'] = s_val
-                    record[f'c{ch_num}'] = s_val
-                for ch_num, r_val in enumerate(cur_rcin, start=1):
-                    record[f'rcin_c{ch_num}'] = r_val
-                raw_records.append(record)
+            rec['volt'] = round(v, 2)
+            rec['curr'] = round(i, 2)
+            rec['power'] = pwr
+            rec['consumed_mah'] = round(curr_tot, 1)
+            rec['rem_pct'] = int(rem_pct) if rem_pct is not None else 100
+            rec['wh_km'] = round(wh_km, 2)
+
+            # Atmospheric & Aerodynamic metrics
+            rec['aoa'] = round(cur_aoa, 2)
+            rec['ssa'] = round(cur_ssa, 2)
+            rec['press'] = round(cur_press, 1)
+            rec['press_hpa'] = round(cur_press / 100.0, 1) if cur_press > 2000 else round(cur_press, 1)
+            rec['qnh_hpa'] = round((cur_press / 100.0 if cur_press > 2000 else cur_press) * (max(0.001, 1.0 - ((cur_amsl if cur_amsl != 0.0 else cur_alt) / 44330.77)) ** -5.25588), 1)
+            rec['temp'] = round(cur_temp, 1)
+            rec['baro_temp'] = round(cur_baro_temp, 1)
+            rec['arsp_temp'] = round(cur_arsp_temp, 1) if cur_arsp_temp is not None else 0.0
+            rec['has_arsp'] = cur_arsp_temp is not None
+
+            amb_temp = cur_arsp_temp if cur_arsp_temp is not None else cur_baro_temp
+            tk = amb_temp + 273.15
+            rho = cur_press / (287.05 * tk) if tk > 0 else 1.225
+            rec['density'] = round(rho, 4)
+
+            w_spd = math.sqrt(cur_vwn**2 + cur_vwe**2)
+            w_dir = (math.degrees(math.atan2(-cur_vwe, -cur_vwn)) + 360.0) % 360.0 if w_spd > 0.05 else 0.0
+            rec['wind_spd'] = round(w_spd, 1)
+            rec['wind_dir'] = round(w_dir, 0)
+            rec['vwn'] = round(cur_vwn, 2)
+            rec['vwe'] = round(cur_vwe, 2)
+
+            rec['servos'] = cur_servos[:]
+            rec['rcin'] = cur_rcin[:]
+            for ch_num, s_val in enumerate(cur_servos, start=1):
+                rec[f'rcou_c{ch_num}'] = s_val
+                rec[f'c{ch_num}'] = s_val
+            for ch_num, r_val in enumerate(cur_rcin, start=1):
+                rec[f'rcin_c{ch_num}'] = r_val
+
+            raw_records.append(rec)
+            last_sample_t = t_s
 
     mlog.close()
 
@@ -586,7 +635,7 @@ def parse_flight_telemetry(file_path, target_samples=6000):
 
     return {
         'metadata': metadata,
-        'formats': formats,
+        'formats': logged_formats,
         'parameters': parameters,
         'telemetry': downsampled,
         'messages': flight_messages,

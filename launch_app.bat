@@ -16,3 +16,4 @@ if %errorlevel% equ 0 (
 
 echo Python is not detected in your PATH. Please install Python 3.10+ from python.org.
 pause
+
