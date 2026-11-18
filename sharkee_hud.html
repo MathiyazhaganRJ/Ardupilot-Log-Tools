@@ -81,12 +81,7 @@
             z-index: 1;
         }
 
-        #ui-panel,
-        #btn-expand-panel,
-        #btn-toggle-ui {
-            display: none !important;
-            pointer-events: none !important;
-        }
+
 
         #ui-panel {
             position: absolute;
@@ -3381,7 +3376,7 @@
                 <path d="m8 3 4 8 5-5 5 10H2L8 3z"></path>
             </svg>
         </button>
-        <button class="toolbar-btn" id="btn-toggle-ui" title="Toggle Control Panel" style="display: none !important;">
+        <button class="toolbar-btn" id="btn-toggle-ui" title="Toggle Flight Telemetry Panel (Hotkey 'U')">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round">
                 <line x1="3" y1="12" x2="21" y2="12"></line>
@@ -3446,13 +3441,13 @@
         </button>
     </div>
 
-    <button id="btn-expand-panel" title="Expand Telemetry & Navigation Panel" style="display: none !important;">
+    <button id="btn-expand-panel" title="Expand Telemetry & Navigation Panel" style="display: none;">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="9 18 15 12 9 6"></polyline>
         </svg>
     </button>
 
-    <div id="ui-panel" style="display: none !important;">
+    <div id="ui-panel" style="display: none;">
         <div class="header">
             <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
@@ -4965,12 +4960,23 @@
         const weatherWidget = document.getElementById('weather-widget');
 
         function toggleUiPanel() {
-            // UI Panel permanently removed per flight deck specifications
-            if (uiPanel) uiPanel.style.display = 'none';
-            if (btnToggleUi) btnToggleUi.classList.remove('active');
             const comp = document.getElementById('compass-widget');
+            const isVisible = uiPanel && (uiPanel.style.display !== 'none' && window.getComputedStyle(uiPanel).display !== 'none');
+            const shouldOpen = !isVisible;
+            uiPanel.style.display = shouldOpen ? 'block' : 'none';
+            if (shouldOpen) {
+                uiPanel.classList.remove('collapsed');
+                if (btnExpandPanel) btnExpandPanel.style.display = 'none';
+            }
+            if (btnToggleUi) btnToggleUi.classList.toggle('active', shouldOpen);
+            if (!shouldOpen && btnToggleMessages) {
+                btnToggleMessages.classList.remove('active');
+            }
+            if (shouldOpen && tabMessages && tabMessages.classList.contains('active') && btnToggleMessages) {
+                btnToggleMessages.classList.add('active');
+            }
             if (comp && !comp.dataset.userDragged) {
-                comp.style.left = '20px';
+                comp.style.left = shouldOpen ? '345px' : '20px';
             }
         }
         window.toggleUiPanel = toggleUiPanel;
@@ -5069,7 +5075,9 @@
             comp.style.top = '';
             comp.style.right = '';
             comp.style.bottom = '20px';
-            comp.style.left = '20px';
+            const uiPanel = document.getElementById('ui-panel');
+            const isPanelOpen = uiPanel && (uiPanel.style.display !== 'none' && window.getComputedStyle(uiPanel).display !== 'none') && !uiPanel.classList.contains('collapsed');
+            comp.style.left = isPanelOpen ? '345px' : '20px';
         }
         window.resetCompassDefaultPosition = resetCompassDefaultPosition;
 
@@ -9401,6 +9409,8 @@
                 toggleWaypoints();
             } else if (e.key === 'm' || e.key === 'M') {
                 toggleMessagesTab();
+            } else if (e.key === 'u' || e.key === 'U') {
+                toggleUiPanel();
             } else if (e.key === 'h' || e.key === 'H') {
                 toggleLxnavWidget();
             } else if (e.key === 'e' || e.key === 'E') {
