@@ -4669,13 +4669,84 @@
         }
 
         let currentVisibleRange = null; // null = full flight, [t0, t1] = zoomed/selected region
+        let isRelayoutUpdating = false;
+
+        function autoScalePlotAxes(t0, t1) {
+            if (isRelayoutUpdating) return;
+            const plotEl = document.getElementById('main-plot');
+            if (!plotEl || !currentFlightData || !currentFlightData.telemetry || activeFields.length === 0) return;
+
+            const tele = currentFlightData.telemetry;
+            let slice = tele;
+            const isWindowed = (t0 !== null && t1 !== null && typeof t0 === 'number' && typeof t1 === 'number');
+            if (isWindowed) {
+                const minT = Math.min(t0, t1);
+                const maxT = Math.max(t0, t1);
+                const filtered = tele.filter(r => r.time >= minT && r.time <= maxT);
+                if (filtered.length > 0) slice = filtered;
+            }
+
+            let y1Min = Infinity, y1Max = -Infinity;
+            let y2Min = Infinity, y2Max = -Infinity;
+            let hasY1 = false, hasY2 = false;
+
+            activeFields.forEach(f => {
+                let vals = [];
+                if (f.expr) {
+                    try {
+                        const evalFn = compileExpression(f.expr);
+                        vals = slice.map(r => evalFn(r)).filter(v => v !== null && v !== undefined && !isNaN(v) && isFinite(v));
+                    } catch (e) {}
+                } else {
+                    vals = slice.map(r => getTelemetryFieldValue(r, f.name)).filter(v => v !== null && v !== undefined && !isNaN(v) && isFinite(v));
+                }
+
+                if (vals.length > 0) {
+                    for (let i = 0; i < vals.length; i++) {
+                        const v = vals[i];
+                        if (f.axis === 1) {
+                            hasY2 = true;
+                            if (v < y2Min) y2Min = v;
+                            if (v > y2Max) y2Max = v;
+                        } else {
+                            hasY1 = true;
+                            if (v < y1Min) y1Min = v;
+                            if (v > y1Max) y1Max = v;
+                        }
+                    }
+                }
+            });
+
+            const relayoutUpdate = {};
+            if (hasY1 && isFinite(y1Min) && isFinite(y1Max)) {
+                let span1 = y1Max - y1Min;
+                if (span1 === 0) span1 = Math.abs(y1Max) * 0.2 || 1;
+                const pad1 = span1 * 0.12;
+                relayoutUpdate['yaxis.range'] = [y1Min - pad1, y1Max + pad1];
+            }
+            if (hasY2 && isFinite(y2Min) && isFinite(y2Max)) {
+                let span2 = y2Max - y2Min;
+                if (span2 === 0) span2 = Math.abs(y2Max) * 0.2 || 1;
+                const pad2 = span2 * 0.12;
+                const low2 = y2Min >= 0 ? Math.max(0, y2Min - pad2) : (y2Min - pad2);
+                relayoutUpdate['yaxis2.range'] = [low2, y2Max + pad2];
+            }
+
+            if (Object.keys(relayoutUpdate).length > 0) {
+                isRelayoutUpdating = true;
+                Plotly.relayout('main-plot', relayoutUpdate).then(() => {
+                    isRelayoutUpdating = false;
+                }).catch(() => {
+                    isRelayoutUpdating = false;
+                });
+            }
+        }
 
         function resetPlotZoom() {
             currentVisibleRange = null;
+            autoScalePlotAxes(null, null);
             Plotly.relayout('main-plot', {
-                'xaxis.autorange': true,
-                'yaxis.autorange': true,
-                'yaxis2.autorange': true
+                'xaxis.autorange': true
             });
             updateChannelRibbon();
         }
@@ -4821,10 +4892,11 @@
             plotEl._hasTelemetryListeners = true;
 
             plotEl.on('plotly_relayout', function(eventData) {
-                if (!eventData) return;
+                if (isRelayoutUpdating || !eventData) return;
                 if (eventData['xaxis.autorange']) {
                     currentVisibleRange = null;
                     updateChannelRibbon();
+                    autoScalePlotAxes(null, null);
                     return;
                 }
                 let t0 = null, t1 = null;
@@ -4835,15 +4907,44 @@
                     t0 = parseFloat(eventData['xaxis.range'][0]);
                     t1 = parseFloat(eventData['xaxis.range'][1]);
                 }
-                if (t0 !== null && t1 !== null) {
+                if (t0 !== null && t1 !== null && !isNaN(t0) && !isNaN(t1)) {
                     currentVisibleRange = [Math.min(t0, t1), Math.max(t0, t1)];
                     updateChannelRibbon();
+                    autoScalePlotAxes(t0, t1);
                 }
             });
 
             plotEl.on('plotly_doubleclick', function() {
-                currentVisibleRange = null;
-                updateChannelRibbon();
+                resetPlotZoom();
+            });
+
+            // Click on graph to scrub / seek to that time location
+            plotEl.on('plotly_click', function(data) {
+                if (data && data.points && data.points.length > 0) {
+                    const pt = data.points[0];
+                    if (typeof pt.x === 'number' && !isNaN(pt.x)) {
+                        syncTelemetryAtTime(pt.x, true);
+                        updateReplayScrubberUI(pt.x);
+                    }
+                }
+            });
+
+            // Direct click fallback across plot canvas
+            plotEl.addEventListener('click', function(e) {
+                if (e.target.closest('.modebar') || e.target.closest('#uav-floating-legend')) return;
+                if (!plotEl._fullLayout || !plotEl._fullLayout.xaxis) return;
+                const xa = plotEl._fullLayout.xaxis;
+                const rect = plotEl.getBoundingClientRect();
+                const clickX = e.clientX - rect.left - xa._offset;
+                if (clickX >= 0 && clickX <= xa._length) {
+                    if (typeof xa.p2d === 'function') {
+                        const clickT = xa.p2d(clickX);
+                        if (typeof clickT === 'number' && !isNaN(clickT)) {
+                            syncTelemetryAtTime(clickT, true);
+                            updateReplayScrubberUI(clickT);
+                        }
+                    }
+                }
             });
         }
 
@@ -4979,11 +5080,13 @@
                 showlegend: false,
                 shapes: shapes,
                 annotations: annotations,
+                dragmode: 'zoom',
                 xaxis: {
                     title: { text: 'time_boot (ms)', font: { family: "'B612 Mono', monospace", size: 9.5, color: axisTextColor } },
                     gridcolor: gridColor,
                     zerolinecolor: zeroLineColor,
                     tickfont: { family: "'B612 Mono', monospace", size: 9.5, color: axisTextColor },
+                    fixedrange: false,
                     rangeslider: {
                         visible: true,
                         thickness: 0.12,
@@ -4995,14 +5098,16 @@
                     title: { text: y1Fields.join(', ') || '', font: { family: "'B612 Mono', monospace", size: 9.5, color: '#f59e0b' } },
                     gridcolor: gridColor,
                     zerolinecolor: zeroLineColor,
-                    tickfont: { family: "'B612 Mono', monospace", size: 9.5, color: '#f59e0b' }
+                    tickfont: { family: "'B612 Mono', monospace", size: 9.5, color: '#f59e0b' },
+                    fixedrange: true
                 },
                 yaxis2: {
                     title: { text: y2Fields.join(', ') || '', font: { family: "'B612 Mono', monospace", size: 9.5, color: '#22c55e' } },
                     overlaying: 'y',
                     side: 'right',
                     gridcolor: 'transparent',
-                    tickfont: { family: "'B612 Mono', monospace", size: 9.5, color: '#22c55e' }
+                    tickfont: { family: "'B612 Mono', monospace", size: 9.5, color: '#22c55e' },
+                    fixedrange: true
                 }
             };
 
@@ -5018,6 +5123,11 @@
             setupPlotlyEventListeners();
             updateChannelRibbon();
             updateChannelReadouts(currentTimeCursor);
+            if (currentVisibleRange) {
+                autoScalePlotAxes(currentVisibleRange[0], currentVisibleRange[1]);
+            } else {
+                autoScalePlotAxes(null, null);
+            }
         }
 
         function getInterpolatedTelemetry(timeSec) {
@@ -5333,7 +5443,7 @@
             const heightPx = ya._length;
 
             const ribbonEl = document.getElementById('plot-channel-ribbon');
-            const ribbonOffset = ribbonEl ? ribbonEl.offsetHeight : 26;
+            const ribbonOffset = (ribbonEl && ribbonEl.offsetParent) ? ribbonEl.offsetHeight : 0;
 
             cursor.style.left = `${xPx}px`;
             cursor.style.top = `${ribbonOffset + topPx}px`;
@@ -5540,9 +5650,12 @@
         }
 
         function zoomPlotToRange(t0, t1) {
+            currentVisibleRange = [Math.min(t0, t1), Math.max(t0, t1)];
+            updateChannelRibbon();
             Plotly.relayout('main-plot', {
                 'xaxis.range': [t0, t1]
             });
+            autoScalePlotAxes(t0, t1);
         }
 
         async function addCurrentSegmentToTable() {
