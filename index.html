@@ -3250,6 +3250,83 @@
             border-color: #0284c7;
         }
 
+        .year-filter-tabs-bar {
+            margin-top: -2px;
+            margin-bottom: 8px;
+            border-top: none;
+        }
+
+        .atis-month-group-row td {
+            padding: 0 !important;
+            background: #0d1522 !important;
+            border-top: 1px solid #1e293b !important;
+            border-bottom: 1px solid #1e293b !important;
+        }
+
+        [data-theme="light-clean"] .atis-month-group-row td {
+            background: #f1f5f9 !important;
+            border-top: 1px solid #cbd5e1 !important;
+            border-bottom: 1px solid #cbd5e1 !important;
+        }
+
+        .month-group-banner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 12px;
+            gap: 12px;
+        }
+
+        .month-banner-left, .month-banner-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .month-badge-pill {
+            font-family: 'B612 Mono', monospace;
+            font-size: 10.5px;
+            font-weight: 800;
+            color: #38bdf8;
+            letter-spacing: 0.8px;
+            background: rgba(56, 189, 248, 0.12);
+            padding: 2px 7px;
+            border-radius: 4px;
+            border: 1px solid rgba(56, 189, 248, 0.3);
+        }
+
+        [data-theme="light-clean"] .month-badge-pill {
+            color: #0369a1;
+            background: #e0f2fe;
+            border-color: #bae6fd;
+        }
+
+        .month-stat-chip {
+            font-family: 'B612 Mono', monospace;
+            font-size: 9px;
+            color: #94a3b8;
+            background: rgba(255, 255, 255, 0.04);
+            padding: 2px 6px;
+            border-radius: 3px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .month-stat-chip strong {
+            color: #f1f5f9;
+            font-weight: 700;
+        }
+
+        [data-theme="light-clean"] .month-stat-chip {
+            color: #475569;
+            background: #ffffff;
+            border-color: #e2e8f0;
+        }
+
+        [data-theme="light-clean"] .month-stat-chip strong {
+            color: #0f172a;
+        }
+
         .tag-flt-time {
             font-weight: 700;
             color: #22c55e;
@@ -3812,15 +3889,15 @@
                     <div class="atis-charts-row atis-no-print">
                         <div class="atis-chart-card">
                             <div class="chart-card-header">
-                                <span class="chart-card-title">ANNUAL ATMOSPHERIC REGIME: DENSITY ALTITUDE & OAT</span>
-                                <span class="chart-card-sub">Seasonal Density Loss & Climb Gradient</span>
+                                <span class="chart-card-title">MONTHLY AMBIENT TEMPERATURE PROFILE (°C)</span>
+                                <span class="chart-card-sub">Mean OAT & Thermal Range Envelope Grouped by Year-Month</span>
                             </div>
                             <div id="chart-atis-density-temp" class="atis-plotly-container"></div>
                         </div>
                         <div class="atis-chart-card">
                             <div class="chart-card-header">
-                                <span class="chart-card-title">FIELD ELEVATION AMSL & PREVAILING WIND REGIME</span>
-                                <span class="chart-card-sub">Airfield Ground Elevation AMSL (m) & Surface Wind Speed (kt)</span>
+                                <span class="chart-card-title">MONTHLY PREVAILING WIND REGIME</span>
+                                <span class="chart-card-sub">Surface Wind Speed (kt) & Prevailing Heading (°) by Year-Month</span>
                             </div>
                             <div id="chart-atis-wind-energy" class="atis-plotly-container"></div>
                         </div>
@@ -3843,6 +3920,12 @@
                         <div class="fc-filter-tabs-bar atis-no-print" id="fc-filter-tabs-bar">
                             <span style="font-size: 9px; font-weight: 700; color: #64748b; letter-spacing: 0.5px; margin-right: 4px;">FC FILTER:</span>
                             <button class="fc-tab-btn active" onclick="setFcFilter('ALL')">ALL FC (INDEXING...)</button>
+                        </div>
+
+                        <!-- Year Filter Tabs Bar (Screen Only) -->
+                        <div class="fc-filter-tabs-bar year-filter-tabs-bar atis-no-print" id="year-filter-tabs-bar">
+                            <span style="font-size: 9px; font-weight: 700; color: #64748b; letter-spacing: 0.5px; margin-right: 4px;">YEAR GROUP:</span>
+                            <button class="fc-tab-btn active" onclick="setYearFilter('ALL')">ALL YEARS</button>
                         </div>
 
                         <div class="atis-table-wrapper">
@@ -4403,6 +4486,83 @@
         }
 
         let activeFcFilter = 'ALL';
+        let activeYearFilter = 'ALL';
+        let activeMonthFilter = 'ALL';
+
+        function computeMonthlyAggregates(flightsList) {
+            const map = {};
+            const cardinals = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"];
+            
+            flightsList.forEach(f => {
+                if (!f.year || !f.month) return;
+                const ym = `${f.year}-${String(f.month).padStart(2, '0')}`;
+                if (!map[ym]) {
+                    const d = new Date(Date.UTC(f.year, f.month - 1, 1));
+                    const label = d.toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' });
+                    map[ym] = {
+                        ym: ym,
+                        label: label,
+                        year: f.year,
+                        month: f.month,
+                        flights: [],
+                        temps: [],
+                        winds: [],
+                        dirs: [],
+                        das: []
+                    };
+                }
+                map[ym].flights.push(f);
+                if (typeof f.oat_mean_c === 'number') map[ym].temps.push(f.oat_mean_c);
+                if (typeof f.wind_spd_kt === 'number') map[ym].winds.push(f.wind_spd_kt);
+                if (typeof f.wind_dir_deg === 'number' && (f.wind_spd_kt || 0) > 0.5) map[ym].dirs.push(f.wind_dir_deg);
+                if (typeof f.density_alt_m === 'number') map[ym].das.push(f.density_alt_m);
+            });
+
+            const sortedKeys = Object.keys(map).sort();
+            return sortedKeys.map(k => {
+                const item = map[k];
+                const temps = item.temps;
+                const winds = item.winds;
+                const dirs = item.dirs;
+                
+                const meanTemp = temps.length ? (temps.reduce((a, b) => a + b, 0) / temps.length) : 25.0;
+                const minTemp = temps.length ? Math.min(...temps) : 25.0;
+                const maxTemp = temps.length ? Math.max(...temps) : 25.0;
+                
+                const meanWind = winds.length ? (winds.reduce((a, b) => a + b, 0) / winds.length) : 0.0;
+                const maxWind = winds.length ? Math.max(...winds) : 0.0;
+                
+                let meanDir = null;
+                let cardStr = 'CALM';
+                if (dirs.length && meanWind > 0.5) {
+                    let sinSum = 0, cosSum = 0;
+                    dirs.forEach(d => {
+                        const rad = d * Math.PI / 180;
+                        sinSum += Math.sin(rad);
+                        cosSum += Math.cos(rad);
+                    });
+                    let deg = (Math.atan2(sinSum, cosSum) * 180 / Math.PI + 360) % 360;
+                    meanDir = Math.round(deg);
+                    const cIdx = Math.round(meanDir / 22.5) % 16;
+                    cardStr = `${String(meanDir).padStart(3, '0')}° ${cardinals[cIdx]}`;
+                }
+                
+                return {
+                    ym: item.ym,
+                    label: item.label,
+                    year: item.year,
+                    month: item.month,
+                    count: item.flights.length,
+                    meanTemp: Math.round(meanTemp * 10) / 10,
+                    minTemp: Math.round(minTemp * 10) / 10,
+                    maxTemp: Math.round(maxTemp * 10) / 10,
+                    meanWind: Math.round(meanWind * 10) / 10,
+                    maxWind: Math.round(maxWind * 10) / 10,
+                    meanDir: meanDir,
+                    cardStr: cardStr
+                };
+            });
+        }
 
         function renderFcFilterTabs(flights) {
             const container = document.getElementById('fc-filter-tabs-bar');
@@ -4427,11 +4587,71 @@
             container.innerHTML = html;
         }
 
+        function renderYearFilterTabs(flights) {
+            const container = document.getElementById('year-filter-tabs-bar');
+            if (!container || !flights) return;
+
+            let source = flights;
+            if (activeFcFilter && activeFcFilter !== 'ALL') {
+                source = source.filter(f => (f.fc_name || 'MatekF405-TE') === activeFcFilter);
+            }
+
+            const counts = { 'ALL': source.length };
+            source.forEach(f => {
+                const y = f.year || 'Unknown';
+                counts[y] = (counts[y] || 0) + 1;
+            });
+
+            let html = `<span style="font-size: 9px; font-weight: 700; color: #64748b; letter-spacing: 0.5px; margin-right: 4px;">YEAR GROUP:</span>`;
+            const years = Object.keys(counts).filter(k => k !== 'ALL').sort((a,b) => b - a);
+            const allKeys = ['ALL', ...years];
+
+            allKeys.forEach(k => {
+                const isActive = (activeYearFilter === k && activeMonthFilter === 'ALL');
+                const label = k === 'ALL' ? `ALL YEARS (${counts[k]})` : `${k} (${counts[k]})`;
+                html += `<button class="fc-tab-btn ${isActive ? 'active' : ''}" onclick="setYearFilter('${k}')">${label}</button>`;
+            });
+
+            if (activeMonthFilter !== 'ALL') {
+                const ymParts = activeMonthFilter.split('-');
+                const mDate = new Date(Date.UTC(parseInt(ymParts[0]), parseInt(ymParts[1]) - 1, 1));
+                const mLabel = mDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' });
+                html += `<button class="fc-tab-btn active" onclick="setMonthFilter('ALL')" style="background:#f59e0b; color:#040810; border-color:#f59e0b; font-weight:700;" title="Click to clear month filter">MONTH: ${mLabel.toUpperCase()} ✕</button>`;
+            }
+
+            container.innerHTML = html;
+        }
+
         function setFcFilter(fcName) {
             activeFcFilter = fcName;
             renderFcFilterTabs(atisGlobalData ? atisGlobalData.flights : []);
+            renderYearFilterTabs(atisGlobalData ? atisGlobalData.flights : []);
             renderAtisTable();
             renderAtisCharts();
+        }
+
+        function setYearFilter(yr) {
+            activeYearFilter = yr;
+            activeMonthFilter = 'ALL';
+            renderYearFilterTabs(atisGlobalData ? atisGlobalData.flights : []);
+            renderAtisTable();
+            renderAtisCharts();
+        }
+
+        function setMonthFilter(ym) {
+            activeMonthFilter = ym;
+            if (ym !== 'ALL') {
+                activeYearFilter = ym.split('-')[0];
+            }
+            renderYearFilterTabs(atisGlobalData ? atisGlobalData.flights : []);
+            renderAtisTable();
+            renderAtisCharts();
+            if (ym !== 'ALL') {
+                setTimeout(() => {
+                    const el = document.getElementById(`month-group-${ym}`);
+                    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 80);
+            }
         }
 
         async function loadHistoricalAtisData(force = false) {
@@ -4488,8 +4708,9 @@
                     printMetaDate.textContent = `GENERATED: ${now.toISOString().replace('T', ' ').substr(0, 19)} UTC | REPO: ${data.folder}`;
                 }
 
-                // Render FC Filter Tabs
+                // Render Filter Tabs
                 renderFcFilterTabs(data.flights || []);
+                renderYearFilterTabs(data.flights || []);
 
                 // Default active flight to the newest one
                 if (data.flights && data.flights.length > 0) {
@@ -4548,6 +4769,19 @@
                 list = list.filter(f => (f.fc_name || 'MatekF405-TE') === activeFcFilter);
             }
 
+            // Year Filter
+            if (activeYearFilter && activeYearFilter !== 'ALL') {
+                list = list.filter(f => String(f.year) === String(activeYearFilter));
+            }
+
+            // Month Filter
+            if (activeMonthFilter && activeMonthFilter !== 'ALL') {
+                list = list.filter(f => {
+                    const ym = `${f.year}-${String(f.month).padStart(2, '0')}`;
+                    return ym === activeMonthFilter;
+                });
+            }
+
             // Search Query Filter
             if (atisFilterQuery.trim() !== '') {
                 const q = atisFilterQuery.toLowerCase().trim();
@@ -4562,65 +4796,131 @@
                 );
             }
 
-            // Sort
-            list.sort((a, b) => {
-                let vA = a[atisSortKey];
-                let vB = b[atisSortKey];
-                if (vA === undefined) vA = '';
-                if (vB === undefined) vB = '';
-                if (typeof vA === 'string') {
-                    return atisSortAsc ? vA.localeCompare(vB) : vB.localeCompare(vA);
-                }
-                return atisSortAsc ? (vA - vB) : (vB - vA);
-            });
-
             if (list.length === 0) {
                 tableBody.innerHTML = '<tr><td colspan="13" style="text-align:center; padding: 25px; color:#94a3b8;">No matching flight logs found in database.</td></tr>';
                 return;
             }
 
-            let html = '';
+            // Group flights by Year-Month
+            const monthGroups = {};
             list.forEach(f => {
-                const isActive = activeAtisFlight && activeAtisFlight.filename === f.filename;
-                const tempVal = (typeof f.oat_mean_c === 'number') ? f.oat_mean_c : null;
-                let tempClass = 'tag-temp-nom';
-                if (tempVal !== null) {
-                    if (tempVal < 18.0) tempClass = 'tag-temp-cool';
-                    else if (tempVal > 35.0) tempClass = 'tag-temp-hot';
-                    else if (tempVal > 28.0) tempClass = 'tag-temp-warm';
+                const ym = `${f.year}-${String(f.month || 1).padStart(2, '0')}`;
+                if (!monthGroups[ym]) monthGroups[ym] = [];
+                monthGroups[ym].push(f);
+            });
+
+            // Sort months descending (newest months first)
+            const sortedYMs = Object.keys(monthGroups).sort().reverse();
+            const cardinals = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"];
+
+            let html = '';
+            sortedYMs.forEach(ym => {
+                const mFlts = monthGroups[ym];
+                // Sort flights inside each month group according to atisSortKey
+                mFlts.sort((a, b) => {
+                    let vA = a[atisSortKey];
+                    let vB = b[atisSortKey];
+                    if (vA === undefined) vA = '';
+                    if (vB === undefined) vB = '';
+                    if (typeof vA === 'string') {
+                        return atisSortAsc ? vA.localeCompare(vB) : vB.localeCompare(vA);
+                    }
+                    return atisSortAsc ? (vA - vB) : (vB - vA);
+                });
+
+                // Compute month summary statistics
+                const ymParts = ym.split('-');
+                const yInt = parseInt(ymParts[0]);
+                const mInt = parseInt(ymParts[1]);
+                const ymDate = new Date(Date.UTC(yInt, mInt - 1, 1));
+                const monthTitle = ymDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' }).toUpperCase();
+                
+                const mTemps = mFlts.map(f => f.oat_mean_c).filter(v => typeof v === 'number');
+                const mWinds = mFlts.map(f => f.wind_spd_kt).filter(v => typeof v === 'number');
+                const mDirs = mFlts.filter(f => (f.wind_spd_kt || 0) > 0.5 && typeof f.wind_dir_deg === 'number').map(f => f.wind_dir_deg);
+                const totalAirSec = mFlts.reduce((sum, f) => sum + (f.flight_time_s || 0), 0);
+                const hrs = Math.floor(totalAirSec / 3600);
+                const mins = Math.floor((totalAirSec % 3600) / 60);
+                const durStr = `${hrs}h ${String(mins).padStart(2, '0')}m`;
+                
+                const avgTemp = mTemps.length ? (mTemps.reduce((a,b)=>a+b,0) / mTemps.length).toFixed(1) : '--';
+                const avgWind = mWinds.length ? (mWinds.reduce((a,b)=>a+b,0) / mWinds.length).toFixed(1) : '0.0';
+                
+                let windHdg = 'CALM';
+                if (mDirs.length && parseFloat(avgWind) > 0.5) {
+                    let sinS = 0, cosS = 0;
+                    mDirs.forEach(d => {
+                        const rad = d * Math.PI / 180;
+                        sinS += Math.sin(rad);
+                        cosS += Math.cos(rad);
+                    });
+                    let deg = Math.round((Math.atan2(sinS, cosS) * 180 / Math.PI + 360) % 360);
+                    const cIdx = Math.round(deg / 22.5) % 16;
+                    windHdg = `${String(deg).padStart(3, '0')}° (${cardinals[cIdx]})`;
                 }
-                const tempStr = tempVal !== null ? `${tempVal > 0 ? '+' : ''}${tempVal.toFixed(1)}°C` : '--';
 
-                const rhoVal = (typeof f.rho_kgm3 === 'number') ? f.rho_kgm3.toFixed(4) : '1.2250';
-                const rhoPct = f.rho_pct ? `${f.rho_pct}%` : '100%';
-                const daStr = (typeof f.density_alt_m === 'number') ? `${f.density_alt_m.toFixed(0)}m / ${(f.density_alt_ft || Math.round(f.density_alt_m * 3.28084))}ft` : '--';
-                const windStr = (typeof f.wind_spd_kt === 'number') ? `${String(f.wind_dir_deg || 0).padStart(3, '0')}° @ ${f.wind_spd_kt.toFixed(1)}kt` : '--';
-                const hasCoord = (typeof f.lat === 'number' && typeof f.lng === 'number' && (f.lat !== 0.0 || f.lng !== 0.0));
-                const coordStr = hasCoord ? `${f.lat.toFixed(4)}°, ${f.lng.toFixed(4)}°` : 'No GNSS Fix';
-                const cleanDate = f.date_str ? f.date_str.replace(' UTC', '') : 'N/A';
-                const elevStr = (typeof f.elev_m === 'number') ? `${f.elev_m.toFixed(0)}m / ${(f.elev_ft || Math.round(f.elev_m * 3.28084))}ft` : '--';
-                const qnhStr = (typeof f.qnh_hpa === 'number') ? f.qnh_hpa.toFixed(1) : '1013.2';
-                const fcDisp = f.fc_name || 'MatekF405-TE';
-
+                // Month Group Header Banner Row
                 html += `
-                    <tr class="${isActive ? 'active-row' : ''}" data-filename="${f.filename}" onclick="onAtisRowClicked('${f.filename}')">
-                        <td><span class="atis-tag-callsign" title="${f.filename}">${f.atis_callsign || 'ALPHA'}</span></td>
-                        <td><span class="tag-date-time" title="${f.filename}">${cleanDate}</span></td>
-                        <td><span class="tag-fc-name">${fcDisp}</span></td>
-                        <td title="Home Elevation: ${f.elev_m || 0}m AMSL">${coordStr}</td>
-                        <td><strong>${elevStr}</strong></td>
-                        <td><span class="tag-flt-time">${f.flt_str || '00m 00s'}</span></td>
-                        <td>${f.met_str || '00m 00s'}</td>
-                        <td><span class="${tempClass}">${tempStr}</span></td>
-                        <td>${qnhStr}</td>
-                        <td>${rhoVal} <span style="font-size:8.5px; color:#64748b;">(${rhoPct})</span></td>
-                        <td><strong>${daStr}</strong></td>
-                        <td>${windStr}</td>
-                        <td class="atis-no-print">
-                            <button class="btn-table-load" onclick="event.stopPropagation(); loadAtisFlight('${f.filepath.replace(/\\/g, '\\\\')}')">LOAD FLIGHT</button>
+                    <tr class="atis-month-group-row" id="month-group-${ym}">
+                        <td colspan="13">
+                            <div class="month-group-banner">
+                                <div class="month-banner-left">
+                                    <span class="month-badge-pill">${monthTitle}</span>
+                                    <span class="month-stat-chip"><strong>${mFlts.length}</strong> FLIGHTS</span>
+                                    <span class="month-stat-chip">AIRBORNE: <strong>${durStr}</strong></span>
+                                </div>
+                                <div class="month-banner-right">
+                                    <span class="month-stat-chip">MEAN TEMP: <strong>${parseFloat(avgTemp) > 0 ? '+' : ''}${avgTemp}°C</strong></span>
+                                    <span class="month-stat-chip">PREVAILING WIND: <strong>${windHdg} @ ${avgWind} kt</strong></span>
+                                </div>
+                            </div>
                         </td>
                     </tr>
                 `;
+
+                // Flight Rows
+                mFlts.forEach(f => {
+                    const isActive = activeAtisFlight && activeAtisFlight.filename === f.filename;
+                    const tempVal = (typeof f.oat_mean_c === 'number') ? f.oat_mean_c : null;
+                    let tempClass = 'tag-temp-nom';
+                    if (tempVal !== null) {
+                        if (tempVal < 18.0) tempClass = 'tag-temp-cool';
+                        else if (tempVal > 35.0) tempClass = 'tag-temp-hot';
+                        else if (tempVal > 28.0) tempClass = 'tag-temp-warm';
+                    }
+                    const tempStr = tempVal !== null ? `${tempVal > 0 ? '+' : ''}${tempVal.toFixed(1)}°C` : '--';
+
+                    const rhoVal = (typeof f.rho_kgm3 === 'number') ? f.rho_kgm3.toFixed(4) : '1.2250';
+                    const rhoPct = f.rho_pct ? `${f.rho_pct}%` : '100%';
+                    const daStr = (typeof f.density_alt_m === 'number') ? `${f.density_alt_m.toFixed(0)}m / ${(f.density_alt_ft || Math.round(f.density_alt_m * 3.28084))}ft` : '--';
+                    const windStr = (typeof f.wind_spd_kt === 'number') ? `${String(f.wind_dir_deg || 0).padStart(3, '0')}° @ ${f.wind_spd_kt.toFixed(1)}kt` : '--';
+                    const hasCoord = (typeof f.lat === 'number' && typeof f.lng === 'number' && (f.lat !== 0.0 || f.lng !== 0.0));
+                    const coordStr = hasCoord ? `${f.lat.toFixed(4)}°, ${f.lng.toFixed(4)}°` : 'No GNSS Fix';
+                    const cleanDate = f.date_str ? f.date_str.replace(' UTC', '') : 'N/A';
+                    const elevStr = (typeof f.elev_m === 'number') ? `${f.elev_m.toFixed(0)}m / ${(f.elev_ft || Math.round(f.elev_m * 3.28084))}ft` : '--';
+                    const qnhStr = (typeof f.qnh_hpa === 'number') ? f.qnh_hpa.toFixed(1) : '1013.2';
+                    const fcDisp = f.fc_name || 'MatekF405-TE';
+
+                    html += `
+                        <tr class="${isActive ? 'active-row' : ''}" data-filename="${f.filename}" onclick="onAtisRowClicked('${f.filename}')">
+                            <td><span class="atis-tag-callsign" title="${f.filename}">${f.atis_callsign || 'ALPHA'}</span></td>
+                            <td><span class="tag-date-time" title="${f.filename}">${cleanDate}</span></td>
+                            <td><span class="tag-fc-name">${fcDisp}</span></td>
+                            <td title="Home Elevation: ${f.elev_m || 0}m AMSL">${coordStr}</td>
+                            <td><strong>${elevStr}</strong></td>
+                            <td><span class="tag-flt-time">${f.flt_str || '00m 00s'}</span></td>
+                            <td>${f.met_str || '00m 00s'}</td>
+                            <td><span class="${tempClass}">${tempStr}</span></td>
+                            <td>${qnhStr}</td>
+                            <td>${rhoVal} <span style="font-size:8.5px; color:#64748b;">(${rhoPct})</span></td>
+                            <td><strong>${daStr}</strong></td>
+                            <td>${windStr}</td>
+                            <td class="atis-no-print">
+                                <button class="btn-table-load" onclick="event.stopPropagation(); loadAtisFlight('${f.filepath.replace(/\\/g, '\\\\')}')">LOAD FLIGHT</button>
+                            </td>
+                        </tr>
+                    `;
+                });
             });
 
             tableBody.innerHTML = html;
@@ -4686,53 +4986,70 @@
             if (activeFcFilter && activeFcFilter !== 'ALL') {
                 filteredFlights = filteredFlights.filter(f => (f.fc_name || 'MatekF405-TE') === activeFcFilter);
             }
+            if (activeYearFilter && activeYearFilter !== 'ALL') {
+                filteredFlights = filteredFlights.filter(f => String(f.year) === String(activeYearFilter));
+            }
             if (filteredFlights.length === 0) return;
 
-            // Sort chronological ascending for line/trend plots
-            const chronological = [...filteredFlights].reverse();
-            const dates = chronological.map(f => f.date_str ? f.date_str.split(' ')[0] : f.filename);
-            const daValues = chronological.map(f => f.density_alt_m || 0);
-            const oatValues = chronological.map(f => f.oat_mean_c || 25);
-            const windValues = chronological.map(f => f.wind_spd_kt || 0);
-            const elevValues = chronological.map(f => f.elev_m || 0);
-            const names = chronological.map(f => f.filename);
+            // Group flights by Year-Month for clean monthly trend graphs
+            const monthly = computeMonthlyAggregates(filteredFlights);
+            if (monthly.length === 0) return;
+
+            const labels = monthly.map(m => m.label);
+            const meanTemps = monthly.map(m => m.meanTemp);
+            const minTemps = monthly.map(m => m.minTemp);
+            const maxTemps = monthly.map(m => m.maxTemp);
+            const meanWinds = monthly.map(m => m.meanWind);
+            const maxWinds = monthly.map(m => m.maxWind);
+            const meanDirs = monthly.map(m => m.meanDir);
+            const cardTexts = monthly.map(m => (m.cardStr.includes(' ') ? m.cardStr.split(' ')[1] : ''));
 
             const isDark = document.documentElement.getAttribute('data-theme') !== 'light-clean';
             const bgColor = isDark ? '#0b111a' : '#ffffff';
             const gridColor = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)';
             const fontColor = isDark ? '#94a3b8' : '#475569';
 
-            // Chart 1: Density Altitude & OAT Across Year
-            const traceDa = {
-                x: dates,
-                y: daValues,
-                name: 'Density Alt (m)',
+            // Chart 1: Monthly Ambient Temperature Profile (°C)
+            const traceMinTemp = {
+                x: labels,
+                y: minTemps,
+                name: 'Min Temp',
                 type: 'scatter',
-                mode: 'lines+markers',
-                line: { color: '#fb923c', width: 2 },
-                marker: { size: 6, color: '#f97316' },
-                customdata: names,
-                hovertemplate: '%{customdata}<br>Density Alt: %{y:.0f}m<extra></extra>'
+                mode: 'lines',
+                line: { color: 'transparent', width: 0 },
+                showlegend: false,
+                hoverinfo: 'skip'
             };
 
-            const traceOat = {
-                x: dates,
-                y: oatValues,
-                name: 'OAT (°C)',
-                yaxis: 'y2',
+            const traceMaxTemp = {
+                x: labels,
+                y: maxTemps,
+                name: 'Thermal Range (Min-Max)',
+                type: 'scatter',
+                mode: 'lines',
+                fill: 'tonexty',
+                fillcolor: isDark ? 'rgba(245, 158, 11, 0.16)' : 'rgba(245, 158, 11, 0.22)',
+                line: { color: 'transparent', width: 0 },
+                hoverinfo: 'skip'
+            };
+
+            const traceMeanTemp = {
+                x: labels,
+                y: meanTemps,
+                name: 'Mean OAT (°C)',
                 type: 'scatter',
                 mode: 'lines+markers',
-                line: { color: '#38bdf8', width: 2, dash: 'dot' },
-                marker: { size: 5, color: '#0ea5e9' },
-                customdata: names,
-                hovertemplate: '%{customdata}<br>OAT: %{y:.1f}°C<extra></extra>'
+                line: { color: '#f59e0b', width: 2.5 },
+                marker: { size: 6, color: '#d97706', symbol: 'circle' },
+                customdata: monthly.map(m => [m.minTemp, m.maxTemp, m.count, m.ym]),
+                hovertemplate: '<b>%{x}</b> (%{customdata[2]} flights)<br>Mean Temp: <b>%{y:.1f}°C</b><br>Range: %{customdata[0]:.1f}°C to %{customdata[1]:.1f}°C<extra></extra>'
             };
 
             const layout1 = {
                 paper_bgcolor: bgColor,
                 plot_bgcolor: bgColor,
                 font: { family: 'B612 Mono, monospace', size: 9, color: fontColor },
-                margin: { l: 45, r: 45, t: 15, b: 35 },
+                margin: { l: 45, r: 25, t: 15, b: 35 },
                 legend: { orientation: 'h', x: 0, y: 1.15, font: { size: 9 } },
                 xaxis: {
                     showgrid: true,
@@ -4740,55 +5057,61 @@
                     tickfont: { size: 8.5 }
                 },
                 yaxis: {
-                    title: 'DA (m MSL)',
-                    titlefont: { size: 9, color: '#fb923c' },
-                    tickfont: { size: 8.5, color: '#fb923c' },
+                    title: 'Temperature (°C)',
+                    titlefont: { size: 9, color: '#f59e0b' },
+                    tickfont: { size: 8.5, color: '#f59e0b' },
                     showgrid: true,
                     gridcolor: gridColor
-                },
-                yaxis2: {
-                    title: 'OAT (°C)',
-                    titlefont: { size: 9, color: '#38bdf8' },
-                    tickfont: { size: 8.5, color: '#38bdf8' },
-                    overlaying: 'y',
-                    side: 'right',
-                    showgrid: false
                 }
             };
 
-            Plotly.newPlot('chart-atis-density-temp', [traceDa, traceOat], layout1, { responsive: true, displayModeBar: false });
+            Plotly.newPlot('chart-atis-density-temp', [traceMinTemp, traceMaxTemp, traceMeanTemp], layout1, { responsive: true, displayModeBar: false });
 
-            // Chart 2: Field Elevation AMSL & Prevailing Wind Speed
-            const traceElev = {
-                x: dates,
-                y: elevValues,
-                name: 'Field Elev (m AMSL)',
+            // Chart 2: Monthly Prevailing Wind Speed & Direction
+            const traceMeanWind = {
+                x: labels,
+                y: meanWinds,
+                name: 'Mean Wind (kt)',
                 type: 'scatter',
                 mode: 'lines+markers',
-                line: { color: '#38bdf8', width: 2 },
-                marker: { size: 6, color: '#0284c7' },
-                customdata: names,
-                hovertemplate: '%{customdata}<br>Field Elev: %{y:.0f}m AMSL<extra></extra>'
+                line: { color: '#a855f7', width: 2.2 },
+                marker: { size: 6, color: '#9333ea' },
+                customdata: monthly.map(m => [m.cardStr, m.count, m.maxWind, m.ym]),
+                hovertemplate: '<b>%{x}</b> (%{customdata[1]} flights)<br>Mean Wind: <b>%{y:.1f} kt</b> (Peak: %{customdata[2]:.1f} kt)<extra></extra>'
             };
 
-            const traceWind = {
-                x: dates,
-                y: windValues,
-                name: 'Wind (kt)',
-                yaxis: 'y2',
+            const tracePeakWind = {
+                x: labels,
+                y: maxWinds,
+                name: 'Peak Gust (kt)',
                 type: 'scatter',
                 mode: 'lines+markers',
-                line: { color: '#a855f7', width: 2, dash: 'dot' },
-                marker: { size: 5, color: '#c084fc' },
-                customdata: names,
-                hovertemplate: '%{customdata}<br>Wind Speed: %{y:.1f} kt<extra></extra>'
+                line: { color: isDark ? 'rgba(168, 85, 247, 0.45)' : 'rgba(147, 51, 234, 0.45)', width: 1.5, dash: 'dot' },
+                marker: { size: 4, color: '#c084fc' },
+                customdata: monthly.map(m => [m.cardStr, m.count, m.maxWind, m.ym]),
+                hovertemplate: '<b>%{x}</b><br>Peak Wind: <b>%{y:.1f} kt</b><extra></extra>'
+            };
+
+            const traceDir = {
+                x: labels,
+                y: meanDirs,
+                name: 'Prevailing Dir (°)',
+                yaxis: 'y2',
+                type: 'scatter',
+                mode: 'markers+text',
+                marker: { size: 7, color: '#10b981', symbol: 'diamond' },
+                text: cardTexts,
+                textposition: 'top center',
+                textfont: { size: 8, color: '#10b981', family: 'B612 Mono, monospace' },
+                customdata: monthly.map(m => [m.cardStr, m.count, m.maxWind, m.ym]),
+                hovertemplate: '<b>%{x}</b> (%{customdata[1]} flights)<br>Prevailing Heading: <b>%{customdata[0]}</b><extra></extra>'
             };
 
             const layout2 = {
                 paper_bgcolor: bgColor,
                 plot_bgcolor: bgColor,
                 font: { family: 'B612 Mono, monospace', size: 9, color: fontColor },
-                margin: { l: 45, r: 45, t: 15, b: 35 },
+                margin: { l: 45, r: 55, t: 15, b: 35 },
                 legend: { orientation: 'h', x: 0, y: 1.15, font: { size: 9 } },
                 xaxis: {
                     showgrid: true,
@@ -4796,31 +5119,35 @@
                     tickfont: { size: 8.5 }
                 },
                 yaxis: {
-                    title: 'Elevation (m AMSL)',
-                    titlefont: { size: 9, color: '#38bdf8' },
-                    tickfont: { size: 8.5, color: '#38bdf8' },
+                    title: 'Wind Speed (kt)',
+                    titlefont: { size: 9, color: '#a855f7' },
+                    tickfont: { size: 8.5, color: '#a855f7' },
                     showgrid: true,
                     gridcolor: gridColor
                 },
                 yaxis2: {
-                    title: 'Wind Speed (kt)',
-                    titlefont: { size: 9, color: '#a855f7' },
-                    tickfont: { size: 8.5, color: '#a855f7' },
+                    title: 'Heading (°)',
+                    titlefont: { size: 9, color: '#10b981' },
+                    tickfont: { size: 8, color: '#10b981' },
                     overlaying: 'y',
                     side: 'right',
+                    range: [-15, 375],
+                    tickvals: [0, 90, 180, 270, 360],
+                    ticktext: ['0° N', '90° E', '180° S', '270° W', '360° N'],
                     showgrid: false
                 }
             };
 
-            Plotly.newPlot('chart-atis-wind-energy', [traceElev, traceWind], layout2, { responsive: true, displayModeBar: false });
+            Plotly.newPlot('chart-atis-wind-energy', [traceMeanWind, tracePeakWind, traceDir], layout2, { responsive: true, displayModeBar: false });
 
-            // Hook click interactions on plots to highlight table row and update ATIS
+            // Hook click interactions on plots to filter/scroll to that month
             const chart1 = document.getElementById('chart-atis-density-temp');
             if (chart1 && chart1.on) {
                 chart1.on('plotly_click', function(data) {
                     if (data && data.points && data.points[0]) {
-                        const fname = data.points[0].customdata;
-                        if (fname) onAtisRowClicked(fname);
+                        const pt = data.points[0];
+                        const ym = (pt.customdata && pt.customdata[3]) || (monthly[pt.pointIndex] && monthly[pt.pointIndex].ym);
+                        if (ym) setMonthFilter(ym);
                     }
                 });
             }
@@ -4829,8 +5156,9 @@
             if (chart2 && chart2.on) {
                 chart2.on('plotly_click', function(data) {
                     if (data && data.points && data.points[0]) {
-                        const fname = data.points[0].customdata;
-                        if (fname) onAtisRowClicked(fname);
+                        const pt = data.points[0];
+                        const ym = (pt.customdata && pt.customdata[3]) || (monthly[pt.pointIndex] && monthly[pt.pointIndex].ym);
+                        if (ym) setMonthFilter(ym);
                     }
                 });
             }

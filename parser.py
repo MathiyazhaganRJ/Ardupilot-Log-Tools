@@ -1185,11 +1185,32 @@ def get_historical_flight_logbook(folder_path=None, force_refresh=False, max_log
         cache_data['total_logs'] = len(flights)
         _atomic_write_json(cache_file, cache_data)
 
+    # Filter to retain ONLY valid airborne flights actually flown by the user:
+    # 1. Genuine airborne flight time (flight_time_s >= 30s or has_valid_flight)
+    # 2. Modern operational flight years (2020 <= year <= 2030, discarding 1980 / 2695 invalid GPS locks)
+    # 3. Exclude hardware boards the user never flew (bench tests / external logs)
+    EXCLUDED_FCS = {'CubeBlack', 'TBS_LUCID_H7_WING', 'CUAV-X7', 'CubeOrange', 'Unknown'}
+
+    valid_flights = []
+    for flt in flights:
+        if 'error' in flt:
+            continue
+        flt_s = flt.get('flight_time_s', 0)
+        if flt_s < 30.0 and not flt.get('has_valid_flight'):
+            continue
+        y = flt.get('year', 0)
+        if y < 2020 or y > 2030:
+            continue
+        fc = flt.get('fc_name', 'Unknown')
+        if fc in EXCLUDED_FCS:
+            continue
+        valid_flights.append(flt)
+
     # Sort flights newest first
-    flights.sort(key=lambda x: x.get('date_iso', ''), reverse=True)
+    valid_flights.sort(key=lambda x: x.get('date_iso', ''), reverse=True)
 
     # Assign cyclic entry callsign and aeronautical dispatch ticker
-    for idx, flt in enumerate(flights):
+    for idx, flt in enumerate(valid_flights):
         p_letter = PHONETIC_ALPHABET[idx % len(PHONETIC_ALPHABET)]
         flt['logbook_callsign'] = f"LOG {p_letter}"
         flt['atis_callsign'] = p_letter
@@ -1219,32 +1240,84 @@ def get_historical_flight_logbook(folder_path=None, force_refresh=False, max_log
         )
         flt['atis_ticker'] = flt['logbook_ticker']
 
-    # Compute aggregate fleet atmospheric & performance summary
-    total_flt_sec = sum(f.get('flight_time_s', 0) for f in flights)
-    total_dur_sec = sum(f.get('duration_s', 0) for f in flights)
-    valid_flights = [f for f in flights if f.get('has_valid_flight')]
-    
-    oats = [f['oat_mean_c'] for f in flights if 'oat_mean_c' in f]
-    qnhs = [f['qnh_hpa'] for f in flights if 'qnh_hpa' in f]
-    das = [f['density_alt_m'] for f in flights if 'density_alt_m' in f]
-    winds = [f['wind_spd_kt'] for f in flights if 'wind_spd_kt' in f]
-    elevs = [f['elev_m'] for f in flights if 'elev_m' in f and f['elev_m'] > 0]
-    
-    # FC Model distribution
-    fc_breakdown = {}
-    for f in flights:
-        fc_k = f.get('fc_name', 'Unknown')
-        fc_breakdown[fc_k] = fc_breakdown.get(fc_k, 0) + 1
-
     def fmt_cum_dur(s):
         h = int(s // 3600)
         m = int((s % 3600) // 60)
         return f"{h}h {m:02d}m"
+
+    # Group valid flights by Year-Month for atmospheric & wind regime analysis
+    from collections import defaultdict
+    monthly_map = defaultdict(list)
+    for flt in valid_flights:
+        ym = f"{flt['year']}-{flt['month']:02d}"
+        monthly_map[ym].append(flt)
+
+    cardinals = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"]
+    monthly_groups = []
+    for ym in sorted(monthly_map.keys()):
+        m_flts = monthly_map[ym]
+        y, m = int(ym.split('-')[0]), int(ym.split('-')[1])
+        m_label = datetime.date(y, m, 1).strftime('%b %Y')
+        m_name = datetime.date(y, m, 1).strftime('%B %Y')
         
-    valid_dates = [f['date_str'] for f in flights if f.get('date_str')]
+        temps = [f['oat_mean_c'] for f in m_flts if f.get('oat_mean_c') is not None]
+        winds = [f['wind_spd_kt'] for f in m_flts if f.get('wind_spd_kt') is not None]
+        dirs = [f['wind_dir_deg'] for f in m_flts if f.get('wind_dir_deg') is not None and f.get('wind_spd_kt', 0) > 0.5]
+        das = [f['density_alt_m'] for f in m_flts if f.get('density_alt_m') is not None]
+        air_sec = sum(f.get('flight_time_s', 0) for f in m_flts)
+        
+        mean_w_spd = round(sum(winds)/len(winds), 1) if winds else 0.0
+        max_w_spd = round(max(winds), 1) if winds else 0.0
+        
+        if dirs and mean_w_spd > 0.5:
+            sin_sum = sum(math.sin(math.radians(d)) for d in dirs)
+            cos_sum = sum(math.cos(math.radians(d)) for d in dirs)
+            mean_w_dir = round((math.degrees(math.atan2(sin_sum, cos_sum)) + 360.0) % 360.0, 0)
+            card_idx = int(round(mean_w_dir / 22.5)) % 16
+            cardinal_str = f"{int(mean_w_dir):03d}° {cardinals[card_idx]}"
+        else:
+            mean_w_dir = None
+            cardinal_str = "CALM"
+            
+        monthly_groups.append({
+            'year_month': ym,
+            'year': y,
+            'month': m,
+            'month_label': m_label,
+            'month_name': m_name,
+            'flight_count': len(m_flts),
+            'total_airborne_s': round(air_sec, 1),
+            'total_airborne_str': fmt_cum_dur(air_sec),
+            'temp_mean_c': round(sum(temps)/len(temps), 1) if temps else 25.0,
+            'temp_min_c': round(min(temps), 1) if temps else 25.0,
+            'temp_max_c': round(max(temps), 1) if temps else 25.0,
+            'wind_spd_mean_kt': mean_w_spd,
+            'wind_spd_max_kt': max_w_spd,
+            'wind_dir_deg': mean_w_dir,
+            'wind_dir_cardinal': cardinal_str,
+            'density_alt_mean_m': round(sum(das)/len(das), 1) if das else 0.0
+        })
+
+    # Compute aggregate fleet atmospheric & performance summary for valid flights
+    total_flt_sec = sum(f.get('flight_time_s', 0) for f in valid_flights)
+    total_dur_sec = sum(f.get('duration_s', 0) for f in valid_flights)
+    
+    oats = [f['oat_mean_c'] for f in valid_flights if 'oat_mean_c' in f]
+    qnhs = [f['qnh_hpa'] for f in valid_flights if 'qnh_hpa' in f]
+    das = [f['density_alt_m'] for f in valid_flights if 'density_alt_m' in f]
+    winds = [f['wind_spd_kt'] for f in valid_flights if 'wind_spd_kt' in f]
+    elevs = [f['elev_m'] for f in valid_flights if 'elev_m' in f and f['elev_m'] > 0]
+    
+    # FC Model distribution across valid flights
+    fc_breakdown = {}
+    for f in valid_flights:
+        fc_k = f.get('fc_name', 'Unknown')
+        fc_breakdown[fc_k] = fc_breakdown.get(fc_k, 0) + 1
+        
+    valid_dates = [f['date_str'] for f in valid_flights if f.get('date_str')]
         
     summary = {
-        'total_logs': len(flights),
+        'total_logs': len(valid_flights),
         'total_repository_logs': len(found_paths),
         'valid_flights_count': len(valid_flights),
         'total_airborne_time': fmt_cum_dur(total_flt_sec),
@@ -1271,7 +1344,8 @@ def get_historical_flight_logbook(folder_path=None, force_refresh=False, max_log
         'success': True,
         'folder': folder_path,
         'summary': summary,
-        'flights': flights
+        'flights': valid_flights,
+        'monthly_groups': monthly_groups
     }
 
 # Backwards compatibility aliases
