@@ -3563,6 +3563,81 @@
             }
         }
 
+        /* Logbook Mode Layout Adjustments */
+        body.atis-mode-active #workspace {
+            height: calc(100vh - var(--header-h)) !important;
+        }
+        body.atis-mode-active #bottom-playback-bar {
+            display: none !important;
+        }
+        #sidebar-logbook-content {
+            background: var(--av-panel-bg);
+        }
+        [data-theme="light-clean"] #sidebar-logbook-content {
+            background: #ffffff;
+            color: #0f172a;
+        }
+        [data-theme="light-clean"] #sidebar-logbook-content .sidebar-section {
+            background: #f8fafc;
+            border-color: #e2e8f0;
+        }
+        [data-theme="light-clean"] #sidebar-atis-folder-input,
+        [data-theme="light-clean"] #sidebar-atis-search-input {
+            background: #ffffff;
+            border-color: #cbd5e1;
+            color: #0f172a;
+        }
+        .active-filter-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 8px;
+            background: rgba(56, 189, 248, 0.15);
+            border: 1px solid rgba(56, 189, 248, 0.4);
+            border-radius: 4px;
+            color: #38bdf8;
+            font-size: 9.5px;
+            cursor: pointer;
+            transition: all 0.12s ease;
+        }
+        .active-filter-chip:hover {
+            background: rgba(239, 68, 68, 0.18);
+            border-color: #ef4444;
+            color: #ef4444;
+        }
+        .active-filter-chip .chip-remove {
+            font-weight: 700;
+            margin-left: 2px;
+        }
+        .btn-clear-all-chips {
+            background: transparent;
+            border: 1px dashed #64748b;
+            color: #94a3b8;
+            padding: 2px 7px;
+            border-radius: 4px;
+            font-size: 9px;
+            font-family: 'B612 Mono', monospace;
+            cursor: pointer;
+        }
+        .btn-clear-all-chips:hover {
+            color: #ffffff;
+            border-color: #ef4444;
+            background: rgba(239, 68, 68, 0.2);
+        }
+        [data-theme="light-clean"] .active-filter-chip {
+            background: #e0f2fe;
+            border-color: #0284c7;
+            color: #0369a1;
+        }
+        [data-theme="light-clean"] .active-filter-chip:hover {
+            background: #fee2e2;
+            border-color: #dc2626;
+            color: #dc2626;
+        }
+        [data-theme="light-clean"] .btn-clear-all-chips {
+            border-color: #94a3b8;
+            color: #475569;
+        }
     </style>
     <script>
         window.onSitlIframeLoaded = function(){};
@@ -3729,6 +3804,8 @@
         <!-- Left Sidebar: UAV Log Viewer Message & Field Selector -->
                 <!-- Left Sidebar: Telemetry Matrix & Channel Selector -->
         <div id="sidebar">
+            <!-- Single-Log Telemetry Content (Active in SITL / Map Mode) -->
+            <div id="sidebar-telemetry-content" style="display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden;">
             <!-- Current File & Action Buttons -->
             <div class="uav-file-action-bar">
                 <div class="uav-file-title-line">Current file: <span id="uav-current-file-label">Loading log...</span></div>
@@ -3803,6 +3880,94 @@
                     <div id="message-tree" style="flex: 1; overflow-y: auto;"></div>
                     <div id="parameters-tree" style="flex: 1; overflow-y: auto; display: none;"></div>
                 </div>
+            </div>
+            </div> <!-- /sidebar-telemetry-content -->
+
+            <!-- Dedicated Flight Logbook & Fleet Filter Console -->
+            <div id="sidebar-logbook-content" style="display: none; flex-direction: column; flex: 1; min-height: 0; overflow-y: auto; padding: 12px 10px 24px 10px; gap: 10px; box-sizing: border-box;">
+                
+                <!-- 1. Header & Reset Bar -->
+                <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px; border-bottom: 1px solid var(--av-border);">
+                    <div>
+                        <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.8px; color: #38bdf8; text-transform: uppercase;">LOGBOOK FILTERS</div>
+                        <div style="font-size: 9px; color: #64748b; font-family: 'B612 Mono', monospace;">AERONAUTICAL FLEET ARCHIVE</div>
+                    </div>
+                    <button type="button" class="uav-pill-action-btn" onclick="resetAllAtisFilters()" style="font-size: 9.5px; padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(56, 189, 248, 0.35); color: #38bdf8;" title="Reset all filters to show complete fleet archive">RESET ALL</button>
+                </div>
+
+                <!-- 2. Search Input -->
+                <div style="position: relative;">
+                    <input type="text" id="sidebar-atis-search-input" class="atis-input-search" placeholder="Search bird, FC, date..." oninput="filterAtisTable(this.value)" style="width: 100%; box-sizing: border-box; font-size: 11px; padding: 6px 10px; border-radius: 4px; background: rgba(0, 0, 0, 0.3); border: 1px solid var(--av-border); color: #e2e8f0; font-family: 'B612 Mono', monospace;" />
+                </div>
+
+                <!-- 3. Repository & Quick Actions -->
+                <div class="sidebar-section" style="background: rgba(15, 23, 42, 0.4); border: 1px solid var(--av-border); border-radius: 5px; padding: 8px; margin: 0;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <span style="font-size: 9.5px; font-weight: 700; color: #64748b; letter-spacing: 0.5px;">LOGS REPOSITORY</span>
+                        <span id="sidebar-stat-log-count" style="font-size: 9.5px; font-weight: 700; color: #22c55e; font-family: 'B612 Mono', monospace;">618 LOGS</span>
+                    </div>
+                    <input type="text" id="sidebar-atis-folder-input" class="atis-input-path" placeholder="C:\\Users\\KARSHAK_Tamal\\Desktop\\Logs" readonly style="width: 100%; box-sizing: border-box; font-size: 9.5px; margin-bottom: 6px; padding: 5px 6px; background: rgba(0, 0, 0, 0.35); border: 1px solid var(--av-border); color: #94a3b8; font-family: 'B612 Mono', monospace;" />
+                    <div style="display: flex; gap: 6px; margin-bottom: 8px;">
+                        <button type="button" class="btn atis-btn" onclick="browseAtisFolder()" style="flex: 1; padding: 4px 6px; font-size: 10px; font-weight: 600;">BROWSE...</button>
+                        <button type="button" class="btn atis-btn atis-btn-primary" onclick="rescanAtisDatabase(true)" style="flex: 1.2; padding: 4px 6px; font-size: 10px; font-weight: 700;">RESCAN</button>
+                    </div>
+                    <button type="button" class="btn atis-btn atis-btn-print" onclick="printAtisReport()" style="width: 100%; box-sizing: border-box; padding: 6px 10px; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px; background: rgba(56, 189, 248, 0.12); border: 1px solid #38bdf8; color: #38bdf8;" title="Print or export A4 academic flight report">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                        EXPORT A4 REPORT
+                    </button>
+                </div>
+
+                <!-- 4. Quick Fleet Metrics Badges -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-family: 'B612 Mono', monospace;">
+                    <div style="background: rgba(15, 23, 42, 0.4); border: 1px solid var(--av-border); border-radius: 4px; padding: 6px 8px;">
+                        <div style="color: #64748b; font-size: 8px; font-weight: 700; letter-spacing: 0.5px;">TOTAL AIRBORNE</div>
+                        <div id="sidebar-stat-airborne-time" style="color: #22c55e; font-weight: 700; font-size: 11px; margin-top: 2px;">101h 11m</div>
+                    </div>
+                    <div style="background: rgba(15, 23, 42, 0.4); border: 1px solid var(--av-border); border-radius: 4px; padding: 6px 8px;">
+                        <div style="color: #64748b; font-size: 8px; font-weight: 700; letter-spacing: 0.5px;">MEAN DA / ELEV</div>
+                        <div id="sidebar-stat-avg-da" style="color: #38bdf8; font-weight: 700; font-size: 11px; margin-top: 2px;">1075m</div>
+                    </div>
+                </div>
+
+                <!-- 5. Airframe / Bird Name Filter Section -->
+                <div class="sidebar-section" style="border: 1px solid var(--av-border); border-radius: 5px; padding: 8px 10px; margin: 0;">
+                    <div class="uav-collapsible-title" onclick="toggleUavSection('sidebar-bird-filter-wrapper', this)" style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none;">
+                        <span style="font-size: 10px; font-weight: 700; color: #38bdf8; letter-spacing: 0.5px;">BIRD / AIRFRAME</span>
+                        <span class="uav-caret">&#9662;</span>
+                    </div>
+                    <div id="sidebar-bird-filter-wrapper" style="margin-top: 8px;">
+                        <div class="fc-filter-tabs-bar bird-filter-tabs-bar" id="bird-filter-tabs-bar" style="display: flex; flex-direction: column; gap: 4px; border: none; padding: 0;">
+                            <!-- Bird buttons rendered here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 6. Year & Season Section -->
+                <div class="sidebar-section" style="border: 1px solid var(--av-border); border-radius: 5px; padding: 8px 10px; margin: 0;">
+                    <div class="uav-collapsible-title" onclick="toggleUavSection('sidebar-year-filter-wrapper', this)" style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none;">
+                        <span style="font-size: 10px; font-weight: 700; color: #38bdf8; letter-spacing: 0.5px;">YEAR & SEASON</span>
+                        <span class="uav-caret">&#9662;</span>
+                    </div>
+                    <div id="sidebar-year-filter-wrapper" style="margin-top: 8px;">
+                        <div class="fc-filter-tabs-bar year-filter-tabs-bar" id="year-filter-tabs-bar" style="display: flex; flex-direction: column; gap: 4px; border: none; padding: 0;">
+                            <!-- Year buttons rendered here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 7. Flight Controller Hardware (FC) Section -->
+                <div class="sidebar-section" style="border: 1px solid var(--av-border); border-radius: 5px; padding: 8px 10px; margin: 0;">
+                    <div class="uav-collapsible-title" onclick="toggleUavSection('sidebar-fc-filter-wrapper', this)" style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none;">
+                        <span style="font-size: 10px; font-weight: 700; color: #38bdf8; letter-spacing: 0.5px;">FC HARDWARE</span>
+                        <span class="uav-caret">&#9662;</span>
+                    </div>
+                    <div id="sidebar-fc-filter-wrapper" style="margin-top: 8px;">
+                        <div class="fc-filter-tabs-bar" id="fc-filter-tabs-bar" style="display: flex; flex-direction: column; gap: 4px; border: none; padding: 0;">
+                            <!-- FC buttons rendered here -->
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
 
@@ -3965,22 +4130,10 @@
                             </div>
                         </div>
 
-                        <!-- Flight Controller Hardware Interactive Filter Tabs (Screen Only) -->
-                        <div class="fc-filter-tabs-bar atis-no-print" id="fc-filter-tabs-bar">
-                            <span style="font-size: 9px; font-weight: 700; color: #64748b; letter-spacing: 0.5px; margin-right: 4px;">FC FILTER:</span>
-                            <button class="fc-tab-btn active" onclick="setFcFilter('ALL')">ALL FC (INDEXING...)</button>
-                        </div>
-
-                        <!-- Year Filter Tabs Bar (Screen Only) -->
-                        <div class="fc-filter-tabs-bar year-filter-tabs-bar atis-no-print" id="year-filter-tabs-bar">
-                            <span style="font-size: 9px; font-weight: 700; color: #64748b; letter-spacing: 0.5px; margin-right: 4px;">YEAR GROUP:</span>
-                            <button class="fc-tab-btn active" onclick="setYearFilter('ALL')">ALL YEARS</button>
-                        </div>
-
-                        <!-- Bird Name Filter Tabs Bar (Screen Only) -->
-                        <div class="fc-filter-tabs-bar bird-filter-tabs-bar atis-no-print" id="bird-filter-tabs-bar">
-                            <span style="font-size: 9px; font-weight: 700; color: #64748b; letter-spacing: 0.5px; margin-right: 4px;">BIRD FILTER:</span>
-                            <button class="fc-tab-btn active" onclick="setBirdFilter('ALL')">ALL BIRDS</button>
+                        <!-- Active Filter Chips Bar (Shown only when filtered, with 1-click removal) -->
+                        <div id="atis-active-filters-bar" class="atis-no-print" style="display: none; padding: 7px 14px; gap: 8px; align-items: center; background: rgba(15, 23, 42, 0.4); border-bottom: 1px solid var(--av-border); font-size: 10px; font-family: 'B612 Mono', monospace;">
+                            <span style="color: #64748b; font-weight: 700; font-size: 9.5px; letter-spacing: 0.5px;">ACTIVE FILTERS:</span>
+                            <div id="atis-active-filter-chips" style="display: inline-flex; gap: 6px; flex-wrap: wrap; align-items: center;"></div>
                         </div>
 
                         <div class="atis-table-wrapper">
@@ -4499,19 +4652,42 @@
             const btnMap = document.getElementById('btn-view-map');
             const btnAtis = document.getElementById('btn-view-atis');
 
+            const telemetrySidebar = document.getElementById('sidebar-telemetry-content');
+            const logbookSidebar = document.getElementById('sidebar-logbook-content');
+            const bottomBar = document.getElementById('bottom-playback-bar');
+            const btnToggleSidebar = document.getElementById('btn-toggle-sidebar');
+
             if (btnSitl) btnSitl.classList.remove('active');
             if (btnMap) btnMap.classList.remove('active');
             if (btnAtis) btnAtis.classList.remove('active');
 
             if (mode === 'sitl') {
+                document.body.classList.remove('atis-mode-active');
                 if (btnSitl) btnSitl.classList.add('active');
                 if (sitlPane) sitlPane.style.display = 'block';
                 if (mapPane) mapPane.style.display = 'none';
                 if (atisPane) atisPane.style.display = 'none';
+                if (bottomBar) bottomBar.style.display = 'flex';
+                if (telemetrySidebar) telemetrySidebar.style.display = 'flex';
+                if (logbookSidebar) logbookSidebar.style.display = 'none';
+                if (btnToggleSidebar) {
+                    const span = btnToggleSidebar.querySelector('span');
+                    if (span) span.textContent = 'CHANNELS';
+                    btnToggleSidebar.title = 'Toggle Telemetry Channels & Signal Tree';
+                }
             } else if (mode === 'map') {
+                document.body.classList.remove('atis-mode-active');
                 if (btnMap) btnMap.classList.add('active');
                 if (sitlPane) sitlPane.style.display = 'none';
                 if (atisPane) atisPane.style.display = 'none';
+                if (bottomBar) bottomBar.style.display = 'flex';
+                if (telemetrySidebar) telemetrySidebar.style.display = 'flex';
+                if (logbookSidebar) logbookSidebar.style.display = 'none';
+                if (btnToggleSidebar) {
+                    const span = btnToggleSidebar.querySelector('span');
+                    if (span) span.textContent = 'CHANNELS';
+                    btnToggleSidebar.title = 'Toggle Telemetry Channels & Signal Tree';
+                }
                 if (mapPane) {
                     mapPane.style.display = 'block';
                     mapPane.style.width = '100%';
@@ -4524,14 +4700,26 @@
                     }, 80);
                 }
             } else if (mode === 'atis') {
+                document.body.classList.add('atis-mode-active');
                 if (btnAtis) btnAtis.classList.add('active');
                 if (sitlPane) sitlPane.style.display = 'none';
                 if (mapPane) mapPane.style.display = 'none';
+                if (bottomBar) bottomBar.style.display = 'none';
+                if (telemetrySidebar) telemetrySidebar.style.display = 'none';
+                if (logbookSidebar) logbookSidebar.style.display = 'flex';
+                if (btnToggleSidebar) {
+                    const span = btnToggleSidebar.querySelector('span');
+                    if (span) span.textContent = 'FILTERS';
+                    btnToggleSidebar.title = 'Toggle Logbook Filters & Search Sidebar';
+                }
                 if (atisPane) {
                     atisPane.style.display = 'flex';
                     if (!atisGlobalData) {
                         loadHistoricalAtisData();
                     } else {
+                        renderFcFilterTabs(atisGlobalData.flights || []);
+                        renderYearFilterTabs(atisGlobalData.flights || []);
+                        renderBirdFilterTabs(atisGlobalData.flights || []);
                         setTimeout(() => {
                             Plotly.Plots.resize('chart-atis-density-temp');
                             Plotly.Plots.resize('chart-atis-wind-energy');
@@ -4628,6 +4816,59 @@
             });
         }
 
+        function updateActiveFilterChips() {
+            const bar = document.getElementById('atis-active-filters-bar');
+            const container = document.getElementById('atis-active-filter-chips');
+            if (!bar || !container) return;
+
+            const chips = [];
+            if (activeBirdFilter && activeBirdFilter !== 'ALL') {
+                chips.push(`<span class="active-filter-chip" onclick="setBirdFilter('ALL')">BIRD: <strong>${escapeHtml(activeBirdFilter)}</strong> <span class="chip-remove">✕</span></span>`);
+            }
+            if (activeYearFilter && activeYearFilter !== 'ALL') {
+                chips.push(`<span class="active-filter-chip" onclick="setYearFilter('ALL')">YEAR: <strong>${escapeHtml(activeYearFilter)}</strong> <span class="chip-remove">✕</span></span>`);
+            }
+            if (activeMonthFilter && activeMonthFilter !== 'ALL') {
+                const ymParts = activeMonthFilter.split('-');
+                const mDate = new Date(Date.UTC(parseInt(ymParts[0]), parseInt(ymParts[1]) - 1, 1));
+                const mLabel = mDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' });
+                chips.push(`<span class="active-filter-chip" onclick="setMonthFilter('ALL')">MONTH: <strong>${escapeHtml(mLabel)}</strong> <span class="chip-remove">✕</span></span>`);
+            }
+            if (activeFcFilter && activeFcFilter !== 'ALL') {
+                chips.push(`<span class="active-filter-chip" onclick="setFcFilter('ALL')">FC: <strong>${escapeHtml(activeFcFilter)}</strong> <span class="chip-remove">✕</span></span>`);
+            }
+            if (atisFilterQuery.trim() !== '') {
+                chips.push(`<span class="active-filter-chip" onclick="filterAtisTable('')">SEARCH: <strong>"${escapeHtml(atisFilterQuery.trim())}"</strong> <span class="chip-remove">✕</span></span>`);
+            }
+
+            if (chips.length > 0) {
+                chips.push(`<button type="button" class="btn-clear-all-chips" onclick="resetAllAtisFilters()">CLEAR ALL</button>`);
+                container.innerHTML = chips.join('');
+                bar.style.display = 'flex';
+            } else {
+                container.innerHTML = '';
+                bar.style.display = 'none';
+            }
+        }
+
+        function resetAllAtisFilters() {
+            activeFcFilter = 'ALL';
+            activeYearFilter = 'ALL';
+            activeMonthFilter = 'ALL';
+            activeBirdFilter = 'ALL';
+            atisFilterQuery = '';
+            const s1 = document.getElementById('sidebar-atis-search-input');
+            if (s1) s1.value = '';
+            const s2 = document.getElementById('atis-search-input');
+            if (s2) s2.value = '';
+            renderFcFilterTabs(atisGlobalData ? atisGlobalData.flights : []);
+            renderYearFilterTabs(atisGlobalData ? atisGlobalData.flights : []);
+            renderBirdFilterTabs(atisGlobalData ? atisGlobalData.flights : []);
+            updateActiveFilterChips();
+            renderAtisTable();
+            renderAtisCharts();
+        }
+
         function renderFcFilterTabs(flights) {
             const container = document.getElementById('fc-filter-tabs-bar');
             if (!container || !flights) return;
@@ -4638,17 +4879,24 @@
                 counts[fc] = (counts[fc] || 0) + 1;
             });
 
-            let html = `<span style="font-size: 9px; font-weight: 700; color: #64748b; letter-spacing: 0.5px; margin-right: 4px;">FC FILTER:</span>`;
             const fcs = Object.keys(counts).filter(k => k !== 'ALL').sort((a,b) => counts[b] - counts[a]);
             const allKeys = ['ALL', ...fcs];
 
+            let html = '';
             allKeys.forEach(k => {
                 const isActive = (activeFcFilter === k);
-                const label = k === 'ALL' ? `ALL FC (${counts[k]})` : `${k} (${counts[k]})`;
-                html += `<button class="fc-tab-btn ${isActive ? 'active' : ''}" onclick="setFcFilter('${k}')">${label}</button>`;
+                const count = counts[k] || 0;
+                const displayName = k === 'ALL' ? 'ALL FC' : k;
+                html += `
+                    <button type="button" class="fc-tab-btn ${isActive ? 'active' : ''}" onclick="setFcFilter('${escapeHtml(k)}')" style="display: flex; justify-content: space-between; align-items: center; width: 100%; text-align: left; margin: 0; padding: 5px 8px; font-size: 10.5px; border-radius: 4px;">
+                        <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 185px;">${escapeHtml(displayName)}</span>
+                        <span class="tab-count-badge" style="font-size: 9.5px; opacity: 0.85; font-family: 'B612 Mono', monospace; font-weight: 700;">${count}</span>
+                    </button>
+                `;
             });
 
             container.innerHTML = html;
+            updateActiveFilterChips();
         }
 
         function renderYearFilterTabs(flights) {
@@ -4669,24 +4917,33 @@
                 counts[y] = (counts[y] || 0) + 1;
             });
 
-            let html = `<span style="font-size: 9px; font-weight: 700; color: #64748b; letter-spacing: 0.5px; margin-right: 4px;">YEAR GROUP:</span>`;
             const years = Object.keys(counts).filter(k => k !== 'ALL').sort((a,b) => b - a);
             const allKeys = ['ALL', ...years];
 
-            allKeys.forEach(k => {
+            let html = '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; width: 100%;">';
+            allKeys.forEach((k) => {
                 const isActive = (activeYearFilter === k && activeMonthFilter === 'ALL');
-                const label = k === 'ALL' ? `ALL YEARS (${counts[k]})` : `${k} (${counts[k]})`;
-                html += `<button class="fc-tab-btn ${isActive ? 'active' : ''}" onclick="setYearFilter('${k}')">${label}</button>`;
+                const count = counts[k] || 0;
+                const displayName = k === 'ALL' ? 'ALL YEARS' : k;
+                const gridSpan = (k === 'ALL') ? 'grid-column: span 2;' : '';
+                html += `
+                    <button type="button" class="fc-tab-btn ${isActive ? 'active' : ''}" onclick="setYearFilter('${escapeHtml(k)}')" style="${gridSpan} display: flex; justify-content: space-between; align-items: center; width: 100%; text-align: left; margin: 0; padding: 4px 7px; font-size: 10px; border-radius: 4px;">
+                        <span>${escapeHtml(displayName)}</span>
+                        <span class="tab-count-badge" style="font-size: 9px; opacity: 0.85; font-family: 'B612 Mono', monospace; font-weight: 700;">${count}</span>
+                    </button>
+                `;
             });
+            html += '</div>';
 
             if (activeMonthFilter !== 'ALL') {
                 const ymParts = activeMonthFilter.split('-');
                 const mDate = new Date(Date.UTC(parseInt(ymParts[0]), parseInt(ymParts[1]) - 1, 1));
                 const mLabel = mDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' });
-                html += `<button class="fc-tab-btn active" onclick="setMonthFilter('ALL')" style="background:#f59e0b; color:#040810; border-color:#f59e0b; font-weight:700;" title="Click to clear month filter">MONTH: ${mLabel.toUpperCase()} ✕</button>`;
+                html += `<button type="button" class="fc-tab-btn active" onclick="setMonthFilter('ALL')" style="width: 100%; background:#f59e0b; color:#040810; border-color:#f59e0b; font-weight:700; display:flex; justify-content:space-between; align-items:center; padding: 4px 8px; font-size: 10px; margin-top: 4px; border-radius: 4px;" title="Click to clear month filter"><span>MONTH: ${mLabel.toUpperCase()}</span> <span>✕</span></button>`;
             }
 
             container.innerHTML = html;
+            updateActiveFilterChips();
         }
 
         function renderBirdFilterTabs(flights) {
@@ -4707,17 +4964,24 @@
                 counts[b] = (counts[b] || 0) + 1;
             });
 
-            let html = `<span style="font-size: 9px; font-weight: 700; color: #64748b; letter-spacing: 0.5px; margin-right: 4px;">BIRD FILTER:</span>`;
             const birds = Object.keys(counts).filter(k => k !== 'ALL').sort((a,b) => counts[b] - counts[a]);
             const allKeys = ['ALL', ...birds];
 
+            let html = '';
             allKeys.forEach(k => {
                 const isActive = (activeBirdFilter === k);
-                const label = k === 'ALL' ? `ALL BIRDS (${counts[k]})` : `${k} (${counts[k]})`;
-                html += `<button class="fc-tab-btn ${isActive ? 'active' : ''}" onclick="setBirdFilter('${k.replace(/'/g, "\\'")}')">${label}</button>`;
+                const count = counts[k] || 0;
+                const displayName = k === 'ALL' ? 'ALL BIRDS' : k;
+                html += `
+                    <button type="button" class="fc-tab-btn ${isActive ? 'active' : ''}" onclick="setBirdFilter('${escapeHtml(k)}')" style="display: flex; justify-content: space-between; align-items: center; width: 100%; text-align: left; margin: 0; padding: 5px 8px; font-size: 10.5px; border-radius: 4px;">
+                        <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 185px;">${escapeHtml(displayName)}</span>
+                        <span class="tab-count-badge" style="font-size: 9.5px; opacity: 0.85; font-family: 'B612 Mono', monospace; font-weight: 700;">${count}</span>
+                    </button>
+                `;
             });
 
             container.innerHTML = html;
+            updateActiveFilterChips();
         }
 
         function setFcFilter(fcName) {
@@ -4725,6 +4989,7 @@
             renderFcFilterTabs(atisGlobalData ? atisGlobalData.flights : []);
             renderYearFilterTabs(atisGlobalData ? atisGlobalData.flights : []);
             renderBirdFilterTabs(atisGlobalData ? atisGlobalData.flights : []);
+            updateActiveFilterChips();
             renderAtisTable();
             renderAtisCharts();
         }
@@ -4734,6 +4999,7 @@
             activeMonthFilter = 'ALL';
             renderYearFilterTabs(atisGlobalData ? atisGlobalData.flights : []);
             renderBirdFilterTabs(atisGlobalData ? atisGlobalData.flights : []);
+            updateActiveFilterChips();
             renderAtisTable();
             renderAtisCharts();
         }
@@ -4741,6 +5007,7 @@
         function setBirdFilter(birdName) {
             activeBirdFilter = birdName;
             renderBirdFilterTabs(atisGlobalData ? atisGlobalData.flights : []);
+            updateActiveFilterChips();
             renderAtisTable();
             renderAtisCharts();
         }
@@ -4752,6 +5019,7 @@
             }
             renderYearFilterTabs(atisGlobalData ? atisGlobalData.flights : []);
             renderBirdFilterTabs(atisGlobalData ? atisGlobalData.flights : []);
+            updateActiveFilterChips();
             renderAtisTable();
             renderAtisCharts();
             if (ym !== 'ALL') {
@@ -4807,10 +5075,24 @@
                 const counterBadge = document.getElementById('table-flight-counter');
                 const printMetaDate = document.getElementById('atis-print-meta-date');
 
-                if (statCount) statCount.textContent = data.summary.total_logs;
-                if (statAirborne) statAirborne.textContent = data.summary.total_airborne_time;
-                if (statAvgDa) statAvgDa.textContent = `${data.summary.density_alt_mean_m}m`;
-                if (counterBadge) counterBadge.textContent = `${data.summary.total_logs} FLIGHTS INDEXED`;
+                const totalLogs = data.summary.valid_flights_count || data.summary.total_logs;
+                const totalAir = data.summary.total_airborne_time || '--';
+                const meanDa = `${Math.round(data.summary.density_alt_mean_m || 0)}m`;
+
+                const sFolderInput = document.getElementById('sidebar-atis-folder-input');
+                const sStatCount = document.getElementById('sidebar-stat-log-count');
+                const sStatAir = document.getElementById('sidebar-stat-airborne-time');
+                const sStatAvgDa = document.getElementById('sidebar-stat-avg-da');
+
+                if (statCount) statCount.textContent = totalLogs;
+                if (statAirborne) statAirborne.textContent = totalAir;
+                if (statAvgDa) statAvgDa.textContent = meanDa;
+                if (counterBadge) counterBadge.textContent = `${totalLogs} FLIGHTS INDEXED`;
+
+                if (sFolderInput) sFolderInput.value = data.folder || savedFolder;
+                if (sStatCount) sStatCount.textContent = `${totalLogs} LOGS`;
+                if (sStatAir) sStatAir.textContent = totalAir;
+                if (sStatAvgDa) sStatAvgDa.textContent = meanDa;
                 if (printMetaDate) {
                     const now = new Date();
                     printMetaDate.textContent = `GENERATED: ${now.toISOString().replace('T', ' ').substr(0, 19)} UTC | REPO: ${data.folder}`;
@@ -5058,7 +5340,13 @@
 
         function filterAtisTable(val) {
             atisFilterQuery = val || '';
+            const s1 = document.getElementById('sidebar-atis-search-input');
+            if (s1 && s1.value !== atisFilterQuery) s1.value = atisFilterQuery;
+            const s2 = document.getElementById('atis-search-input');
+            if (s2 && s2.value !== atisFilterQuery) s2.value = atisFilterQuery;
+            updateActiveFilterChips();
             renderAtisTable();
+            renderAtisCharts();
         }
 
         function sortAtisTable(colKey) {
@@ -5073,6 +5361,7 @@
 
         function loadAtisFlight(filepath) {
             loadLogByPath(filepath);
+            setViewMode('sitl');
         }
 
         async function browseAtisFolder() {
@@ -5085,6 +5374,8 @@
                     localStorage.setItem('sharkee_atis_folder', data.path);
                     const folderInput = document.getElementById('atis-folder-input');
                     if (folderInput) folderInput.value = data.path;
+                    const sFolderInput = document.getElementById('sidebar-atis-folder-input');
+                    if (sFolderInput) sFolderInput.value = data.path;
                     loadHistoricalAtisData(true);
                 }
             } catch (e) {
