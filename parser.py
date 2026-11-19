@@ -1510,11 +1510,12 @@ def get_historical_flight_logbook(folder_path=None, force_refresh=False, max_log
     # Sort flights newest first
     valid_flights.sort(key=lambda x: x.get('date_iso', ''), reverse=True)
 
-    # Assign cyclic entry callsign and aeronautical dispatch ticker
+    # Assign sequential flight numbers and aeronautical dispatch ticker
     for idx, flt in enumerate(valid_flights):
-        p_letter = PHONETIC_ALPHABET[idx % len(PHONETIC_ALPHABET)]
-        flt['logbook_callsign'] = f"LOG {p_letter}"
-        flt['atis_callsign'] = p_letter
+        flt_num = idx + 1
+        flt['flight_num'] = flt_num
+        flt['logbook_callsign'] = f"FLIGHT #{flt_num}"
+        flt['atis_callsign'] = str(flt_num)
         
         # Build standard Aeronautical Weather & Flight Telemetry Dispatch Ticker
         d_utc = flt.get('date_str', '').split(' ')[1].replace(':', '')[:4] if ' ' in flt.get('date_str', '') else '1200'
@@ -1534,7 +1535,7 @@ def get_historical_flight_logbook(folder_path=None, force_refresh=False, max_log
         elev_val = flt.get('elev_str', f"{flt.get('elev_m', 0):.0f}m AMSL")
         
         flt['logbook_ticker'] = (
-            f"SHARKEE FLIGHT LOG & METEOROLOGICAL DISPATCH · ENTRY {p_letter} · {zulu_time} · "
+            f"SHARKEE FLIGHT LOG & METEOROLOGICAL DISPATCH · FLIGHT #{flt_num} · {zulu_time} · "
             f"BIRD: {bird_val} · FC: {fc_val} · FIELD ELEV {elev_val} · "
             f"WIND {w_dir}/{w_kt}KT · VIS 10KM+ · CLR · "
             f"TEMP {oat_str} · QNH {qnh_val:.1f} HPA · DENSITY ALT {da_val:.0f}M ({da_ft_val}FT) · "

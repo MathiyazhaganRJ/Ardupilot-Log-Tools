@@ -3005,7 +3005,7 @@
 
         .atis-plotly-container {
             width: 100%;
-            height: 200px;
+            height: 240px;
         }
 
         /* Table Card */
@@ -3174,13 +3174,16 @@
 
         .atis-tag-callsign {
             display: inline-block;
-            padding: 1px 5px;
-            border-radius: 3px;
-            font-weight: 700;
-            font-size: 9px;
+            padding: 2px 7px;
+            border-radius: 4px;
+            font-weight: 800;
+            font-size: 10px;
             background: rgba(34, 197, 94, 0.15);
             color: #4ade80;
             border: 1px solid rgba(34, 197, 94, 0.3);
+            min-width: 24px;
+            text-align: center;
+            font-family: 'JetBrains Mono', 'B612 Mono', monospace;
         }
 
         .tag-fc-name {
@@ -4858,7 +4861,7 @@
                             <table class="atis-table" id="atis-table">
                                 <thead>
                                     <tr>
-                                        <th onclick="sortAtisTable('callsign')">REF</th>
+                                        <th onclick="sortAtisTable('flight_num')" style="width: 48px; text-align: center;">#</th>
                                         <th onclick="sortAtisTable('bird_name')">BIRD NAME</th>
                                         <th onclick="sortAtisTable('weight')">FLYING WEIGHT</th>
                                         <th onclick="sortAtisTable('battery')">BATTERY TYPE</th>
@@ -5932,8 +5935,15 @@
                 renderBatteryFilterTabs(data.flights || []);
                 renderWeightFilterTabs(data.flights || []);
 
-                // Default active flight to the newest one
+                // Ensure numeric flight numbering for all flights
                 if (data.flights && data.flights.length > 0) {
+                    data.flights.forEach((f, idx) => {
+                        if (!f.flight_num || isNaN(f.flight_num)) {
+                            f.flight_num = idx + 1;
+                        }
+                        f.atis_callsign = String(f.flight_num);
+                        f.logbook_callsign = `FLIGHT #${f.flight_num}`;
+                    });
                     setActiveAtisFlight(data.flights[0], false);
                 }
 
@@ -6028,6 +6038,7 @@
                     (f.date_str && f.date_str.toLowerCase().includes(q)) ||
                     (f.fc_name && f.fc_name.toLowerCase().includes(q)) ||
                     (f.board && f.board.toLowerCase().includes(q)) ||
+                    (f.flight_num && String(f.flight_num).includes(q)) ||
                     (f.atis_callsign && f.atis_callsign.toLowerCase().includes(q)) ||
                     (f.oat_mean_c && f.oat_mean_c.toString().includes(q)) ||
                     (f.density_alt_m && f.density_alt_m.toString().includes(q)) ||
@@ -6156,7 +6167,7 @@
 
                     html += `
                         <tr class="${isActive ? 'active-row' : ''}" data-filename="${f.filename}" onclick="onAtisRowClicked('${f.filename}')">
-                            <td><span class="atis-tag-callsign" title="${f.filename}">${f.atis_callsign || 'ALPHA'}</span></td>
+                            <td><span class="atis-tag-callsign" title="${f.filename}">${f.flight_num || (f.atis_callsign && !isNaN(f.atis_callsign) ? f.atis_callsign : 1)}</span></td>
                             <td>
                                 <span class="tag-bird-name" onclick="event.stopPropagation(); openBirdNameModal('${f.filepath.replace(/\\/g, '\\\\')}', '${escapeHtml(birdDisp)}', '${escapeHtml(fcDisp)}', '${escapeHtml(f.filename)}')" title="Click to rename bird or assign airframe label">
                                     ${escapeHtml(birdDisp)}
@@ -6343,7 +6354,7 @@
             const fcName = flight.fc_name || 'MatekF405-TE';
             const cleanDate = flight.date_str ? flight.date_str.replace(' UTC', '') : 'N/A';
 
-            document.getElementById('notes-banner-callsign').textContent = flight.atis_callsign || 'FLIGHT';
+            document.getElementById('notes-banner-callsign').textContent = flight.flight_num ? `FLIGHT #${flight.flight_num}` : (flight.atis_callsign || 'FLIGHT');
             document.getElementById('notes-banner-logname').textContent = flight.filename || '--';
             document.getElementById('notes-banner-bird').textContent = birdName;
             document.getElementById('notes-banner-fc').textContent = fcName;
@@ -6820,13 +6831,15 @@
             const layout1 = {
                 paper_bgcolor: bgColor,
                 plot_bgcolor: bgColor,
-                font: { family: 'B612 Mono, monospace', size: 9, color: fontColor },
-                margin: { l: 45, r: 25, t: 15, b: 35 },
+                font: { family: 'JetBrains Mono, B612 Mono, monospace', size: 9, color: fontColor },
+                margin: { l: 45, r: 25, t: 15, b: 65 },
                 legend: { orientation: 'h', x: 0, y: 1.15, font: { size: 9 } },
                 xaxis: {
                     showgrid: true,
                     gridcolor: gridColor,
-                    tickfont: { size: 8.5 }
+                    tickangle: -45,
+                    automargin: true,
+                    tickfont: { size: 9, family: 'JetBrains Mono, B612 Mono, monospace', color: fontColor }
                 },
                 yaxis: {
                     title: 'Temperature (°C)',
@@ -6882,13 +6895,15 @@
             const layout2 = {
                 paper_bgcolor: bgColor,
                 plot_bgcolor: bgColor,
-                font: { family: 'B612 Mono, monospace', size: 9, color: fontColor },
-                margin: { l: 45, r: 55, t: 15, b: 35 },
+                font: { family: 'JetBrains Mono, B612 Mono, monospace', size: 9, color: fontColor },
+                margin: { l: 45, r: 55, t: 15, b: 65 },
                 legend: { orientation: 'h', x: 0, y: 1.15, font: { size: 9 } },
                 xaxis: {
                     showgrid: true,
                     gridcolor: gridColor,
-                    tickfont: { size: 8.5 }
+                    tickangle: -45,
+                    automargin: true,
+                    tickfont: { size: 9, family: 'JetBrains Mono, B612 Mono, monospace', color: fontColor }
                 },
                 yaxis: {
                     title: 'Wind Speed (kt)',
