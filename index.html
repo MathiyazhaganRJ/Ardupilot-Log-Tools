@@ -3468,19 +3468,174 @@
             color: #0f172a;
         }
 
+        /* High-Density Flight Logbook Table Cell Styling */
+        .cell-coords {
+            color: #94a3b8;
+            font-family: 'JetBrains Mono', 'B612 Mono', monospace;
+            font-size: 10.5px;
+            font-weight: 500;
+        }
+        .cell-elev {
+            color: #f8fafc;
+            font-family: 'JetBrains Mono', 'B612 Mono', monospace;
+            font-weight: 700;
+            font-size: 11px;
+        }
         .tag-flt-time {
             font-weight: 700;
-            color: #22c55e;
+            color: #4ade80;
+            font-family: 'JetBrains Mono', 'B612 Mono', monospace;
+            font-size: 11px;
         }
+        .cell-duration {
+            color: #cbd5e1;
+            font-family: 'JetBrains Mono', 'B612 Mono', monospace;
+            font-weight: 600;
+            font-size: 11px;
+        }
+        .cell-qnh {
+            color: #f1f5f9;
+            font-family: 'JetBrains Mono', 'B612 Mono', monospace;
+            font-weight: 600;
+            font-size: 11px;
+        }
+        .cell-rho {
+            color: #f1f5f9;
+            font-family: 'JetBrains Mono', 'B612 Mono', monospace;
+            font-weight: 600;
+            font-size: 11px;
+        }
+        .cell-rho-pct {
+            color: #38bdf8;
+            font-family: 'JetBrains Mono', 'B612 Mono', monospace;
+            font-weight: 700;
+            font-size: 9px;
+        }
+        .cell-da {
+            color: #ffffff;
+            font-family: 'JetBrains Mono', 'B612 Mono', monospace;
+            font-weight: 800;
+            font-size: 11.5px;
+            letter-spacing: 0.2px;
+        }
+        .cell-wind {
+            color: #f1f5f9;
+            font-family: 'JetBrains Mono', 'B612 Mono', monospace;
+            font-weight: 600;
+            font-size: 11px;
+        }
+        .tag-temp-cool { color: #38bdf8; font-family: 'JetBrains Mono', monospace; font-weight: 700; }
+        .tag-temp-nom { color: #4ade80; font-family: 'JetBrains Mono', monospace; font-weight: 700; }
+        .tag-temp-warm { color: #fb923c; font-family: 'JetBrains Mono', monospace; font-weight: 700; }
+        .tag-temp-hot { color: #f87171; font-family: 'JetBrains Mono', monospace; font-weight: 700; }
 
+        /* Light Mode High-Vibrancy Crisp Numbers & Letters */
+        [data-theme="light-clean"] table.atis-table td {
+            color: #0f172a !important;
+            font-weight: 600;
+            font-family: 'JetBrains Mono', 'B612 Mono', monospace;
+        }
+        [data-theme="light-clean"] .cell-coords {
+            color: #334155 !important;
+            font-weight: 600 !important;
+        }
+        [data-theme="light-clean"] .cell-elev {
+            color: #0f172a !important;
+            font-weight: 800 !important;
+        }
         [data-theme="light-clean"] .tag-flt-time {
-            color: #15803d;
+            color: #15803d !important;
+            font-weight: 800 !important;
+            background: #dcfce7;
+            padding: 2px 7px;
+            border-radius: 4px;
+            border: 1px solid #86efac;
+            display: inline-block;
         }
-
-        .tag-temp-cool { color: #38bdf8; }
-        .tag-temp-nom { color: #4ade80; }
-        .tag-temp-warm { color: #fb923c; }
-        .tag-temp-hot { color: #f87171; }
+        [data-theme="light-clean"] .cell-duration {
+            color: #0f172a !important;
+            font-weight: 800 !important;
+        }
+        [data-theme="light-clean"] .tag-temp-cool {
+            color: #0369a1 !important;
+            background: #e0f2fe;
+            border: 1px solid #7dd3fc;
+            padding: 2px 7px;
+            border-radius: 4px;
+            font-weight: 800 !important;
+            display: inline-block;
+        }
+        [data-theme="light-clean"] .tag-temp-nom {
+            color: #15803d !important;
+            background: #dcfce7;
+            border: 1px solid #86efac;
+            padding: 2px 7px;
+            border-radius: 4px;
+            font-weight: 800 !important;
+            display: inline-block;
+        }
+        [data-theme="light-clean"] .tag-temp-warm {
+            color: #c2410c !important;
+            background: #ffedd5;
+            border: 1px solid #fdba74;
+            padding: 2px 7px;
+            border-radius: 4px;
+            font-weight: 800 !important;
+            display: inline-block;
+        }
+        [data-theme="light-clean"] .tag-temp-hot {
+            color: #b91c1c !important;
+            background: #fee2e2;
+            border: 1px solid #fca5a5;
+            padding: 2px 7px;
+            border-radius: 4px;
+            font-weight: 800 !important;
+            display: inline-block;
+        }
+        [data-theme="light-clean"] .cell-qnh {
+            color: #0369a1 !important;
+            font-weight: 800 !important;
+        }
+        [data-theme="light-clean"] .cell-rho {
+            color: #0f172a !important;
+            font-weight: 800 !important;
+        }
+        [data-theme="light-clean"] .cell-rho-pct {
+            color: #0284c7 !important;
+            font-weight: 800 !important;
+            font-size: 9.5px !important;
+        }
+        [data-theme="light-clean"] .cell-da {
+            color: #0f172a !important;
+            font-weight: 900 !important;
+            font-size: 11.5px !important;
+        }
+        [data-theme="light-clean"] .cell-wind {
+            color: #0f172a !important;
+            font-weight: 800 !important;
+        }
+        [data-theme="light-clean"] .tag-date-time {
+            color: #0f172a !important;
+            font-weight: 800 !important;
+        }
+        [data-theme="light-clean"] .month-stat-chip {
+            background: #ffffff !important;
+            border: 1px solid #cbd5e1 !important;
+            color: #334155 !important;
+            font-weight: 700 !important;
+        }
+        [data-theme="light-clean"] .month-stat-chip strong {
+            color: #0f172a !important;
+            font-weight: 800 !important;
+        }
+        [data-theme="light-clean"] .month-temp-val {
+            color: #c2410c !important;
+            font-weight: 800 !important;
+        }
+        [data-theme="light-clean"] .month-wind-val {
+            color: #0284c7 !important;
+            font-weight: 800 !important;
+        }
 
         .btn-table-load {
             background: rgba(34, 197, 94, 0.15);
@@ -5964,8 +6119,8 @@
                                     <span class="month-stat-chip">AIRBORNE: <strong>${durStr}</strong></span>
                                 </div>
                                 <div class="month-banner-right">
-                                    <span class="month-stat-chip">MEAN TEMP: <strong>${parseFloat(avgTemp) > 0 ? '+' : ''}${avgTemp}°C</strong></span>
-                                    <span class="month-stat-chip">PREVAILING WIND: <strong>${windHdg} @ ${avgWind} kt</strong></span>
+                                    <span class="month-stat-chip">MEAN TEMP: <strong class="month-temp-val">${parseFloat(avgTemp) > 0 ? '+' : ''}${avgTemp}°C</strong></span>
+                                    <span class="month-stat-chip">PREVAILING WIND: <strong class="month-wind-val">${windHdg} @ ${avgWind} kt</strong></span>
                                 </div>
                             </div>
                         </td>
@@ -6022,15 +6177,15 @@
                             </td>
                             <td><span class="tag-date-time" title="${f.filename}">${cleanDate}</span></td>
                             <td><span class="tag-fc-name">${fcDisp}</span></td>
-                            <td title="Home Elevation: ${f.elev_m || 0}m AMSL">${coordStr}</td>
-                            <td><strong>${elevStr}</strong></td>
+                            <td title="Home Elevation: ${f.elev_m || 0}m AMSL"><span class="cell-coords">${coordStr}</span></td>
+                            <td><strong class="cell-elev">${elevStr}</strong></td>
                             <td><span class="tag-flt-time">${f.flt_str || '00m 00s'}</span></td>
-                            <td>${f.met_str || '00m 00s'}</td>
+                            <td><span class="cell-duration">${f.met_str || '00m 00s'}</span></td>
                             <td><span class="${tempClass}">${tempStr}</span></td>
-                            <td>${qnhStr}</td>
-                            <td>${rhoVal} <span style="font-size:8.5px; color:#64748b;">(${rhoPct})</span></td>
-                            <td><strong>${daStr}</strong></td>
-                            <td>${windStr}</td>
+                            <td><span class="cell-qnh">${qnhStr}</span></td>
+                            <td><span class="cell-rho">${rhoVal}</span> <span class="cell-rho-pct">(${rhoPct})</span></td>
+                            <td><strong class="cell-da">${daStr}</strong></td>
+                            <td><span class="cell-wind">${windStr}</span></td>
                             <td class="atis-no-print" style="white-space: nowrap;">
                                 <button class="btn-table-debrief ${hasNotes ? 'debriefed' : ''}" onclick="event.stopPropagation(); openFlightNotesModal('${f.filepath.replace(/\\/g, '\\\\')}')" title="${hasNotes ? 'View & Edit Flight Notes (Saved)' : 'Add Flight Notes'}">${hasNotes ? 'NOTES' : 'NOTES'}</button>
                                 <button class="btn-table-load" onclick="event.stopPropagation(); loadAtisFlight('${f.filepath.replace(/\\/g, '\\\\')}')">LOAD FLIGHT</button>
