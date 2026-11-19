@@ -6,7 +6,7 @@
         <!-- Aerospace Cockpit & Precision Engineering Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=B612:ital,wght@0,400;0,700;1,400;1,700&family=B612+Mono:ital,wght@0,400;0,700;1,400;1,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;500;600;700&family=B612+Mono:wght@400;700&display=swap">
     <title>Flight Log Analyser</title>
     
     <!-- Offline & Local Core Libraries -->
@@ -20,6 +20,20 @@
     <script src="libs/leaflet.js"></script>
 
             <style>
+        /* Global High-Resolution Font Smoothing & Precision Typography */
+        *, *::before, *::after {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
+        }
+        body, button, input, select, textarea {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+        .font-mono-tabular {
+            font-family: 'JetBrains Mono', 'Fira Code', 'B612 Mono', monospace;
+            font-feature-settings: "tnum" 1, "zero" 1;
+        }
+
         /* Unified Precision Avionics Close Button ('×') */
         .avionics-close-dot,
         .avionics-close-btn {
@@ -1844,13 +1858,14 @@
            AUTHENTIC ARDUPILOT UAV LOG VIEWER STYLING (BLACK, GREY, GREEN & WHITE)
            ========================================================================= */
         :root:not([data-theme="light-clean"]), [data-theme="uav-official"] {
-            --av-bg-dark: #0a0b0d;
-            --av-header-bg: #0f1013;
-            --av-panel-bg: #121316;
-            --av-panel-surface: #18191d;
-            --av-surface-hover: #22242a;
-            --av-border: #24262c;
-            --av-border-strong: #33363e;
+            /* Mission Planner Tactical Black, Charcoal Grey & Green Setup */
+            --av-bg-dark: #121418;
+            --av-header-bg: #0d0f12;
+            --av-panel-bg: #15181e;
+            --av-panel-surface: #1a1d24;
+            --av-surface-hover: #222731;
+            --av-border: #282d38;
+            --av-border-strong: #383f4d;
             --av-border-light: rgba(255, 255, 255, 0.08);
             --av-border-subtle: rgba(255, 255, 255, 0.04);
             
@@ -1860,7 +1875,7 @@
             --av-green: #22c55e;
             --av-amber: #f59e0b;
             --av-red: #ef4444;
-            --av-purple: #a855f7;
+            --av-purple: #c084fc;
             
             --av-text-primary: #ffffff;   /* Pure White */
             --av-text-secondary: #9ca3af; /* Soft Gray */
@@ -2648,8 +2663,8 @@
             width: 100%;
             height: 100%;
             overflow-y: auto;
-            background: #06090e;
-            color: #e2e8f0;
+            background: #121418;
+            color: #f1f5f9;
             padding: 14px 18px 24px 18px;
             box-sizing: border-box;
             gap: 14px;
@@ -2664,8 +2679,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: #0b111a;
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: #1a1d24;
+            border: 1px solid #282d38;
             border-radius: 6px;
             padding: 8px 12px;
             gap: 12px;
@@ -2949,8 +2964,8 @@
         }
 
         .atis-chart-card {
-            background: #0b111a;
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: #1a1d24;
+            border: 1px solid #282d38;
             border-radius: 6px;
             padding: 10px 14px 6px 14px;
             display: flex;
@@ -2995,8 +3010,8 @@
 
         /* Table Card */
         .atis-table-card {
-            background: #0b111a;
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: #1a1d24;
+            border: 1px solid #282d38;
             border-radius: 6px;
             padding: 12px 14px;
             display: flex;
@@ -3032,13 +3047,20 @@
         }
 
         .table-badge {
-            background: rgba(56, 189, 248, 0.15);
-            border: 1px solid #38bdf8;
-            color: #7dd3fc;
+            background: rgba(34, 197, 94, 0.15);
+            border: 1px solid #22c55e;
+            color: #4ade80;
             font-size: 9.5px;
             font-weight: 700;
             padding: 1px 6px;
-            border-radius: 3px;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        [data-theme="light-clean"] .table-badge {
+            background: #dcfce7;
+            border-color: #16a34a;
+            color: #15803d;
         }
 
         .table-card-legend {
@@ -3086,22 +3108,23 @@
         }
 
         table.atis-table th {
-            background: #080d14;
+            background: #14161c;
             color: #94a3b8;
             padding: 7px 10px;
             font-weight: 700;
             letter-spacing: 0.5px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid #282d38;
             cursor: pointer;
             user-select: none;
             position: sticky;
             top: 0;
             z-index: 2;
+            font-family: 'Inter', -apple-system, sans-serif;
         }
 
         table.atis-table th:hover {
-            color: #38bdf8;
-            background: #0e1622;
+            color: #4ade80;
+            background: #1c1f27;
         }
 
         [data-theme="light-clean"] table.atis-table th {
@@ -3132,7 +3155,7 @@
         }
 
         table.atis-table tbody tr:hover {
-            background: rgba(56, 189, 248, 0.08);
+            background: rgba(34, 197, 94, 0.08);
         }
 
         [data-theme="light-clean"] table.atis-table tbody tr:hover {
@@ -3206,13 +3229,13 @@
         }
 
         .fc-tab-btn {
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: #1c2027;
+            border: 1px solid #282d38;
             color: #94a3b8;
             padding: 3px 9px;
             border-radius: 4px;
             font-size: 9.5px;
-            font-family: 'B612 Mono', monospace;
+            font-family: 'Inter', -apple-system, sans-serif;
             font-weight: 600;
             cursor: pointer;
             white-space: nowrap;
@@ -3220,34 +3243,38 @@
         }
 
         .fc-tab-btn:hover {
-            color: #38bdf8;
-            border-color: #38bdf8;
-            background: rgba(56, 189, 248, 0.08);
+            color: #4ade80;
+            border-color: #22c55e;
+            background: rgba(34, 197, 94, 0.08);
         }
 
         .fc-tab-btn.active {
-            background: #38bdf8;
-            color: #040810;
-            border-color: #38bdf8;
+            background: rgba(34, 197, 94, 0.18);
+            color: #4ade80;
+            border-color: #22c55e;
             font-weight: 700;
+            box-shadow: 0 0 10px rgba(34, 197, 94, 0.22);
         }
 
         [data-theme="light-clean"] .fc-tab-btn {
             background: #ffffff;
             border-color: #cbd5e1;
             color: #475569;
+            font-family: 'Inter', -apple-system, sans-serif;
         }
 
         [data-theme="light-clean"] .fc-tab-btn:hover {
-            color: #0284c7;
-            border-color: #0284c7;
-            background: #f0f9ff;
+            color: #15803d;
+            border-color: #16a34a;
+            background: #f0fdf4;
         }
 
         [data-theme="light-clean"] .fc-tab-btn.active {
-            background: #0284c7;
-            color: #ffffff;
-            border-color: #0284c7;
+            background: #dcfce7;
+            color: #15803d;
+            border-color: #16a34a;
+            font-weight: 700;
+            box-shadow: 0 1px 3px rgba(22, 163, 74, 0.2);
         }
 
         .year-filter-tabs-bar {
@@ -3366,9 +3393,9 @@
 
         .atis-month-group-row td {
             padding: 0 !important;
-            background: #0d1522 !important;
-            border-top: 1px solid #1e293b !important;
-            border-bottom: 1px solid #1e293b !important;
+            background: #15181e !important;
+            border-top: 1px solid #282d38 !important;
+            border-bottom: 1px solid #282d38 !important;
         }
 
         [data-theme="light-clean"] .atis-month-group-row td {
@@ -3393,21 +3420,27 @@
         }
 
         .month-badge-pill {
-            font-family: 'B612 Mono', monospace;
-            font-size: 10.5px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
             font-weight: 800;
-            color: #38bdf8;
+            color: #4ade80;
             letter-spacing: 0.8px;
-            background: rgba(56, 189, 248, 0.12);
+            background: rgba(34, 197, 94, 0.15);
             padding: 2px 7px;
             border-radius: 4px;
-            border: 1px solid rgba(56, 189, 248, 0.3);
+            border: 1px solid rgba(34, 197, 94, 0.35);
         }
 
         [data-theme="light-clean"] .month-badge-pill {
-            color: #0369a1;
-            background: #e0f2fe;
-            border-color: #bae6fd;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            font-weight: 800;
+            color: #15803d;
+            letter-spacing: 0.8px;
+            background: #dcfce7;
+            padding: 2px 7px;
+            border-radius: 4px;
+            border: 1px solid #86efac;
         }
 
         .month-stat-chip {
@@ -3479,47 +3512,48 @@
 
         /* Debrief Action Button in Table */
         .btn-table-debrief {
-            background: rgba(56, 189, 248, 0.12);
-            border: 1px solid #0284c7;
-            color: #38bdf8;
+            background: rgba(34, 197, 94, 0.12);
+            border: 1px solid #16a34a;
+            color: #4ade80;
             padding: 2px 7px;
             border-radius: 3px;
             font-size: 9px;
-            font-family: 'B612 Mono', monospace;
+            font-family: 'Inter', sans-serif;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.12s ease;
             margin-right: 4px;
         }
         .btn-table-debrief:hover {
-            background: rgba(56, 189, 248, 0.28);
-            border-color: #38bdf8;
-            color: #bae6fd;
+            background: rgba(34, 197, 94, 0.25);
+            border-color: #22c55e;
+            color: #86efac;
         }
         .btn-table-debrief.debriefed {
-            background: rgba(16, 185, 129, 0.18);
-            border-color: #10b981;
-            color: #34d399;
+            background: #22c55e;
+            border-color: #22c55e;
+            color: #0c0d10;
         }
         .btn-table-debrief.debriefed:hover {
-            background: rgba(16, 185, 129, 0.35);
-            color: #a7f3d0;
+            background: #4ade80;
+            border-color: #4ade80;
+            color: #0c0d10;
         }
         [data-theme="light-clean"] .btn-table-debrief {
-            background: #e0f2fe;
-            border-color: #0284c7;
-            color: #0369a1;
+            background: #dcfce7;
+            border-color: #16a34a;
+            color: #15803d;
         }
         [data-theme="light-clean"] .btn-table-debrief:hover {
-            background: #bae6fd;
+            background: #bbf7d0;
         }
         [data-theme="light-clean"] .btn-table-debrief.debriefed {
-            background: #d1fae5;
-            border-color: #059669;
-            color: #047857;
+            background: #16a34a;
+            border-color: #16a34a;
+            color: #ffffff;
         }
         [data-theme="light-clean"] .btn-table-debrief.debriefed:hover {
-            background: #a7f3d0;
+            background: #15803d;
         }
 
         /* Modal Flight Notes & Debrief Styling */
@@ -3948,10 +3982,10 @@
             align-items: center;
             gap: 5px;
             padding: 3px 8px;
-            background: rgba(56, 189, 248, 0.15);
-            border: 1px solid rgba(56, 189, 248, 0.4);
+            background: rgba(34, 197, 94, 0.15);
+            border: 1px solid rgba(34, 197, 94, 0.4);
             border-radius: 4px;
-            color: #38bdf8;
+            color: #4ade80;
             font-size: 9.5px;
             cursor: pointer;
             transition: all 0.12s ease;
@@ -3972,7 +4006,7 @@
             padding: 2px 7px;
             border-radius: 4px;
             font-size: 9px;
-            font-family: 'B612 Mono', monospace;
+            font-family: 'Inter', monospace;
             cursor: pointer;
         }
         .btn-clear-all-chips:hover {
@@ -3981,9 +4015,9 @@
             background: rgba(239, 68, 68, 0.2);
         }
         [data-theme="light-clean"] .active-filter-chip {
-            background: #e0f2fe;
-            border-color: #0284c7;
-            color: #0369a1;
+            background: #dcfce7;
+            border-color: #86efac;
+            color: #15803d;
         }
         [data-theme="light-clean"] .active-filter-chip:hover {
             background: #fee2e2;
@@ -6441,8 +6475,8 @@
             const cardTexts = monthly.map(m => (m.cardStr.includes(' ') ? m.cardStr.split(' ')[1] : ''));
 
             const isDark = document.documentElement.getAttribute('data-theme') !== 'light-clean';
-            const bgColor = isDark ? '#0b111a' : '#ffffff';
-            const gridColor = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)';
+            const bgColor = isDark ? '#1a1d24' : '#ffffff';
+            const gridColor = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.06)';
             const fontColor = isDark ? '#94a3b8' : '#475569';
 
             // Chart 1: Monthly Ambient Temperature Profile (°C)
@@ -6510,7 +6544,7 @@
                 name: 'Mean Wind (kt)',
                 type: 'scatter',
                 mode: 'lines+markers',
-                line: { color: '#a855f7', width: 2.2 },
+                line: { color: isDark ? '#22c55e' : '#16a34a', width: 2.2 },
                 marker: { size: 6, color: '#9333ea' },
                 customdata: monthly.map(m => [m.cardStr, m.count, m.maxWind, m.ym]),
                 hovertemplate: '<b>%{x}</b> (%{customdata[1]} flights)<br>Mean Wind: <b>%{y:.1f} kt</b> (Peak: %{customdata[2]:.1f} kt)<extra></extra>'
@@ -10875,10 +10909,10 @@
 
     <!-- Modal: Rename Bird / Airframe -->
     <div id="modal-bird-name" class="modal-overlay atis-no-print" onclick="if(event.target===this) closeBirdNameModal()">
-        <div class="modal-box" style="width: 450px; max-width: 92vw; padding: 20px; background: #0c0d10; border: 1px solid #38bdf8; border-radius: 6px; box-shadow: 0 15px 40px rgba(0, 0, 0, 0.95);">
+        <div class="modal-box" style="width: 450px; max-width: 92vw; padding: 20px; background: #181a20; border: 1px solid #22c55e; border-radius: 6px; box-shadow: 0 15px 40px rgba(0, 0, 0, 0.95);">
             <div class="modal-title" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; border-bottom: 1px solid #1a1c22; padding-bottom: 8px;">
                 <div style="display: flex; align-items: center; gap: 8px;">
-                    <span style="display: inline-block; width: 8px; height: 8px; background: #38bdf8; border-radius: 50%;"></span>
+                    <span style="display: inline-block; width: 8px; height: 8px; background: #22c55e; border-radius: 50%;"></span>
                     <span style="font-size: 12.5px; font-weight: 700; letter-spacing: 0.6px; color: #ffffff;">ASSIGN BIRD NAME / AIRFRAME</span>
                 </div>
                 <button type="button" class="avionics-close-dot" onclick="closeBirdNameModal()" title="Close">&times;</button>
@@ -10894,18 +10928,18 @@
                 <label style="display: block; font-size: 9.5px; font-family: 'B612 Mono', monospace; color: #64748b; margin-bottom: 6px; font-weight: 700;">APPLY SCOPE:</label>
                 <div style="display: flex; flex-direction: column; gap: 7px; font-size: 11px; color: #cbd5e1;">
                     <label style="display: flex; align-items: center; gap: 7px; cursor: pointer;">
-                        <input type="radio" name="bird-scope" value="single" checked style="accent-color: #38bdf8;" />
+                        <input type="radio" name="bird-scope" value="single" checked style="accent-color: #22c55e;" />
                         <span>Apply to this flight log only (<span id="modal-bird-logname" style="font-family:'B612 Mono', monospace; color:#38bdf8;">--</span>)</span>
                     </label>
                     <label style="display: flex; align-items: center; gap: 7px; cursor: pointer;">
-                        <input type="radio" name="bird-scope" value="fc" style="accent-color: #38bdf8;" />
+                        <input type="radio" name="bird-scope" value="fc" style="accent-color: #22c55e;" />
                         <span>Apply to ALL flight logs with FC: <strong id="modal-bird-fcname" style="color:#f59e0b;">--</strong></span>
                     </label>
                 </div>
             </div>
             <div style="display: flex; justify-content: flex-end; gap: 8px;">
                 <button type="button" class="uav-pill-action-btn" onclick="closeBirdNameModal()" style="padding: 7px 16px; font-size: 11px;">CANCEL</button>
-                <button type="button" onclick="saveBirdNameFromModal()" style="padding: 7px 20px; font-size: 11.5px; background: #0284c7; border: 1px solid #38bdf8; color: #ffffff; font-weight: 700; border-radius: 4px; cursor: pointer; letter-spacing: 0.5px;">SAVE BIRD NAME</button>
+                <button type="button" onclick="saveBirdNameFromModal()" style="padding: 7px 20px; font-size: 11.5px; background: #16a34a; border: 1px solid #22c55e; color: #ffffff; font-weight: 700; border-radius: 4px; cursor: pointer; letter-spacing: 0.5px;">SAVE BIRD NAME</button>
             </div>
         </div>
     </div>
@@ -10915,7 +10949,7 @@
         <div class="modal-box" onkeydown="event.stopPropagation()" onkeyup="event.stopPropagation()" style="width: 480px; max-width: 92vw; padding: 20px; background: #0c0d10; border: 1px solid #38bdf8; border-radius: 6px; box-shadow: 0 15px 40px rgba(0, 0, 0, 0.95); font-family: 'B612', sans-serif;">
             <div class="modal-title" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; border-bottom: 1px solid #1a1c22; padding-bottom: 8px;">
                 <div style="display: flex; align-items: center; gap: 8px;">
-                    <span style="display: inline-block; width: 8px; height: 8px; background: #38bdf8; border-radius: 50%;"></span>
+                    <span style="display: inline-block; width: 8px; height: 8px; background: #22c55e; border-radius: 50%;"></span>
                     <span style="font-size: 12px; font-weight: 700; letter-spacing: 0.6px; color: #ffffff;">MODEL FLYING WEIGHT &amp; BATTERY TYPE</span>
                 </div>
                 <button type="button" class="avionics-close-dot" onclick="closeSpecsModal()" title="Close">&times;</button>
@@ -10962,15 +10996,15 @@
                 <label style="display: block; font-size: 9.5px; font-family: 'B612 Mono', monospace; color: #64748b; margin-bottom: 6px; font-weight: 700;">APPLY SCOPE:</label>
                 <div style="display: flex; flex-direction: column; gap: 7px; font-size: 11px; color: #cbd5e1;">
                     <label style="display: flex; align-items: center; gap: 7px; cursor: pointer;">
-                        <input type="radio" name="specs-scope" value="single" checked style="accent-color: #38bdf8;" />
-                        <span>Apply to this flight only (<span id="modal-specs-logname" style="font-family:'B612 Mono', monospace; color:#38bdf8;">--</span>)</span>
+                        <input type="radio" name="specs-scope" value="single" checked style="accent-color: #22c55e;" />
+                        <span>Apply to this flight only (<span id="modal-specs-logname" style="font-family:'JetBrains Mono', monospace; color:#4ade80;">--</span>)</span>
                     </label>
                     <label style="display: flex; align-items: center; gap: 7px; cursor: pointer;">
-                        <input type="radio" name="specs-scope" value="bird" style="accent-color: #38bdf8;" />
+                        <input type="radio" name="specs-scope" value="bird" style="accent-color: #22c55e;" />
                         <span>Apply to ALL flights for Bird: <strong id="modal-specs-birdname" style="color:#38bdf8;">--</strong></span>
                     </label>
                     <label style="display: flex; align-items: center; gap: 7px; cursor: pointer;">
-                        <input type="radio" name="specs-scope" value="fc" style="accent-color: #38bdf8;" />
+                        <input type="radio" name="specs-scope" value="fc" style="accent-color: #22c55e;" />
                         <span>Apply to ALL flights with FC: <strong id="modal-specs-fcname" style="color:#f59e0b;">--</strong></span>
                     </label>
                 </div>
@@ -10978,7 +11012,7 @@
 
             <div style="display: flex; justify-content: flex-end; gap: 8px;">
                 <button type="button" class="uav-pill-action-btn" onclick="closeSpecsModal()" style="padding: 7px 16px; font-size: 11px;">CANCEL</button>
-                <button type="button" onclick="saveSpecsFromModal()" style="padding: 7px 20px; font-size: 11.5px; background: #0284c7; border: 1px solid #38bdf8; color: #ffffff; font-weight: 700; border-radius: 4px; cursor: pointer; letter-spacing: 0.5px;">SAVE SPECS</button>
+                <button type="button" onclick="saveSpecsFromModal()" style="padding: 7px 20px; font-size: 11.5px; background: #16a34a; border: 1px solid #22c55e; color: #ffffff; font-weight: 700; border-radius: 4px; cursor: pointer; letter-spacing: 0.5px;">SAVE SPECS</button>
             </div>
         </div>
     </div>
