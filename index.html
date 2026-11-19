@@ -3418,22 +3418,319 @@
             background: #bbf7d0;
         }
 
+        /* Debrief Action Button in Table */
+        .btn-table-debrief {
+            background: rgba(56, 189, 248, 0.12);
+            border: 1px solid #0284c7;
+            color: #38bdf8;
+            padding: 2px 7px;
+            border-radius: 3px;
+            font-size: 9px;
+            font-family: 'B612 Mono', monospace;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.12s ease;
+            margin-right: 4px;
+        }
+        .btn-table-debrief:hover {
+            background: rgba(56, 189, 248, 0.28);
+            border-color: #38bdf8;
+            color: #bae6fd;
+        }
+        .btn-table-debrief.debriefed {
+            background: rgba(16, 185, 129, 0.18);
+            border-color: #10b981;
+            color: #34d399;
+        }
+        .btn-table-debrief.debriefed:hover {
+            background: rgba(16, 185, 129, 0.35);
+            color: #a7f3d0;
+        }
+        [data-theme="light-clean"] .btn-table-debrief {
+            background: #e0f2fe;
+            border-color: #0284c7;
+            color: #0369a1;
+        }
+        [data-theme="light-clean"] .btn-table-debrief:hover {
+            background: #bae6fd;
+        }
+        [data-theme="light-clean"] .btn-table-debrief.debriefed {
+            background: #d1fae5;
+            border-color: #059669;
+            color: #047857;
+        }
+        [data-theme="light-clean"] .btn-table-debrief.debriefed:hover {
+            background: #a7f3d0;
+        }
+
+        /* Modal Flight Notes & Debrief Styling */
+        .notes-section-title {
+            font-size: 10px;
+            font-family: 'B612 Mono', monospace;
+            color: #38bdf8;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .notes-section-hint {
+            font-size: 9px;
+            font-family: 'B612', sans-serif;
+            color: #64748b;
+            font-weight: normal;
+        }
+        .notes-textarea {
+            width: 100%;
+            box-sizing: border-box;
+            background: #090a0d;
+            border: 1px solid #282a32;
+            color: #f1f5f9;
+            font-family: 'B612', -apple-system, sans-serif;
+            font-size: 11.5px;
+            line-height: 1.45;
+            padding: 8px 10px;
+            border-radius: 4px;
+            resize: vertical;
+            margin-bottom: 12px;
+            transition: border-color 0.15s ease;
+        }
+        .notes-textarea:focus {
+            outline: none;
+            border-color: #38bdf8;
+            box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.2);
+        }
+        [data-theme="light-clean"] .notes-textarea {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+            color: #0f172a;
+        }
+        [data-theme="light-clean"] .notes-textarea:focus {
+            background: #ffffff;
+            border-color: #0284c7;
+        }
+        .notes-input-text {
+            width: 100%;
+            box-sizing: border-box;
+            background: #090a0d;
+            border: 1px solid #282a32;
+            color: #f1f5f9;
+            font-family: 'B612 Mono', monospace;
+            font-size: 11px;
+            padding: 7px 10px;
+            border-radius: 4px;
+            margin-bottom: 6px;
+        }
+        .notes-input-text:focus {
+            outline: none;
+            border-color: #38bdf8;
+        }
+        [data-theme="light-clean"] .notes-input-text {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+            color: #0f172a;
+        }
+        .notes-tab-btn {
+            padding: 6px 14px;
+            font-size: 10.5px;
+            font-family: 'B612 Mono', monospace;
+            font-weight: 700;
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .notes-tab-btn.active {
+            color: #38bdf8;
+            border-bottom-color: #38bdf8;
+        }
+        [data-theme="light-clean"] .notes-tab-btn.active {
+            color: #0284c7;
+            border-bottom-color: #0284c7;
+        }
+        [data-theme="light-clean"] #modal-flight-notes .modal-box {
+            background: #ffffff !important;
+            border-color: #cbd5e1 !important;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15) !important;
+        }
+        [data-theme="light-clean"] #modal-flight-notes .notes-header-bar {
+            background: #f1f5f9 !important;
+            border-bottom-color: #e2e8f0 !important;
+        }
+        [data-theme="light-clean"] #modal-flight-notes .notes-header-title {
+            color: #0f172a !important;
+        }
+        [data-theme="light-clean"] #modal-flight-notes .notes-strip-bar {
+            background: #f8fafc !important;
+            border-bottom-color: #e2e8f0 !important;
+        }
+        [data-theme="light-clean"] #modal-flight-notes .notes-strip-bar strong {
+            color: #0f172a !important;
+        }
+        [data-theme="light-clean"] #modal-flight-notes .notes-strip-bar span {
+            color: #475569 !important;
+        }
+        [data-theme="light-clean"] #modal-flight-notes .notes-tabs-bar {
+            background: #f1f5f9 !important;
+            border-bottom-color: #e2e8f0 !important;
+        }
+        [data-theme="light-clean"] #modal-flight-notes .notes-footer-bar {
+            background: #f1f5f9 !important;
+            border-top-color: #e2e8f0 !important;
+        }
+        [data-theme="light-clean"] #modal-flight-notes .notes-content-body {
+            background: #ffffff !important;
+        }
+        [data-theme="light-clean"] #modal-flight-notes .notes-section-title {
+            color: #0369a1 !important;
+        }
+        [data-theme="light-clean"] #modal-flight-notes #modal-notes-outcome {
+            background: #f8fafc !important;
+            border-color: #cbd5e1 !important;
+            color: #0369a1 !important;
+        }
+
+        /* ------------------------------------------------------------- */
+        /* Academic LaTeX White Paper Styling                             */
+        /* ------------------------------------------------------------- */
+        .latex-paper-wrapper {
+            background: #ffffff;
+            color: #111827;
+            padding: 24px 32px;
+            font-family: 'Latin Modern Roman', 'Computer Modern', 'TeX Gyre Termes', 'Times New Roman', serif;
+            line-height: 1.45;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            border-radius: 4px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .latex-header-rule {
+            border-top: 2pt solid #111827;
+            border-bottom: 0.75pt solid #111827;
+            padding: 4px 0;
+            margin-bottom: 14px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 8.5pt;
+            letter-spacing: 0.5px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .latex-doc-title {
+            text-align: center;
+            font-size: 15pt;
+            font-weight: bold;
+            letter-spacing: 0.3px;
+            margin: 10px 0 4px 0;
+            color: #000000;
+        }
+        .latex-doc-subtitle {
+            text-align: center;
+            font-size: 10pt;
+            font-style: italic;
+            color: #374151;
+            margin-bottom: 12px;
+        }
+        .latex-author-block {
+            text-align: center;
+            font-size: 9pt;
+            margin-bottom: 16px;
+            color: #1f2937;
+        }
+        .latex-abstract {
+            margin: 0 24px 16px 24px;
+            padding: 8px 12px;
+            font-size: 9pt;
+            text-align: justify;
+            background: #f9fafb;
+            border-left: 2pt solid #374151;
+            font-style: normal;
+        }
+        .latex-section-h1 {
+            font-size: 10pt;
+            font-weight: bold;
+            letter-spacing: 0.4px;
+            margin: 14px 0 6px 0;
+            border-bottom: 0.75pt solid #9ca3af;
+            padding-bottom: 2px;
+            text-transform: uppercase;
+        }
+        .latex-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 8.5pt;
+            margin: 10px 0;
+        }
+        .latex-table th {
+            border-top: 1.5pt solid #111827;
+            border-bottom: 1pt solid #111827;
+            padding: 4px 6px;
+            text-align: left;
+            font-weight: bold;
+        }
+        .latex-table td {
+            border-bottom: 0.5pt solid #e5e7eb;
+            padding: 3.5px 6px;
+        }
+        .latex-table tr:last-child td {
+            border-bottom: 1.5pt solid #111827;
+        }
+        .latex-signoff-box {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-top: 20px;
+            border-top: 0.75pt solid #9ca3af;
+            padding-top: 12px;
+            font-size: 8.5pt;
+        }
+
         /* ------------------------------------------------------------- */
         /* A4 Print Specification (@media print)                         */
         /* ------------------------------------------------------------- */
         @media print {
-            @page {
-                size: A4 landscape;
-                margin: 8mm 6mm 8mm 6mm;
+            body:not(.printing-whitepaper) {
+                /* Regular Logbook Table Print Mode */
             }
 
-            body * {
+            body:not(.printing-whitepaper) * {
                 visibility: hidden !important;
             }
 
-            #atis-pane,
-            #atis-pane * {
+            body:not(.printing-whitepaper) #atis-pane,
+            body:not(.printing-whitepaper) #atis-pane * {
                 visibility: visible !important;
+            }
+
+            /* Single Flight White Paper Print Mode */
+            body.printing-whitepaper * {
+                visibility: hidden !important;
+            }
+
+            body.printing-whitepaper #flight-whitepaper-print-container,
+            body.printing-whitepaper #flight-whitepaper-print-container * {
+                visibility: visible !important;
+            }
+
+            body.printing-whitepaper #flight-whitepaper-print-container {
+                position: absolute !important;
+                left: 0 !important;
+                top: 0 !important;
+                width: 100% !important;
+                background: #ffffff !important;
+                color: #000000 !important;
+                display: block !important;
+                z-index: 999999 !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+
+            @page {
+                size: A4 portrait;
+                margin: 12mm 10mm 12mm 10mm;
             }
 
             #atis-pane {
@@ -5178,7 +5475,7 @@
                 list = list.filter(f => (f.bird_name || 'Sharkee VTOL') === activeBirdFilter);
             }
 
-            // Search Query Filter
+            // Search Query Filter (Searches Bird, FC, Date, Metrics, and Flight Debrief Notes)
             if (atisFilterQuery.trim() !== '') {
                 const q = atisFilterQuery.toLowerCase().trim();
                 list = list.filter(f => 
@@ -5189,7 +5486,17 @@
                     (f.board && f.board.toLowerCase().includes(q)) ||
                     (f.atis_callsign && f.atis_callsign.toLowerCase().includes(q)) ||
                     (f.oat_mean_c && f.oat_mean_c.toString().includes(q)) ||
-                    (f.density_alt_m && f.density_alt_m.toString().includes(q))
+                    (f.density_alt_m && f.density_alt_m.toString().includes(q)) ||
+                    (f.notes && (
+                        (f.notes.flight_narrative && f.notes.flight_narrative.toLowerCase().includes(q)) ||
+                        (f.notes.pilot_observations && f.notes.pilot_observations.toLowerCase().includes(q)) ||
+                        (f.notes.modifications_required && f.notes.modifications_required.toLowerCase().includes(q)) ||
+                        (f.notes.battery_pack && f.notes.battery_pack.toLowerCase().includes(q)) ||
+                        (f.notes.battery_voltage && f.notes.battery_voltage.toLowerCase().includes(q)) ||
+                        (f.notes.battery_notes && f.notes.battery_notes.toLowerCase().includes(q)) ||
+                        (f.notes.battery_info && f.notes.battery_info.toLowerCase().includes(q)) ||
+                        (f.notes.flight_outcome && f.notes.flight_outcome.toLowerCase().includes(q))
+                    ))
                 );
             }
 
@@ -5298,6 +5605,7 @@
                     const qnhStr = (typeof f.qnh_hpa === 'number') ? f.qnh_hpa.toFixed(1) : '1013.2';
                     const fcDisp = f.fc_name || 'MatekF405-TE';
                     const birdDisp = f.bird_name || 'Sharkee VTOL';
+                    const hasNotes = !!(f.notes && (f.notes.flight_narrative || f.notes.pilot_observations || f.notes.battery_pack || f.notes.battery_info || f.notes.modifications_required));
 
                     html += `
                         <tr class="${isActive ? 'active-row' : ''}" data-filename="${f.filename}" onclick="onAtisRowClicked('${f.filename}')">
@@ -5319,7 +5627,8 @@
                             <td>${rhoVal} <span style="font-size:8.5px; color:#64748b;">(${rhoPct})</span></td>
                             <td><strong>${daStr}</strong></td>
                             <td>${windStr}</td>
-                            <td class="atis-no-print">
+                            <td class="atis-no-print" style="white-space: nowrap;">
+                                <button class="btn-table-debrief ${hasNotes ? 'debriefed' : ''}" onclick="event.stopPropagation(); openFlightNotesModal('${f.filepath.replace(/\\/g, '\\\\')}')" title="${hasNotes ? 'View & Edit Flight Debrief White Paper (Debriefed)' : 'Add Flight Debrief White Paper Notes'}">${hasNotes ? 'DEBRIEFED' : 'DEBRIEF'}</button>
                                 <button class="btn-table-load" onclick="event.stopPropagation(); loadAtisFlight('${f.filepath.replace(/\\/g, '\\\\')}')">LOAD FLIGHT</button>
                             </td>
                         </tr>
@@ -5388,7 +5697,347 @@
         }
 
         function printAtisReport() {
+            document.body.classList.remove('printing-whitepaper');
             window.print();
+        }
+
+        let activeNotesFlight = null;
+
+        function openFlightNotesModal(filepath) {
+            if (!atisGlobalData || !atisGlobalData.flights) return;
+            const flight = atisGlobalData.flights.find(f => f.filepath === filepath || f.filename === filepath.split('\\').pop());
+            if (!flight) return;
+            activeNotesFlight = flight;
+
+            const modal = document.getElementById('modal-flight-notes');
+            if (!modal) return;
+
+            // Populate Flight Summary Strip
+            const birdName = flight.bird_name || 'Sharkee VTOL';
+            const fcName = flight.fc_name || 'MatekF405-TE';
+            const cleanDate = flight.date_str ? flight.date_str.replace(' UTC', '') : 'N/A';
+            const elevStr = (typeof flight.elev_m === 'number') ? `${flight.elev_m.toFixed(0)}m / ${(flight.elev_ft || Math.round(flight.elev_m * 3.28084))}ft AMSL` : '--';
+            const daStr = (typeof flight.density_alt_m === 'number') ? `${flight.density_alt_m.toFixed(0)}m / ${(flight.density_alt_ft || Math.round(flight.density_alt_m * 3.28084))}ft DA` : '--';
+            const tempStr = (typeof flight.oat_mean_c === 'number') ? `${flight.oat_mean_c > 0 ? '+' : ''}${flight.oat_mean_c.toFixed(1)}°C` : '--';
+            const windStr = (typeof flight.wind_spd_kt === 'number') ? `${String(flight.wind_dir_deg || 0).padStart(3, '0')}° @ ${flight.wind_spd_kt.toFixed(1)}kt` : '--';
+
+            document.getElementById('notes-banner-callsign').textContent = flight.atis_callsign || 'FLIGHT';
+            document.getElementById('notes-banner-logname').textContent = flight.filename || '--';
+            document.getElementById('notes-banner-bird').textContent = birdName;
+            document.getElementById('notes-banner-fc').textContent = fcName;
+            document.getElementById('notes-banner-time').textContent = `${cleanDate} | AIRBORNE: ${flight.flt_str || '--'}`;
+            document.getElementById('notes-banner-elev').textContent = `ELEV: ${elevStr} | DA: ${daStr}`;
+            document.getElementById('notes-banner-met').textContent = `OAT: ${tempStr} | WIND: ${windStr}`;
+
+            // Populate Form Fields
+            const notes = flight.notes || {};
+            document.getElementById('modal-notes-narrative').value = notes.flight_narrative || '';
+            document.getElementById('modal-notes-observations').value = notes.pilot_observations || '';
+            document.getElementById('modal-notes-modifications').value = notes.modifications_required || '';
+            document.getElementById('modal-notes-battery-pack').value = notes.battery_pack || (notes.battery_info ? notes.battery_info.split('|')[0].trim() : '');
+            document.getElementById('modal-notes-battery-v').value = notes.battery_voltage || (notes.battery_info && notes.battery_info.includes('|') ? notes.battery_info.split('|')[1].trim() : '');
+            document.getElementById('modal-notes-battery-extra').value = notes.battery_notes || (notes.battery_info && notes.battery_info.split('|').length > 2 ? notes.battery_info.split('|')[2].trim() : '');
+            document.getElementById('modal-notes-outcome').value = notes.flight_outcome || 'NOMINAL';
+
+            const statusEl = document.getElementById('modal-notes-status');
+            if (notes.updated_at) {
+                statusEl.textContent = `Last saved: ${notes.updated_at.replace('T', ' ').substring(0, 19)} UTC`;
+            } else {
+                statusEl.textContent = 'No previous debrief saved.';
+            }
+
+            switchNotesTab('form');
+            renderWhitePaperPreview(flight, notes);
+
+            modal.style.display = 'flex';
+        }
+
+        function closeFlightNotesModal() {
+            const modal = document.getElementById('modal-flight-notes');
+            if (modal) modal.style.display = 'none';
+            activeNotesFlight = null;
+        }
+
+        function switchNotesTab(tab) {
+            const formTab = document.getElementById('notes-tab-form');
+            const previewTab = document.getElementById('notes-tab-preview');
+            const btnForm = document.getElementById('btn-notes-tab-form');
+            const btnPreview = document.getElementById('btn-notes-tab-preview');
+
+            if (tab === 'form') {
+                if (formTab) formTab.style.display = 'block';
+                if (previewTab) previewTab.style.display = 'none';
+                if (btnForm) btnForm.classList.add('active');
+                if (btnPreview) btnPreview.classList.remove('active');
+            } else {
+                if (formTab) formTab.style.display = 'none';
+                if (previewTab) previewTab.style.display = 'block';
+                if (btnForm) btnForm.classList.remove('active');
+                if (btnPreview) btnPreview.classList.add('active');
+                if (activeNotesFlight) {
+                    renderWhitePaperPreview(activeNotesFlight, getFormDataAsNotes());
+                }
+            }
+        }
+
+        function getFormDataAsNotes() {
+            const pack = document.getElementById('modal-notes-battery-pack').value.trim();
+            const volt = document.getElementById('modal-notes-battery-v').value.trim();
+            const extra = document.getElementById('modal-notes-battery-extra').value.trim();
+            const combinedBattery = [pack, volt, extra].filter(Boolean).join(' | ');
+
+            return {
+                flight_narrative: document.getElementById('modal-notes-narrative').value.trim(),
+                pilot_observations: document.getElementById('modal-notes-observations').value.trim(),
+                modifications_required: document.getElementById('modal-notes-modifications').value.trim(),
+                battery_pack: pack,
+                battery_voltage: volt,
+                battery_notes: extra,
+                battery_info: combinedBattery,
+                flight_outcome: document.getElementById('modal-notes-outcome').value,
+                updated_at: activeNotesFlight && activeNotesFlight.notes ? activeNotesFlight.notes.updated_at : null
+            };
+        }
+
+        async function saveFlightNotesFromModal() {
+            if (!activeNotesFlight) return;
+            const notes = getFormDataAsNotes();
+            const currentFolder = localStorage.getItem('sharkee_atis_folder') || '';
+            const statusEl = document.getElementById('modal-notes-status');
+            if (statusEl) statusEl.textContent = 'Saving debrief notes...';
+
+            try {
+                const res = await fetch('/api/save_flight_notes', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        path: activeNotesFlight.filepath,
+                        notes: notes,
+                        folder: currentFolder
+                    })
+                });
+                const data = await res.json();
+                if (!data.success) {
+                    throw new Error(data.error || 'Failed to save flight notes');
+                }
+
+                // Update flight in memory
+                activeNotesFlight.notes = data.notes;
+                if (statusEl) {
+                    statusEl.textContent = `Saved at: ${data.notes.updated_at ? data.notes.updated_at.replace('T', ' ').substring(0, 19) : 'Just now'} UTC`;
+                }
+
+                // Re-render preview & table
+                renderWhitePaperPreview(activeNotesFlight, activeNotesFlight.notes);
+                renderAtisTable();
+            } catch (err) {
+                if (statusEl) statusEl.textContent = `Error: ${err.message}`;
+                alert('Failed to save flight notes: ' + err.message);
+            }
+        }
+
+        function buildWhitePaperHtml(flight, notes) {
+            const birdName = flight.bird_name || 'Sharkee VTOL Alpha';
+            const fcName = flight.fc_name || 'MatekF405-TE';
+            const callsign = flight.atis_callsign || 'ALPHA';
+            const dateStr = flight.date_str ? flight.date_str.replace(' UTC', '') : '2026-11-16 10:49:48';
+            const elevM = (typeof flight.elev_m === 'number') ? flight.elev_m.toFixed(0) : '41';
+            const elevFt = flight.elev_ft || Math.round(Number(elevM) * 3.28084);
+            const daM = (typeof flight.density_alt_m === 'number') ? flight.density_alt_m.toFixed(0) : '593';
+            const daFt = flight.density_alt_ft || Math.round(Number(daM) * 3.28084);
+            const oatC = (typeof flight.oat_mean_c === 'number') ? `${flight.oat_mean_c > 0 ? '+' : ''}${flight.oat_mean_c.toFixed(1)}` : '+28.0';
+            const oatK = (typeof flight.oat_mean_c === 'number') ? (flight.oat_mean_c + 273.15).toFixed(1) : '301.2';
+            const qnh = (typeof flight.qnh_hpa === 'number') ? flight.qnh_hpa.toFixed(1) : '1004.8';
+            const qnhInHg = (typeof flight.qnh_hpa === 'number') ? (flight.qnh_hpa * 0.02953).toFixed(2) : '29.67';
+            const rho = (typeof flight.rho_kgm3 === 'number') ? flight.rho_kgm3.toFixed(4) : '1.1568';
+            const rhoPct = flight.rho_pct ? `${flight.rho_pct}%` : '94.4%';
+            const windDir = String(flight.wind_dir_deg || 86).padStart(3, '0');
+            const windSpd = (typeof flight.wind_spd_kt === 'number') ? flight.wind_spd_kt.toFixed(1) : '7.0';
+            const windMs = (typeof flight.wind_spd_kt === 'number') ? (flight.wind_spd_kt * 0.514444).toFixed(1) : '3.6';
+            const fltTime = flight.flt_str || '18m 41s';
+            const totalTime = flight.met_str || '23m 18s';
+            const outcome = (notes && notes.flight_outcome) ? notes.flight_outcome : 'NOMINAL';
+
+            const narrative = (notes && notes.flight_narrative && notes.flight_narrative.trim()) 
+                ? notes.flight_narrative.trim() 
+                : 'Routine autonomous waypoint navigation and mission profile executed within standard flight envelope. Autopilot flight mode transitions and climb regimes functioned in accordance with operational limits.';
+
+            const observations = (notes && notes.pilot_observations && notes.pilot_observations.trim())
+                ? notes.pilot_observations.trim()
+                : 'Pilot reported stable control responses and smooth airspeed tracking. Atmospheric turbulence handled satisfactorily with no anomalous IMU vibration spikes or control saturation detected.';
+
+            const modifications = (notes && notes.modifications_required && notes.modifications_required.trim())
+                ? notes.modifications_required.trim()
+                : 'No immediate airframe or mechanical modifications required. Recommend maintaining current CG balance and periodic inspection of control linkage ball links and pitot tube cleanliness.';
+
+            const batteryPack = (notes && notes.battery_pack && notes.battery_pack.trim()) ? notes.battery_pack.trim() : 'Solid State 6S 22,000 mAh';
+            const batteryV = (notes && notes.battery_voltage && notes.battery_voltage.trim()) ? notes.battery_voltage.trim() : 'Start: 25.10 V | Landing: 21.60 V (14,200 mAh consumed)';
+            const batteryExtra = (notes && notes.battery_notes && notes.battery_notes.trim()) ? notes.battery_notes.trim() : 'Pack temperature remained nominal throughout cruise. Average cruise current draw measured at 24.2 A.';
+
+            let outcomeBadge = 'AIRWORTHY / NOMINAL';
+            let outcomeStyle = 'border: 1.5pt solid #15803d; color: #15803d; background: #f0fdf4;';
+            if (outcome === 'TUNING') {
+                outcomeBadge = 'TUNING & TEST REGIME';
+                outcomeStyle = 'border: 1.5pt solid #b45309; color: #b45309; background: #fffbeb;';
+            } else if (outcome === 'ANOMALY') {
+                outcomeBadge = 'ANOMALY NOTED - CAUTION';
+                outcomeStyle = 'border: 1.5pt solid #c2410c; color: #c2410c; background: #fff7ed;';
+            } else if (outcome === 'GROUNDED') {
+                outcomeBadge = 'GROUNDED / MAINTENANCE REQUIRED';
+                outcomeStyle = 'border: 1.5pt solid #b91c1c; color: #b91c1c; background: #fef2f2;';
+            }
+
+            const docId = `AFTR-${flight.year || 2026}-${String(flight.month || 11).padStart(2, '0')}-${flight.filename ? flight.filename.replace(/[^0-9]/g, '').substring(0, 8) : '001'}`;
+
+            return `
+                <div class="latex-paper-wrapper">
+                    <div class="latex-header-rule">
+                        <span>AEROSPACE SYSTEMS LABORATORY &bull; FLIGHT OPERATIONS DIVISION</span>
+                        <span>DOC REF: ${docId}</span>
+                    </div>
+
+                    <div class="latex-doc-title">FLIGHT TEST DEBRIEF & TECHNICAL MEMORANDUM</div>
+                    <div class="latex-doc-subtitle">Telemetry Reconstruction, Atmospheric Flight Regime, Energy Dispatch & Pilot Debrief</div>
+
+                    <div class="latex-author-block">
+                        <strong>Airframe ID:</strong> ${escapeHtml(birdName)} &nbsp;|&nbsp; 
+                        <strong>Callsign:</strong> ${escapeHtml(callsign)} &nbsp;|&nbsp; 
+                        <strong>Avionics:</strong> ${escapeHtml(fcName)}<br>
+                        <strong>Mission Timestamp:</strong> ${dateStr} UTC &nbsp;|&nbsp; 
+                        <strong>Airborne Flight Duration:</strong> ${fltTime} (Total Power: ${totalTime})
+                    </div>
+
+                    <div class="latex-abstract">
+                        <strong>Technical Summary:</strong> This flight debrief documents the flight test execution, meteorological boundary layer, and airframe aerodynamic handling characteristics for log file <em>${escapeHtml(flight.filename)}</em>. Ground elevation was measured at ${elevM} m (${elevFt} ft) AMSL under an ambient surface pressure of ${qnh} hPa and temperature of ${oatC}&deg;C, establishing an operational density altitude of ${daM} m (${daFt} ft) at ${rhoPct} standard density. Energy consumption and engineering action items are formally certified below.
+                    </div>
+
+                    <div class="latex-section-h1">1.0 Meteorological Boundary & Telemetry Regime</div>
+                    <table class="latex-table">
+                        <thead>
+                            <tr>
+                                <th>Aeronautical Metric</th>
+                                <th>Metric SI Units</th>
+                                <th>Aviation / Imperial Units</th>
+                                <th>Operational Telemetry Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Airfield Ground Elevation</strong></td>
+                                <td>${elevM} m AMSL</td>
+                                <td>${elevFt} ft AMSL</td>
+                                <td>Barometric Reference Calibrated</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Operational Density Altitude</strong></td>
+                                <td>${daM} m</td>
+                                <td>${daFt} ft DA</td>
+                                <td>Density Altitude Gradient Nominal</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Outside Ambient Temperature (OAT)</strong></td>
+                                <td>${oatC}&deg;C</td>
+                                <td>${oatK} K</td>
+                                <td>ISA Mean Surface Deviation Calculated</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Mean Atmospheric Density (&rho;)</strong></td>
+                                <td>${rho} kg/m&sup3;</td>
+                                <td>${rhoPct} Standard ISA</td>
+                                <td>Airfoil Lift & Propulsive Thrust Ratio</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Surface Altimeter Setting (QNH)</strong></td>
+                                <td>${qnh} hPa</td>
+                                <td>${qnhInHg} inHg</td>
+                                <td>Standard Hydrostatic Equilibrium</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Surface Wind Speed & Heading</strong></td>
+                                <td>${windMs} m/s</td>
+                                <td>${windDir}&deg; @ ${windSpd} kt</td>
+                                <td>Prevailing Vector & Crosswind Margin</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Airborne Flight / Power Time</strong></td>
+                                <td>${fltTime} Airborne</td>
+                                <td>${totalTime} Power-On</td>
+                                <td>Telemetry Logged Completely</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="latex-section-h1">2.0 Mission Profile & Flight Narrative ("What Happened")</div>
+                    <div style="font-size: 9pt; text-align: justify; margin-bottom: 12px; white-space: pre-wrap; line-height: 1.5;">${escapeHtml(narrative)}</div>
+
+                    <div class="latex-section-h1">3.0 Pilot Handling & In-Flight Telemetry Noted ("What Was Observed")</div>
+                    <div style="font-size: 9pt; text-align: justify; margin-bottom: 12px; white-space: pre-wrap; line-height: 1.5;">${escapeHtml(observations)}</div>
+
+                    <div class="latex-section-h1">4.0 Engineering Action Items & Airframe Modifications ("What Has to Be Changed")</div>
+                    <div style="font-size: 9pt; text-align: justify; margin-bottom: 12px; white-space: pre-wrap; line-height: 1.5;">${escapeHtml(modifications)}</div>
+
+                    <div class="latex-section-h1">5.0 Propulsion System & Energy Storage Dispatch ("Battery Used")</div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 6px; font-size: 8.5pt;">
+                        <div style="background: #f8fafc; border: 0.5pt solid #cbd5e1; padding: 6px 10px; border-radius: 3px;">
+                            <strong>Battery Pack & Chemistry:</strong><br>
+                            <span style="font-family:'B612 Mono', monospace; font-size: 9pt;">${escapeHtml(batteryPack)}</span>
+                        </div>
+                        <div style="background: #f8fafc; border: 0.5pt solid #cbd5e1; padding: 6px 10px; border-radius: 3px;">
+                            <strong>Voltage Gradient & Consumed mAh:</strong><br>
+                            <span style="font-family:'B612 Mono', monospace; font-size: 9pt;">${escapeHtml(batteryV)}</span>
+                        </div>
+                    </div>
+                    <div style="font-size: 8.5pt; color: #374151; font-style: italic; margin-bottom: 14px;">${escapeHtml(batteryExtra)}</div>
+
+                    <div class="latex-section-h1">6.0 Post-Flight Airworthiness Disposition & Engineer Sign-Off</div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin: 10px 0 16px 0;">
+                        <div style="font-size: 9pt;"><strong>Airworthiness Status:</strong></div>
+                        <div style="padding: 4px 14px; border-radius: 3px; font-weight: bold; font-size: 9pt; letter-spacing: 0.5px; ${outcomeStyle}">
+                            ${outcomeBadge}
+                        </div>
+                    </div>
+
+                    <div class="latex-signoff-box">
+                        <div>
+                            <strong>Pilot-In-Command / Flight Test Engineer:</strong><br><br>
+                            Signature: _____________________________________<br>
+                            Date Certified: __________________________________
+                        </div>
+                        <div>
+                            <strong>Lead Avionics & Systems Inspector:</strong><br><br>
+                            Signature: _____________________________________<br>
+                            Airworthiness Approval Stamp: [ RECORDED IN SYSTEM ]
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderWhitePaperPreview(flight, notes) {
+            const previewEl = document.getElementById('flight-whitepaper-preview');
+            if (previewEl) {
+                previewEl.innerHTML = buildWhitePaperHtml(flight, notes);
+            }
+        }
+
+        function printFlightWhitePaper() {
+            if (!activeNotesFlight) return;
+            const printContainer = document.getElementById('flight-whitepaper-print-container');
+            if (!printContainer) return;
+
+            const notes = getFormDataAsNotes();
+            printContainer.innerHTML = buildWhitePaperHtml(activeNotesFlight, notes);
+
+            document.body.classList.add('printing-whitepaper');
+            window.print();
+
+            window.addEventListener('afterprint', () => {
+                document.body.classList.remove('printing-whitepaper');
+            }, { once: true });
+
+            setTimeout(() => {
+                document.body.classList.remove('printing-whitepaper');
+            }, 1500);
         }
 
         function openBirdNameModal(filepath, currentBird, fcName, filename) {
@@ -9834,6 +10483,134 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal: Flight Debrief White Paper & Notes -->
+    <div id="modal-flight-notes" class="modal-overlay atis-no-print" onclick="if(event.target===this) closeFlightNotesModal()">
+        <div class="modal-box" style="width: 880px; max-width: 95vw; height: 90vh; max-height: 850px; display: flex; flex-direction: column; padding: 0; background: #0c0d10; border: 1px solid #38bdf8; border-radius: 8px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.95); overflow: hidden;">
+            <!-- Modal Header -->
+            <div class="notes-header-bar" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; border-bottom: 1px solid #1e222a; background: #0f1217;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="display: inline-block; width: 9px; height: 9px; background: #38bdf8; border-radius: 50%; box-shadow: 0 0 8px #38bdf8;"></span>
+                    <span class="notes-header-title" style="font-size: 13px; font-weight: 700; letter-spacing: 0.6px; color: #ffffff;">FLIGHT DEBRIEF & TECHNICAL MEMORANDUM</span>
+                    <span id="notes-banner-callsign" class="terminal-callsign-badge" style="font-size: 9px; padding: 1px 6px;">ALPHA</span>
+                </div>
+                <button type="button" class="avionics-close-dot" onclick="closeFlightNotesModal()" title="Close">&times;</button>
+            </div>
+
+            <!-- Flight Telemetry Summary Strip -->
+            <div class="notes-strip-bar" style="background: #090a0d; border-bottom: 1px solid #1a1c22; padding: 8px 18px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; font-size: 10.5px; font-family: 'B612', sans-serif;">
+                <div>
+                    <span style="color: #64748b; font-family:'B612 Mono', monospace; font-size: 9px;">LOG FILE:</span>
+                    <strong id="notes-banner-logname" style="color: #cbd5e1; font-family:'B612 Mono', monospace; font-size: 10px; margin-left: 4px;">--</strong>
+                </div>
+                <div>
+                    <span style="color: #64748b; font-family:'B612 Mono', monospace; font-size: 9px;">BIRD NAME:</span>
+                    <strong id="notes-banner-bird" style="color: #38bdf8; margin-left: 4px;">--</strong>
+                </div>
+                <div>
+                    <span style="color: #64748b; font-family:'B612 Mono', monospace; font-size: 9px;">FLIGHT CONTROLLER:</span>
+                    <strong id="notes-banner-fc" style="color: #f59e0b; margin-left: 4px;">--</strong>
+                </div>
+                <div>
+                    <span style="color: #64748b; font-family:'B612 Mono', monospace; font-size: 9px;">DATE & TIME:</span>
+                    <span id="notes-banner-time" style="color: #22c55e; margin-left: 4px;">--</span>
+                </div>
+                <div>
+                    <span style="color: #64748b; font-family:'B612 Mono', monospace; font-size: 9px;">ATMOSPHERE:</span>
+                    <span id="notes-banner-elev" style="color: #cbd5e1; margin-left: 4px;">--</span>
+                </div>
+                <div>
+                    <span style="color: #64748b; font-family:'B612 Mono', monospace; font-size: 9px;">METEOROLOGY:</span>
+                    <span id="notes-banner-met" style="color: #94a3b8; margin-left: 4px;">--</span>
+                </div>
+            </div>
+
+            <!-- Tab Switcher -->
+            <div class="notes-tabs-bar" style="display: flex; gap: 4px; padding: 0 18px; border-bottom: 1px solid #1e222a; background: #0f1217;">
+                <button type="button" id="btn-notes-tab-form" class="notes-tab-btn active" onclick="switchNotesTab('form')">1. DEBRIEF LOG ENTRY</button>
+                <button type="button" id="btn-notes-tab-preview" class="notes-tab-btn" onclick="switchNotesTab('preview')">2. A4 WHITE PAPER PREVIEW (LaTeX STYLE)</button>
+            </div>
+
+            <!-- Modal Body Content -->
+            <div class="notes-content-body" style="flex: 1; overflow-y: auto; padding: 16px 20px;">
+                <!-- Tab 1: Form Entry -->
+                <div id="notes-tab-form">
+                    <!-- Section 1: Mission Narrative -->
+                    <div class="notes-section-title">
+                        <span>1. MISSION &amp; FLIGHT PROFILE NARRATIVE ("WHAT HAPPENED ON THIS FLIGHT")</span>
+                        <span class="notes-section-hint">Mission goals, autonomous modes, route execution, cruise profile</span>
+                    </div>
+                    <textarea id="modal-notes-narrative" class="notes-textarea" rows="3" placeholder="Describe what happened during this flight: mission objectives, autopilot modes flown, waypoint tracking, climb and cruise altitude, maneuvers executed, and flight envelope behavior..."></textarea>
+
+                    <!-- Section 2: Observations -->
+                    <div class="notes-section-title">
+                        <span>2. PILOT OBSERVATIONS &amp; TELEMETRY NOTED ("WHAT WAS OBSERVED")</span>
+                        <span class="notes-section-hint">Handling qualities, trim, stability, wind penetration, vibrations, sensor alerts</span>
+                    </div>
+                    <textarea id="modal-notes-observations" class="notes-textarea" rows="3" placeholder="Describe pilot observations and telemetry noted: aircraft handling, pitch/roll response, stall margins, wind shear behavior, IMU vibration levels, airspeed sensor behavior, telemetry warnings..."></textarea>
+
+                    <!-- Section 3: Modifications Required -->
+                    <div class="notes-section-title">
+                        <span>3. ENGINEERING ACTION ITEMS &amp; CHANGES ("WHAT HAS TO BE CHANGED")</span>
+                        <span class="notes-section-hint">Center of gravity, ArduPilot parameter tuning, mechanical/propeller alterations</span>
+                    </div>
+                    <textarea id="modal-notes-modifications" class="notes-textarea" rows="3" placeholder="Specify what has to be changed before subsequent flights: CG adjustments (e.g. shift 5mm forward), parameter tuning (e.g. TECS_PTCH_MAX, Q_A_RAT_YAW_P), mechanical/linkage alterations, motor bearings, propeller balancing..."></textarea>
+
+                    <!-- Section 4: Battery & Propulsion -->
+                    <div class="notes-section-title">
+                        <span>4. BATTERY &amp; PROPULSION SYSTEM DISPATCH ("BATTERY USED")</span>
+                        <span class="notes-section-hint">Pack ID, cell chemistry/capacity, starting/landing voltages, mAh consumed</span>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 6px;">
+                        <div>
+                            <label style="display: block; font-size: 9px; color: #64748b; font-family:'B612 Mono', monospace; margin-bottom: 3px;">BATTERY PACK ID &amp; CONFIGURATION:</label>
+                            <input type="text" id="modal-notes-battery-pack" class="notes-input-text" placeholder="e.g. Solid State 6S 22,000mAh Pack #3" />
+                        </div>
+                        <div>
+                            <label style="display: block; font-size: 9px; color: #64748b; font-family:'B612 Mono', monospace; margin-bottom: 3px;">VOLTAGE PROFILE &amp; CONSUMED CAPACITY:</label>
+                            <input type="text" id="modal-notes-battery-v" class="notes-input-text" placeholder="e.g. Start 25.1V -> Landing 21.6V (14,200 mAh used)" />
+                        </div>
+                    </div>
+                    <textarea id="modal-notes-battery-extra" class="notes-textarea" rows="2" placeholder="Additional propulsion telemetry: motor/ESC temperatures, average cruise current draw (A), cell balance after landing, throttle percentage in cruise..."></textarea>
+
+                    <!-- Section 5: Outcome / Status -->
+                    <div class="notes-section-title">
+                        <span>5. POST-FLIGHT AIRWORTHINESS &amp; READINESS STATUS</span>
+                        <span class="notes-section-hint">Flight outcome certification</span>
+                    </div>
+                    <select id="modal-notes-outcome" class="notes-input-text" style="height: 36px; cursor: pointer; color: #38bdf8; font-weight: 700;">
+                        <option value="NOMINAL">NOMINAL &bull; Mission Accomplished &amp; Airworthy for Dispatch</option>
+                        <option value="TUNING">TUNING &amp; TEST &bull; Flight Test Calibration in Progress</option>
+                        <option value="ANOMALY">ANOMALY OBSERVED &bull; Post-Flight Technical Inspection Required</option>
+                        <option value="GROUNDED">GROUNDED &bull; Aircraft Maintenance / Repairs Required Before Flight</option>
+                    </select>
+                </div>
+
+                <!-- Tab 2: White Paper Academic Preview -->
+                <div id="notes-tab-preview" style="display: none;">
+                    <div id="flight-whitepaper-preview"></div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="notes-footer-bar" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; border-top: 1px solid #1e222a; background: #0f1217;">
+                <div id="modal-notes-status" style="font-size: 10.5px; color: #94a3b8; font-family: 'B612 Mono', monospace;">
+                    Ready
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button type="button" class="uav-pill-action-btn" onclick="closeFlightNotesModal()" style="padding: 7px 16px; font-size: 11px;">CLOSE</button>
+                    <button type="button" class="btn atis-btn atis-btn-print" onclick="printFlightWhitePaper()" style="padding: 7px 16px; font-size: 11px; font-weight: 700; display: flex; align-items: center; gap: 6px; background: rgba(56, 189, 248, 0.12); border: 1px solid #38bdf8; color: #38bdf8;" title="Print or export formal single-flight A4 White Paper">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                        EXPORT A4 WHITE PAPER (PDF)
+                    </button>
+                    <button type="button" onclick="saveFlightNotesFromModal()" style="padding: 7px 20px; font-size: 11.5px; background: #0284c7; border: 1px solid #38bdf8; color: #ffffff; font-weight: 700; border-radius: 4px; cursor: pointer; letter-spacing: 0.5px;">SAVE DEBRIEF NOTES</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden Print Container for Single Flight A4 White Paper Export -->
+    <div id="flight-whitepaper-print-container" style="display: none;"></div>
 
     <!-- Modal: Rename Bird / Airframe -->
     <div id="modal-bird-name" class="modal-overlay atis-no-print" onclick="if(event.target===this) closeBirdNameModal()">

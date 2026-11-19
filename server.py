@@ -366,6 +366,45 @@ class LogViewerHandler(SimpleHTTPRequestHandler):
                 self._send_json({'success': False, 'error': str(e)})
             return
 
+        # 8. API: Get Flight Debrief Notes
+        elif path == '/api/get_flight_notes':
+            target_path = query.get('path', [None])[0]
+            folder = query.get('folder', [None])[0]
+            if not target_path:
+                self._send_json({'success': False, 'error': 'Missing path parameter'})
+                return
+            try:
+                notes = parser.get_flight_notes_for_path(target_path, folder_path=folder)
+                self._send_json({'success': True, 'path': target_path, 'notes': notes})
+            except Exception as e:
+                self._send_json({'success': False, 'error': str(e)})
+            return
+
+        # 9. API: Save Flight Debrief Notes (GET query support)
+        elif path == '/api/save_flight_notes':
+            target_path = query.get('path', [None])[0]
+            folder = query.get('folder', [None])[0]
+            if not target_path:
+                self._send_json({'success': False, 'error': 'Missing path parameter'})
+                return
+            try:
+                notes_payload_raw = query.get('notes_json', [None])[0]
+                if notes_payload_raw:
+                    notes_dict = json.loads(notes_payload_raw)
+                else:
+                    notes_dict = {
+                        'flight_narrative': query.get('flight_narrative', [''])[0],
+                        'pilot_observations': query.get('pilot_observations', [''])[0],
+                        'modifications_required': query.get('modifications_required', [''])[0],
+                        'battery_info': query.get('battery_info', [''])[0],
+                        'flight_outcome': query.get('flight_outcome', ['Nominal'])[0],
+                    }
+                saved = parser.save_flight_notes_for_path(target_path, notes_dict, folder_path=folder)
+                self._send_json({'success': True, 'path': target_path, 'notes': saved})
+            except Exception as e:
+                self._send_json({'success': False, 'error': str(e)})
+            return
+
         super().do_GET()
 
     def do_POST(self):
@@ -421,6 +460,23 @@ class LogViewerHandler(SimpleHTTPRequestHandler):
                     return
                 parser.set_bird_name_label(target_path, bird_name, scope=scope, folder_path=folder)
                 self._send_json({'success': True, 'bird_name': bird_name, 'scope': scope, 'path': target_path})
+            except Exception as e:
+                self._send_json({'success': False, 'error': str(e)})
+            return
+
+        elif path == '/api/save_flight_notes':
+            length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(length)
+            try:
+                req = json.loads(body.decode('utf-8'))
+                target_path = req.get('path')
+                folder = req.get('folder', None)
+                notes_dict = req.get('notes')
+                if not target_path or notes_dict is None:
+                    self._send_json({'success': False, 'error': 'Missing path or notes parameter'})
+                    return
+                saved = parser.save_flight_notes_for_path(target_path, notes_dict, folder_path=folder)
+                self._send_json({'success': True, 'path': target_path, 'notes': saved})
             except Exception as e:
                 self._send_json({'success': False, 'error': str(e)})
             return

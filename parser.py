@@ -1193,6 +1193,63 @@ def set_bird_name_label(path, bird_name, scope='single', folder_path=None):
     save_bird_names_map(bird_map, folder_path)
     return bird_map
 
+def get_flight_notes_file(folder_path=None):
+    if not folder_path or not os.path.exists(folder_path):
+        folder_path = DEFAULT_LOGBOOK_DIR if os.path.exists(DEFAULT_LOGBOOK_DIR) else os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
+    return os.path.join(os.path.normpath(folder_path), '.flight_notes.json')
+
+def get_flight_notes_map(folder_path=None):
+    """Loads flight notes mapping from .flight_notes.json."""
+    nf = get_flight_notes_file(folder_path)
+    if os.path.exists(nf):
+        try:
+            with open(nf, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                if isinstance(data, dict):
+                    return data
+        except Exception:
+            pass
+    return {}
+
+def save_flight_notes_map(notes_map, folder_path=None):
+    """Saves flight notes mapping to .flight_notes.json."""
+    nf = get_flight_notes_file(folder_path)
+    _atomic_write_json(nf, notes_map)
+
+def get_flight_notes_for_path(rel_path, notes_map=None, folder_path=None):
+    """Retrieves flight notes for a specific log path or basename."""
+    if notes_map is None:
+        notes_map = get_flight_notes_map(folder_path)
+    norm_rel = rel_path.replace('/', '\\')
+    base_name = os.path.basename(rel_path)
+    if norm_rel in notes_map:
+        return notes_map[norm_rel]
+    if base_name in notes_map:
+        return notes_map[base_name]
+    for k, v in notes_map.items():
+        if k.endswith(base_name) or base_name in k:
+            return v
+    return {}
+
+def save_flight_notes_for_path(path, notes_dict, folder_path=None):
+    """
+    Saves or updates flight notes for a specific log file, persisting to .flight_notes.json.
+    """
+    notes_map = get_flight_notes_map(folder_path)
+    rel_path = path
+    if folder_path and os.path.isabs(path):
+        try:
+            rel_path = os.path.relpath(path, folder_path).replace('/', '\\')
+        except Exception:
+            rel_path = os.path.basename(path)
+    
+    base_name = os.path.basename(path)
+    notes_dict['updated_at'] = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    notes_map[rel_path] = notes_dict
+    notes_map[base_name] = notes_dict
+    save_flight_notes_map(notes_map, folder_path)
+    return notes_dict
+
 def get_historical_flight_logbook(folder_path=None, force_refresh=False, max_logs=None):
     """
     Scans folder_path for all ArduPilot .bin flight logs, leveraging a disk cache
@@ -1320,6 +1377,7 @@ def get_historical_flight_logbook(folder_path=None, force_refresh=False, max_log
     EXCLUDED_FCS = {'CubeBlack', 'TBS_LUCID_H7_WING', 'CUAV-X7', 'CubeOrange', 'Unknown'}
 
     bird_map = get_bird_names_map(folder_path)
+    notes_map = get_flight_notes_map(folder_path)
 
     valid_flights = []
     for flt in flights:
@@ -1335,9 +1393,10 @@ def get_historical_flight_logbook(folder_path=None, force_refresh=False, max_log
         if fc in EXCLUDED_FCS:
             continue
 
-        # Resolve persistent bird name
+        # Resolve persistent bird name & flight debrief white-paper notes
         r_key = os.path.relpath(flt['filepath'], folder_path).replace('/', '\\')
         flt['bird_name'] = resolve_bird_name(r_key, fc, bird_map, folder_path)
+        flt['notes'] = get_flight_notes_for_path(r_key, notes_map, folder_path)
         valid_flights.append(flt)
 
     # Sort flights newest first
