@@ -338,7 +338,8 @@ class LogViewerHandler(SimpleHTTPRequestHandler):
         elif path in ('/api/historical_logbook', '/api/historical_atis'):
             target_folder = query.get('folder', [None])[0]
             force_refresh = query.get('force', ['false'])[0].lower() in ('true', '1')
-            max_logs = int(query.get('max_logs', [100])[0])
+            max_logs_param = query.get('max_logs', [None])[0]
+            max_logs = int(max_logs_param) if max_logs_param and max_logs_param.isdigit() else None
             if not target_folder:
                 default_dir = r"C:\Users\KARSHAK_Tamal\Desktop\Logs"
                 target_folder = default_dir if os.path.exists(default_dir) else os.path.join(BASE_DIR, 'uploads')
