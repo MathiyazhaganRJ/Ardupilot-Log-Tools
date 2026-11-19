@@ -391,6 +391,10 @@ class LogViewerHandler(SimpleHTTPRequestHandler):
                 notes_payload_raw = query.get('notes_json', [None])[0]
                 if notes_payload_raw:
                     notes_dict = json.loads(notes_payload_raw)
+                elif 'notes_text' in query:
+                    notes_dict = {
+                        'notes_text': query.get('notes_text', [''])[0]
+                    }
                 else:
                     notes_dict = {
                         'flight_narrative': query.get('flight_narrative', [''])[0],

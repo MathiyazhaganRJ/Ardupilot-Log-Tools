@@ -5605,7 +5605,7 @@
                     const qnhStr = (typeof f.qnh_hpa === 'number') ? f.qnh_hpa.toFixed(1) : '1013.2';
                     const fcDisp = f.fc_name || 'MatekF405-TE';
                     const birdDisp = f.bird_name || 'Sharkee VTOL';
-                    const hasNotes = !!(f.notes && (f.notes.flight_narrative || f.notes.pilot_observations || f.notes.battery_pack || f.notes.battery_info || f.notes.modifications_required));
+                    const hasNotes = !!(f.notes && (f.notes.notes_text || f.notes.flight_narrative || f.notes.pilot_observations || f.notes.battery_pack || f.notes.battery_info || f.notes.modifications_required));
 
                     html += `
                         <tr class="${isActive ? 'active-row' : ''}" data-filename="${f.filename}" onclick="onAtisRowClicked('${f.filename}')">
@@ -5628,7 +5628,7 @@
                             <td><strong>${daStr}</strong></td>
                             <td>${windStr}</td>
                             <td class="atis-no-print" style="white-space: nowrap;">
-                                <button class="btn-table-debrief ${hasNotes ? 'debriefed' : ''}" onclick="event.stopPropagation(); openFlightNotesModal('${f.filepath.replace(/\\/g, '\\\\')}')" title="${hasNotes ? 'View & Edit Flight Debrief White Paper (Debriefed)' : 'Add Flight Debrief White Paper Notes'}">${hasNotes ? 'DEBRIEFED' : 'DEBRIEF'}</button>
+                                <button class="btn-table-debrief ${hasNotes ? 'debriefed' : ''}" onclick="event.stopPropagation(); openFlightNotesModal('${f.filepath.replace(/\\/g, '\\\\')}')" title="${hasNotes ? 'View & Edit Flight Notes (Saved)' : 'Add Flight Notes'}">${hasNotes ? 'NOTES' : 'NOTES'}</button>
                                 <button class="btn-table-load" onclick="event.stopPropagation(); loadAtisFlight('${f.filepath.replace(/\\/g, '\\\\')}')">LOAD FLIGHT</button>
                             </td>
                         </tr>
@@ -5703,6 +5703,64 @@
 
         let activeNotesFlight = null;
 
+        function renderModalTelemetryTable(flight) {
+            const tbody = document.getElementById('modal-telemetry-rows');
+            if (!tbody || !flight) return;
+
+            const elevM = (typeof flight.elev_m === 'number') ? flight.elev_m.toFixed(0) : '--';
+            const elevFt = flight.elev_ft || (elevM !== '--' ? Math.round(Number(elevM) * 3.28084) : '--');
+            const daM = (typeof flight.density_alt_m === 'number') ? flight.density_alt_m.toFixed(0) : '--';
+            const daFt = flight.density_alt_ft || (daM !== '--' ? Math.round(Number(daM) * 3.28084) : '--');
+            const oatC = (typeof flight.oat_mean_c === 'number') ? `${flight.oat_mean_c > 0 ? '+' : ''}${flight.oat_mean_c.toFixed(1)}°C` : '--';
+            const oatK = (typeof flight.oat_mean_c === 'number') ? `${(flight.oat_mean_c + 273.15).toFixed(1)} K` : '--';
+            const rho = (typeof flight.rho_kgm3 === 'number') ? `${flight.rho_kgm3.toFixed(4)} kg/m³` : '--';
+            const rhoPct = flight.rho_pct ? `${flight.rho_pct}% Standard ISA` : '--';
+            const qnh = (typeof flight.qnh_hpa === 'number') ? `${flight.qnh_hpa.toFixed(1)} hPa` : '--';
+            const qnhInHg = (typeof flight.qnh_hpa === 'number') ? `${(flight.qnh_hpa * 0.02953).toFixed(2)} inHg` : '--';
+            const windMs = (typeof flight.wind_spd_kt === 'number') ? `${(flight.wind_spd_kt * 0.514444).toFixed(1)} m/s` : '--';
+            const windDirSpd = (typeof flight.wind_spd_kt === 'number') ? `${String(flight.wind_dir_deg || 0).padStart(3, '0')}° @ ${flight.wind_spd_kt.toFixed(1)} kt` : '--';
+            const fltTime = `${flight.flt_str || '--'} Airborne`;
+            const totalTime = `${flight.met_str || '--'} Power-On`;
+
+            tbody.innerHTML = `
+                <tr>
+                    <td><strong>Airfield Ground Elevation</strong></td>
+                    <td>${elevM !== '--' ? elevM + ' m AMSL' : '--'}</td>
+                    <td>${elevFt !== '--' ? elevFt + ' ft AMSL' : '--'}</td>
+                </tr>
+                <tr>
+                    <td><strong>Operational Density Altitude</strong></td>
+                    <td>${daM !== '--' ? daM + ' m' : '--'}</td>
+                    <td>${daFt !== '--' ? daFt + ' ft DA' : '--'}</td>
+                </tr>
+                <tr>
+                    <td><strong>Outside Ambient Temperature (OAT)</strong></td>
+                    <td>${oatC}</td>
+                    <td>${oatK}</td>
+                </tr>
+                <tr>
+                    <td><strong>Mean Atmospheric Density (&rho;)</strong></td>
+                    <td>${rho}</td>
+                    <td>${rhoPct}</td>
+                </tr>
+                <tr>
+                    <td><strong>Surface Altimeter Setting (QNH)</strong></td>
+                    <td>${qnh}</td>
+                    <td>${qnhInHg}</td>
+                </tr>
+                <tr>
+                    <td><strong>Surface Wind Speed &amp; Heading</strong></td>
+                    <td>${windMs}</td>
+                    <td>${windDirSpd}</td>
+                </tr>
+                <tr>
+                    <td><strong>Airborne Flight / Power Time</strong></td>
+                    <td>${fltTime}</td>
+                    <td>${totalTime}</td>
+                </tr>
+            `;
+        }
+
         function openFlightNotesModal(filepath) {
             if (!atisGlobalData || !atisGlobalData.flights) return;
             const flight = atisGlobalData.flights.find(f => f.filepath === filepath || f.filename === filepath.split('\\').pop());
@@ -5729,27 +5787,37 @@
             document.getElementById('notes-banner-elev').textContent = `ELEV: ${elevStr} | DA: ${daStr}`;
             document.getElementById('notes-banner-met').textContent = `OAT: ${tempStr} | WIND: ${windStr}`;
 
-            // Populate Form Fields
+            // Render Meteorological Table in Modal
+            renderModalTelemetryTable(flight);
+
+            // Populate Simple Notes Text Field (Backwards compatible with old fields)
             const notes = flight.notes || {};
-            document.getElementById('modal-notes-narrative').value = notes.flight_narrative || '';
-            document.getElementById('modal-notes-observations').value = notes.pilot_observations || '';
-            document.getElementById('modal-notes-modifications').value = notes.modifications_required || '';
-            document.getElementById('modal-notes-battery-pack').value = notes.battery_pack || (notes.battery_info ? notes.battery_info.split('|')[0].trim() : '');
-            document.getElementById('modal-notes-battery-v').value = notes.battery_voltage || (notes.battery_info && notes.battery_info.includes('|') ? notes.battery_info.split('|')[1].trim() : '');
-            document.getElementById('modal-notes-battery-extra').value = notes.battery_notes || (notes.battery_info && notes.battery_info.split('|').length > 2 ? notes.battery_info.split('|')[2].trim() : '');
-            document.getElementById('modal-notes-outcome').value = notes.flight_outcome || 'NOMINAL';
+            let currentNotesText = notes.notes_text || '';
+            if (!currentNotesText && (notes.flight_narrative || notes.pilot_observations || notes.modifications_required || notes.battery_info)) {
+                const parts = [];
+                if (notes.flight_narrative) parts.push(`What happened:\n${notes.flight_narrative}`);
+                if (notes.pilot_observations) parts.push(`What noted:\n${notes.pilot_observations}`);
+                if (notes.modifications_required) parts.push(`What has to be changed:\n${notes.modifications_required}`);
+                if (notes.battery_pack || notes.battery_info) parts.push(`Battery used:\n${notes.battery_pack || notes.battery_info}`);
+                currentNotesText = parts.join('\n\n');
+            }
+            document.getElementById('modal-notes-text').value = currentNotesText;
 
             const statusEl = document.getElementById('modal-notes-status');
             if (notes.updated_at) {
                 statusEl.textContent = `Last saved: ${notes.updated_at.replace('T', ' ').substring(0, 19)} UTC`;
             } else {
-                statusEl.textContent = 'No previous debrief saved.';
+                statusEl.textContent = 'No notes recorded yet.';
             }
 
             switchNotesTab('form');
-            renderWhitePaperPreview(flight, notes);
+            renderWhitePaperPreview(flight, { notes_text: currentNotesText, updated_at: notes.updated_at });
 
             modal.style.display = 'flex';
+            setTimeout(() => {
+                const ta = document.getElementById('modal-notes-text');
+                if (ta) ta.focus();
+            }, 80);
         }
 
         function closeFlightNotesModal() {
@@ -5781,20 +5849,9 @@
         }
 
         function getFormDataAsNotes() {
-            const pack = document.getElementById('modal-notes-battery-pack').value.trim();
-            const volt = document.getElementById('modal-notes-battery-v').value.trim();
-            const extra = document.getElementById('modal-notes-battery-extra').value.trim();
-            const combinedBattery = [pack, volt, extra].filter(Boolean).join(' | ');
-
+            const textVal = document.getElementById('modal-notes-text').value.trim();
             return {
-                flight_narrative: document.getElementById('modal-notes-narrative').value.trim(),
-                pilot_observations: document.getElementById('modal-notes-observations').value.trim(),
-                modifications_required: document.getElementById('modal-notes-modifications').value.trim(),
-                battery_pack: pack,
-                battery_voltage: volt,
-                battery_notes: extra,
-                battery_info: combinedBattery,
-                flight_outcome: document.getElementById('modal-notes-outcome').value,
+                notes_text: textVal,
                 updated_at: activeNotesFlight && activeNotesFlight.notes ? activeNotesFlight.notes.updated_at : null
             };
         }
@@ -5804,7 +5861,7 @@
             const notes = getFormDataAsNotes();
             const currentFolder = localStorage.getItem('sharkee_atis_folder') || '';
             const statusEl = document.getElementById('modal-notes-status');
-            if (statusEl) statusEl.textContent = 'Saving debrief notes...';
+            if (statusEl) statusEl.textContent = 'Saving notes...';
 
             try {
                 const res = await fetch('/api/save_flight_notes', {
@@ -5841,50 +5898,30 @@
             const fcName = flight.fc_name || 'MatekF405-TE';
             const callsign = flight.atis_callsign || 'ALPHA';
             const dateStr = flight.date_str ? flight.date_str.replace(' UTC', '') : '2026-11-16 10:49:48';
-            const elevM = (typeof flight.elev_m === 'number') ? flight.elev_m.toFixed(0) : '41';
+            const elevM = (typeof flight.elev_m === 'number') ? flight.elev_m.toFixed(0) : '35';
             const elevFt = flight.elev_ft || Math.round(Number(elevM) * 3.28084);
-            const daM = (typeof flight.density_alt_m === 'number') ? flight.density_alt_m.toFixed(0) : '593';
+            const daM = (typeof flight.density_alt_m === 'number') ? flight.density_alt_m.toFixed(0) : '575';
             const daFt = flight.density_alt_ft || Math.round(Number(daM) * 3.28084);
-            const oatC = (typeof flight.oat_mean_c === 'number') ? `${flight.oat_mean_c > 0 ? '+' : ''}${flight.oat_mean_c.toFixed(1)}` : '+28.0';
-            const oatK = (typeof flight.oat_mean_c === 'number') ? (flight.oat_mean_c + 273.15).toFixed(1) : '301.2';
-            const qnh = (typeof flight.qnh_hpa === 'number') ? flight.qnh_hpa.toFixed(1) : '1004.8';
-            const qnhInHg = (typeof flight.qnh_hpa === 'number') ? (flight.qnh_hpa * 0.02953).toFixed(2) : '29.67';
-            const rho = (typeof flight.rho_kgm3 === 'number') ? flight.rho_kgm3.toFixed(4) : '1.1568';
-            const rhoPct = flight.rho_pct ? `${flight.rho_pct}%` : '94.4%';
-            const windDir = String(flight.wind_dir_deg || 86).padStart(3, '0');
-            const windSpd = (typeof flight.wind_spd_kt === 'number') ? flight.wind_spd_kt.toFixed(1) : '7.0';
-            const windMs = (typeof flight.wind_spd_kt === 'number') ? (flight.wind_spd_kt * 0.514444).toFixed(1) : '3.6';
-            const fltTime = flight.flt_str || '18m 41s';
-            const totalTime = flight.met_str || '23m 18s';
-            const outcome = (notes && notes.flight_outcome) ? notes.flight_outcome : 'NOMINAL';
+            const oatC = (typeof flight.oat_mean_c === 'number') ? `${flight.oat_mean_c > 0 ? '+' : ''}${flight.oat_mean_c.toFixed(1)}` : '+28.1';
+            const oatK = (typeof flight.oat_mean_c === 'number') ? (flight.oat_mean_c + 273.15).toFixed(1) : '301.3';
+            const qnh = (typeof flight.qnh_hpa === 'number') ? flight.qnh_hpa.toFixed(1) : '1006.2';
+            const qnhInHg = (typeof flight.qnh_hpa === 'number') ? (flight.qnh_hpa * 0.02953).toFixed(2) : '29.71';
+            const rho = (typeof flight.rho_kgm3 === 'number') ? flight.rho_kgm3.toFixed(4) : '1.1588';
+            const rhoPct = flight.rho_pct ? `${flight.rho_pct}%` : '94.6%';
+            const windDir = String(flight.wind_dir_deg || 103).padStart(3, '0');
+            const windSpd = (typeof flight.wind_spd_kt === 'number') ? flight.wind_spd_kt.toFixed(1) : '8.6';
+            const windMs = (typeof flight.wind_spd_kt === 'number') ? (flight.wind_spd_kt * 0.514444).toFixed(1) : '4.4';
+            const fltTime = flight.flt_str || '23m 42s';
+            const totalTime = flight.met_str || '28m 25s';
 
-            const narrative = (notes && notes.flight_narrative && notes.flight_narrative.trim()) 
-                ? notes.flight_narrative.trim() 
-                : 'Routine autonomous waypoint navigation and mission profile executed within standard flight envelope. Autopilot flight mode transitions and climb regimes functioned in accordance with operational limits.';
-
-            const observations = (notes && notes.pilot_observations && notes.pilot_observations.trim())
-                ? notes.pilot_observations.trim()
-                : 'Pilot reported stable control responses and smooth airspeed tracking. Atmospheric turbulence handled satisfactorily with no anomalous IMU vibration spikes or control saturation detected.';
-
-            const modifications = (notes && notes.modifications_required && notes.modifications_required.trim())
-                ? notes.modifications_required.trim()
-                : 'No immediate airframe or mechanical modifications required. Recommend maintaining current CG balance and periodic inspection of control linkage ball links and pitot tube cleanliness.';
-
-            const batteryPack = (notes && notes.battery_pack && notes.battery_pack.trim()) ? notes.battery_pack.trim() : 'Solid State 6S 22,000 mAh';
-            const batteryV = (notes && notes.battery_voltage && notes.battery_voltage.trim()) ? notes.battery_voltage.trim() : 'Start: 25.10 V | Landing: 21.60 V (14,200 mAh consumed)';
-            const batteryExtra = (notes && notes.battery_notes && notes.battery_notes.trim()) ? notes.battery_notes.trim() : 'Pack temperature remained nominal throughout cruise. Average cruise current draw measured at 24.2 A.';
-
-            let outcomeBadge = 'AIRWORTHY / NOMINAL';
-            let outcomeStyle = 'border: 1.5pt solid #15803d; color: #15803d; background: #f0fdf4;';
-            if (outcome === 'TUNING') {
-                outcomeBadge = 'TUNING & TEST REGIME';
-                outcomeStyle = 'border: 1.5pt solid #b45309; color: #b45309; background: #fffbeb;';
-            } else if (outcome === 'ANOMALY') {
-                outcomeBadge = 'ANOMALY NOTED - CAUTION';
-                outcomeStyle = 'border: 1.5pt solid #c2410c; color: #c2410c; background: #fff7ed;';
-            } else if (outcome === 'GROUNDED') {
-                outcomeBadge = 'GROUNDED / MAINTENANCE REQUIRED';
-                outcomeStyle = 'border: 1.5pt solid #b91c1c; color: #b91c1c; background: #fef2f2;';
+            let notesBody = (notes && notes.notes_text && notes.notes_text.trim()) ? notes.notes_text.trim() : '';
+            if (!notesBody && notes && (notes.flight_narrative || notes.pilot_observations || notes.modifications_required || notes.battery_info)) {
+                const parts = [];
+                if (notes.flight_narrative) parts.push(`What happened:\n${notes.flight_narrative}`);
+                if (notes.pilot_observations) parts.push(`What noted:\n${notes.pilot_observations}`);
+                if (notes.modifications_required) parts.push(`What has to be changed:\n${notes.modifications_required}`);
+                if (notes.battery_pack || notes.battery_info) parts.push(`Battery used:\n${notes.battery_pack || notes.battery_info}`);
+                notesBody = parts.join('\n\n');
             }
 
             const docId = `AFTR-${flight.year || 2026}-${String(flight.month || 11).padStart(2, '0')}-${flight.filename ? flight.filename.replace(/[^0-9]/g, '').substring(0, 8) : '001'}`;
@@ -5896,10 +5933,8 @@
                         <span>DOC REF: ${docId}</span>
                     </div>
 
-                    <div class="latex-doc-title">FLIGHT TEST DEBRIEF & TECHNICAL MEMORANDUM</div>
-                    <div class="latex-doc-subtitle">Telemetry Reconstruction, Atmospheric Flight Regime, Energy Dispatch & Pilot Debrief</div>
-
-                    <div class="latex-author-block">
+                    <div class="latex-doc-title">ARDUPILOT FLIGHT REPORT & METEOROLOGICAL TELEMETRY</div>
+                    <div class="latex-author-block" style="margin-bottom: 14px;">
                         <strong>Airframe ID:</strong> ${escapeHtml(birdName)} &nbsp;|&nbsp; 
                         <strong>Callsign:</strong> ${escapeHtml(callsign)} &nbsp;|&nbsp; 
                         <strong>Avionics:</strong> ${escapeHtml(fcName)}<br>
@@ -5907,18 +5942,13 @@
                         <strong>Airborne Flight Duration:</strong> ${fltTime} (Total Power: ${totalTime})
                     </div>
 
-                    <div class="latex-abstract">
-                        <strong>Technical Summary:</strong> This flight debrief documents the flight test execution, meteorological boundary layer, and airframe aerodynamic handling characteristics for log file <em>${escapeHtml(flight.filename)}</em>. Ground elevation was measured at ${elevM} m (${elevFt} ft) AMSL under an ambient surface pressure of ${qnh} hPa and temperature of ${oatC}&deg;C, establishing an operational density altitude of ${daM} m (${daFt} ft) at ${rhoPct} standard density. Energy consumption and engineering action items are formally certified below.
-                    </div>
-
-                    <div class="latex-section-h1">1.0 Meteorological Boundary & Telemetry Regime</div>
+                    <div class="latex-section-h1">1.0 METEOROLOGICAL BOUNDARY & TELEMETRY REGIME</div>
                     <table class="latex-table">
                         <thead>
                             <tr>
                                 <th>Aeronautical Metric</th>
                                 <th>Metric SI Units</th>
                                 <th>Aviation / Imperial Units</th>
-                                <th>Operational Telemetry Status</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -5926,89 +5956,42 @@
                                 <td><strong>Airfield Ground Elevation</strong></td>
                                 <td>${elevM} m AMSL</td>
                                 <td>${elevFt} ft AMSL</td>
-                                <td>Barometric Reference Calibrated</td>
                             </tr>
                             <tr>
                                 <td><strong>Operational Density Altitude</strong></td>
                                 <td>${daM} m</td>
                                 <td>${daFt} ft DA</td>
-                                <td>Density Altitude Gradient Nominal</td>
                             </tr>
                             <tr>
                                 <td><strong>Outside Ambient Temperature (OAT)</strong></td>
                                 <td>${oatC}&deg;C</td>
                                 <td>${oatK} K</td>
-                                <td>ISA Mean Surface Deviation Calculated</td>
                             </tr>
                             <tr>
                                 <td><strong>Mean Atmospheric Density (&rho;)</strong></td>
                                 <td>${rho} kg/m&sup3;</td>
                                 <td>${rhoPct} Standard ISA</td>
-                                <td>Airfoil Lift & Propulsive Thrust Ratio</td>
                             </tr>
                             <tr>
                                 <td><strong>Surface Altimeter Setting (QNH)</strong></td>
                                 <td>${qnh} hPa</td>
                                 <td>${qnhInHg} inHg</td>
-                                <td>Standard Hydrostatic Equilibrium</td>
                             </tr>
                             <tr>
                                 <td><strong>Surface Wind Speed & Heading</strong></td>
                                 <td>${windMs} m/s</td>
                                 <td>${windDir}&deg; @ ${windSpd} kt</td>
-                                <td>Prevailing Vector & Crosswind Margin</td>
                             </tr>
                             <tr>
                                 <td><strong>Airborne Flight / Power Time</strong></td>
                                 <td>${fltTime} Airborne</td>
                                 <td>${totalTime} Power-On</td>
-                                <td>Telemetry Logged Completely</td>
                             </tr>
                         </tbody>
                     </table>
 
-                    <div class="latex-section-h1">2.0 Mission Profile & Flight Narrative ("What Happened")</div>
-                    <div style="font-size: 9pt; text-align: justify; margin-bottom: 12px; white-space: pre-wrap; line-height: 1.5;">${escapeHtml(narrative)}</div>
-
-                    <div class="latex-section-h1">3.0 Pilot Handling & In-Flight Telemetry Noted ("What Was Observed")</div>
-                    <div style="font-size: 9pt; text-align: justify; margin-bottom: 12px; white-space: pre-wrap; line-height: 1.5;">${escapeHtml(observations)}</div>
-
-                    <div class="latex-section-h1">4.0 Engineering Action Items & Airframe Modifications ("What Has to Be Changed")</div>
-                    <div style="font-size: 9pt; text-align: justify; margin-bottom: 12px; white-space: pre-wrap; line-height: 1.5;">${escapeHtml(modifications)}</div>
-
-                    <div class="latex-section-h1">5.0 Propulsion System & Energy Storage Dispatch ("Battery Used")</div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 6px; font-size: 8.5pt;">
-                        <div style="background: #f8fafc; border: 0.5pt solid #cbd5e1; padding: 6px 10px; border-radius: 3px;">
-                            <strong>Battery Pack & Chemistry:</strong><br>
-                            <span style="font-family:'B612 Mono', monospace; font-size: 9pt;">${escapeHtml(batteryPack)}</span>
-                        </div>
-                        <div style="background: #f8fafc; border: 0.5pt solid #cbd5e1; padding: 6px 10px; border-radius: 3px;">
-                            <strong>Voltage Gradient & Consumed mAh:</strong><br>
-                            <span style="font-family:'B612 Mono', monospace; font-size: 9pt;">${escapeHtml(batteryV)}</span>
-                        </div>
-                    </div>
-                    <div style="font-size: 8.5pt; color: #374151; font-style: italic; margin-bottom: 14px;">${escapeHtml(batteryExtra)}</div>
-
-                    <div class="latex-section-h1">6.0 Post-Flight Airworthiness Disposition & Engineer Sign-Off</div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin: 10px 0 16px 0;">
-                        <div style="font-size: 9pt;"><strong>Airworthiness Status:</strong></div>
-                        <div style="padding: 4px 14px; border-radius: 3px; font-weight: bold; font-size: 9pt; letter-spacing: 0.5px; ${outcomeStyle}">
-                            ${outcomeBadge}
-                        </div>
-                    </div>
-
-                    <div class="latex-signoff-box">
-                        <div>
-                            <strong>Pilot-In-Command / Flight Test Engineer:</strong><br><br>
-                            Signature: _____________________________________<br>
-                            Date Certified: __________________________________
-                        </div>
-                        <div>
-                            <strong>Lead Avionics & Systems Inspector:</strong><br><br>
-                            Signature: _____________________________________<br>
-                            Airworthiness Approval Stamp: [ RECORDED IN SYSTEM ]
-                        </div>
-                    </div>
+                    <div class="latex-section-h1" style="margin-top: 20px;">2.0 FLIGHT NOTES</div>
+                    <div style="font-size: 9.5pt; text-align: justify; margin-top: 10px; margin-bottom: 12px; white-space: pre-wrap; line-height: 1.6; min-height: 120px; font-family: 'Latin Modern Roman', 'Computer Modern', 'Times New Roman', serif;">${notesBody ? escapeHtml(notesBody) : '<em style="color:#64748b;">(No notes recorded for this flight.)</em>'}</div>
                 </div>
             `;
         }
@@ -10527,63 +10510,38 @@
 
             <!-- Tab Switcher -->
             <div class="notes-tabs-bar" style="display: flex; gap: 4px; padding: 0 18px; border-bottom: 1px solid #1e222a; background: #0f1217;">
-                <button type="button" id="btn-notes-tab-form" class="notes-tab-btn active" onclick="switchNotesTab('form')">1. DEBRIEF LOG ENTRY</button>
-                <button type="button" id="btn-notes-tab-preview" class="notes-tab-btn" onclick="switchNotesTab('preview')">2. A4 WHITE PAPER PREVIEW (LaTeX STYLE)</button>
+                <button type="button" id="btn-notes-tab-form" class="notes-tab-btn active" onclick="switchNotesTab('form')">1. FLIGHT NOTES</button>
+                <button type="button" id="btn-notes-tab-preview" class="notes-tab-btn" onclick="switchNotesTab('preview')">2. A4 REPORT PREVIEW</button>
             </div>
 
             <!-- Modal Body Content -->
             <div class="notes-content-body" style="flex: 1; overflow-y: auto; padding: 16px 20px;">
                 <!-- Tab 1: Form Entry -->
                 <div id="notes-tab-form">
-                    <!-- Section 1: Mission Narrative -->
-                    <div class="notes-section-title">
-                        <span>1. MISSION &amp; FLIGHT PROFILE NARRATIVE ("WHAT HAPPENED ON THIS FLIGHT")</span>
-                        <span class="notes-section-hint">Mission goals, autonomous modes, route execution, cruise profile</span>
+                    <!-- 1.0 Meteorological Boundary & Telemetry Regime Table -->
+                    <div class="notes-section-title" style="margin-bottom: 6px;">
+                        <span>1.0 METEOROLOGICAL BOUNDARY &amp; TELEMETRY REGIME</span>
+                        <span class="notes-section-hint">Operational Atmospheric Envelope for This Flight</span>
                     </div>
-                    <textarea id="modal-notes-narrative" class="notes-textarea" rows="3" placeholder="Describe what happened during this flight: mission objectives, autopilot modes flown, waypoint tracking, climb and cruise altitude, maneuvers executed, and flight envelope behavior..."></textarea>
+                    <table class="latex-table" style="background: rgba(15, 23, 42, 0.35); border-radius: 4px; margin-bottom: 16px;">
+                        <thead>
+                            <tr>
+                                <th>Aeronautical Metric</th>
+                                <th>Metric SI Units</th>
+                                <th>Aviation / Imperial Units</th>
+                            </tr>
+                        </thead>
+                        <tbody id="modal-telemetry-rows">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
 
-                    <!-- Section 2: Observations -->
-                    <div class="notes-section-title">
-                        <span>2. PILOT OBSERVATIONS &amp; TELEMETRY NOTED ("WHAT WAS OBSERVED")</span>
-                        <span class="notes-section-hint">Handling qualities, trim, stability, wind penetration, vibrations, sensor alerts</span>
+                    <!-- 2.0 Flight Notes -->
+                    <div class="notes-section-title" style="margin-bottom: 6px;">
+                        <span>2.0 FLIGHT NOTES &amp; DEBRIEF</span>
+                        <span class="notes-section-hint">What happened, pilot observations, changes needed, battery used, etc.</span>
                     </div>
-                    <textarea id="modal-notes-observations" class="notes-textarea" rows="3" placeholder="Describe pilot observations and telemetry noted: aircraft handling, pitch/roll response, stall margins, wind shear behavior, IMU vibration levels, airspeed sensor behavior, telemetry warnings..."></textarea>
-
-                    <!-- Section 3: Modifications Required -->
-                    <div class="notes-section-title">
-                        <span>3. ENGINEERING ACTION ITEMS &amp; CHANGES ("WHAT HAS TO BE CHANGED")</span>
-                        <span class="notes-section-hint">Center of gravity, ArduPilot parameter tuning, mechanical/propeller alterations</span>
-                    </div>
-                    <textarea id="modal-notes-modifications" class="notes-textarea" rows="3" placeholder="Specify what has to be changed before subsequent flights: CG adjustments (e.g. shift 5mm forward), parameter tuning (e.g. TECS_PTCH_MAX, Q_A_RAT_YAW_P), mechanical/linkage alterations, motor bearings, propeller balancing..."></textarea>
-
-                    <!-- Section 4: Battery & Propulsion -->
-                    <div class="notes-section-title">
-                        <span>4. BATTERY &amp; PROPULSION SYSTEM DISPATCH ("BATTERY USED")</span>
-                        <span class="notes-section-hint">Pack ID, cell chemistry/capacity, starting/landing voltages, mAh consumed</span>
-                    </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 6px;">
-                        <div>
-                            <label style="display: block; font-size: 9px; color: #64748b; font-family:'B612 Mono', monospace; margin-bottom: 3px;">BATTERY PACK ID &amp; CONFIGURATION:</label>
-                            <input type="text" id="modal-notes-battery-pack" class="notes-input-text" placeholder="e.g. Solid State 6S 22,000mAh Pack #3" />
-                        </div>
-                        <div>
-                            <label style="display: block; font-size: 9px; color: #64748b; font-family:'B612 Mono', monospace; margin-bottom: 3px;">VOLTAGE PROFILE &amp; CONSUMED CAPACITY:</label>
-                            <input type="text" id="modal-notes-battery-v" class="notes-input-text" placeholder="e.g. Start 25.1V -> Landing 21.6V (14,200 mAh used)" />
-                        </div>
-                    </div>
-                    <textarea id="modal-notes-battery-extra" class="notes-textarea" rows="2" placeholder="Additional propulsion telemetry: motor/ESC temperatures, average cruise current draw (A), cell balance after landing, throttle percentage in cruise..."></textarea>
-
-                    <!-- Section 5: Outcome / Status -->
-                    <div class="notes-section-title">
-                        <span>5. POST-FLIGHT AIRWORTHINESS &amp; READINESS STATUS</span>
-                        <span class="notes-section-hint">Flight outcome certification</span>
-                    </div>
-                    <select id="modal-notes-outcome" class="notes-input-text" style="height: 36px; cursor: pointer; color: #38bdf8; font-weight: 700;">
-                        <option value="NOMINAL">NOMINAL &bull; Mission Accomplished &amp; Airworthy for Dispatch</option>
-                        <option value="TUNING">TUNING &amp; TEST &bull; Flight Test Calibration in Progress</option>
-                        <option value="ANOMALY">ANOMALY OBSERVED &bull; Post-Flight Technical Inspection Required</option>
-                        <option value="GROUNDED">GROUNDED &bull; Aircraft Maintenance / Repairs Required Before Flight</option>
-                    </select>
+                    <textarea id="modal-notes-text" class="notes-textarea" rows="10" placeholder="Type your flight notes here (e.g. what happened on this flight, observations noted, modifications or parameter changes needed, battery used, etc.)..." style="min-height: 160px; font-size: 12px; font-family: 'B612', sans-serif;"></textarea>
                 </div>
 
                 <!-- Tab 2: White Paper Academic Preview -->
@@ -10603,7 +10561,7 @@
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
                         EXPORT A4 WHITE PAPER (PDF)
                     </button>
-                    <button type="button" onclick="saveFlightNotesFromModal()" style="padding: 7px 20px; font-size: 11.5px; background: #0284c7; border: 1px solid #38bdf8; color: #ffffff; font-weight: 700; border-radius: 4px; cursor: pointer; letter-spacing: 0.5px;">SAVE DEBRIEF NOTES</button>
+                    <button type="button" onclick="saveFlightNotesFromModal()" style="padding: 7px 20px; font-size: 11.5px; background: #0284c7; border: 1px solid #38bdf8; color: #ffffff; font-weight: 700; border-radius: 4px; cursor: pointer; letter-spacing: 0.5px;">SAVE NOTES</button>
                 </div>
             </div>
         </div>
