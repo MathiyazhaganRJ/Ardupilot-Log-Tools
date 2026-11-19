@@ -5724,39 +5724,39 @@
 
             tbody.innerHTML = `
                 <tr>
-                    <td><strong>Airfield Ground Elevation</strong></td>
-                    <td>${elevM !== '--' ? elevM + ' m AMSL' : '--'}</td>
-                    <td>${elevFt !== '--' ? elevFt + ' ft AMSL' : '--'}</td>
+                    <td style="color: #000000; padding: 4.5px 8px; border-bottom: 0.5pt solid #d1d5db;"><strong>Airfield Ground Elevation</strong></td>
+                    <td style="color: #000000; padding: 4.5px 8px; border-bottom: 0.5pt solid #d1d5db;">${elevM !== '--' ? elevM + ' m AMSL' : '--'}</td>
+                    <td style="color: #000000; padding: 4.5px 8px; border-bottom: 0.5pt solid #d1d5db;">${elevFt !== '--' ? elevFt + ' ft AMSL' : '--'}</td>
                 </tr>
                 <tr>
-                    <td><strong>Operational Density Altitude</strong></td>
-                    <td>${daM !== '--' ? daM + ' m' : '--'}</td>
-                    <td>${daFt !== '--' ? daFt + ' ft DA' : '--'}</td>
+                    <td style="color: #000000; padding: 4.5px 8px; border-bottom: 0.5pt solid #d1d5db;"><strong>Operational Density Altitude</strong></td>
+                    <td style="color: #000000; padding: 4.5px 8px; border-bottom: 0.5pt solid #d1d5db;">${daM !== '--' ? daM + ' m' : '--'}</td>
+                    <td style="color: #000000; padding: 4.5px 8px; border-bottom: 0.5pt solid #d1d5db;">${daFt !== '--' ? daFt + ' ft DA' : '--'}</td>
                 </tr>
                 <tr>
-                    <td><strong>Outside Ambient Temperature (OAT)</strong></td>
-                    <td>${oatC}</td>
-                    <td>${oatK}</td>
+                    <td style="color: #000000; padding: 4.5px 8px; border-bottom: 0.5pt solid #d1d5db;"><strong>Outside Ambient Temperature (OAT)</strong></td>
+                    <td style="color: #000000; padding: 4.5px 8px; border-bottom: 0.5pt solid #d1d5db;">${oatC}</td>
+                    <td style="color: #000000; padding: 4.5px 8px; border-bottom: 0.5pt solid #d1d5db;">${oatK}</td>
                 </tr>
                 <tr>
-                    <td><strong>Mean Atmospheric Density (&rho;)</strong></td>
-                    <td>${rho}</td>
-                    <td>${rhoPct}</td>
+                    <td style="color: #000000; padding: 4.5px 8px; border-bottom: 0.5pt solid #d1d5db;"><strong>Mean Atmospheric Density (&rho;)</strong></td>
+                    <td style="color: #000000; padding: 4.5px 8px; border-bottom: 0.5pt solid #d1d5db;">${rho}</td>
+                    <td style="color: #000000; padding: 4.5px 8px; border-bottom: 0.5pt solid #d1d5db;">${rhoPct}</td>
                 </tr>
                 <tr>
-                    <td><strong>Surface Altimeter Setting (QNH)</strong></td>
-                    <td>${qnh}</td>
-                    <td>${qnhInHg}</td>
+                    <td style="color: #000000; padding: 4.5px 8px; border-bottom: 0.5pt solid #d1d5db;"><strong>Surface Altimeter Setting (QNH)</strong></td>
+                    <td style="color: #000000; padding: 4.5px 8px; border-bottom: 0.5pt solid #d1d5db;">${qnh}</td>
+                    <td style="color: #000000; padding: 4.5px 8px; border-bottom: 0.5pt solid #d1d5db;">${qnhInHg}</td>
                 </tr>
                 <tr>
-                    <td><strong>Surface Wind Speed &amp; Heading</strong></td>
-                    <td>${windMs}</td>
-                    <td>${windDirSpd}</td>
+                    <td style="color: #000000; padding: 4.5px 8px; border-bottom: 0.5pt solid #d1d5db;"><strong>Surface Wind Speed &amp; Heading</strong></td>
+                    <td style="color: #000000; padding: 4.5px 8px; border-bottom: 0.5pt solid #d1d5db;">${windMs}</td>
+                    <td style="color: #000000; padding: 4.5px 8px; border-bottom: 0.5pt solid #d1d5db;">${windDirSpd}</td>
                 </tr>
                 <tr>
-                    <td><strong>Airborne Flight / Power Time</strong></td>
-                    <td>${fltTime}</td>
-                    <td>${totalTime}</td>
+                    <td style="color: #000000; padding: 4.5px 8px; border-bottom: 1.5pt solid #000000;"><strong>Airborne Flight / Power Time</strong></td>
+                    <td style="color: #000000; padding: 4.5px 8px; border-bottom: 1.5pt solid #000000;">${fltTime}</td>
+                    <td style="color: #000000; padding: 4.5px 8px; border-bottom: 1.5pt solid #000000;">${totalTime}</td>
                 </tr>
             `;
         }
@@ -5770,27 +5770,21 @@
             const modal = document.getElementById('modal-flight-notes');
             if (!modal) return;
 
-            // Populate Flight Summary Strip
+            // Populate Flight Summary Info
             const birdName = flight.bird_name || 'Sharkee VTOL';
             const fcName = flight.fc_name || 'MatekF405-TE';
             const cleanDate = flight.date_str ? flight.date_str.replace(' UTC', '') : 'N/A';
-            const elevStr = (typeof flight.elev_m === 'number') ? `${flight.elev_m.toFixed(0)}m / ${(flight.elev_ft || Math.round(flight.elev_m * 3.28084))}ft AMSL` : '--';
-            const daStr = (typeof flight.density_alt_m === 'number') ? `${flight.density_alt_m.toFixed(0)}m / ${(flight.density_alt_ft || Math.round(flight.density_alt_m * 3.28084))}ft DA` : '--';
-            const tempStr = (typeof flight.oat_mean_c === 'number') ? `${flight.oat_mean_c > 0 ? '+' : ''}${flight.oat_mean_c.toFixed(1)}°C` : '--';
-            const windStr = (typeof flight.wind_spd_kt === 'number') ? `${String(flight.wind_dir_deg || 0).padStart(3, '0')}° @ ${flight.wind_spd_kt.toFixed(1)}kt` : '--';
 
             document.getElementById('notes-banner-callsign').textContent = flight.atis_callsign || 'FLIGHT';
             document.getElementById('notes-banner-logname').textContent = flight.filename || '--';
             document.getElementById('notes-banner-bird').textContent = birdName;
             document.getElementById('notes-banner-fc').textContent = fcName;
-            document.getElementById('notes-banner-time').textContent = `${cleanDate} | AIRBORNE: ${flight.flt_str || '--'}`;
-            document.getElementById('notes-banner-elev').textContent = `ELEV: ${elevStr} | DA: ${daStr}`;
-            document.getElementById('notes-banner-met').textContent = `OAT: ${tempStr} | WIND: ${windStr}`;
+            document.getElementById('notes-banner-time').textContent = `${cleanDate} (Airborne: ${flight.flt_str || '--'})`;
 
             // Render Meteorological Table in Modal
             renderModalTelemetryTable(flight);
 
-            // Populate Simple Notes Text Field (Backwards compatible with old fields)
+            // Populate Notepad Text Field (Backwards compatible with old fields)
             const notes = flight.notes || {};
             let currentNotesText = notes.notes_text || '';
             if (!currentNotesText && (notes.flight_narrative || notes.pilot_observations || notes.modifications_required || notes.battery_info)) {
@@ -5810,42 +5804,17 @@
                 statusEl.textContent = 'No notes recorded yet.';
             }
 
-            switchNotesTab('form');
-            renderWhitePaperPreview(flight, { notes_text: currentNotesText, updated_at: notes.updated_at });
-
             modal.style.display = 'flex';
             setTimeout(() => {
                 const ta = document.getElementById('modal-notes-text');
                 if (ta) ta.focus();
-            }, 80);
+            }, 60);
         }
 
         function closeFlightNotesModal() {
             const modal = document.getElementById('modal-flight-notes');
             if (modal) modal.style.display = 'none';
             activeNotesFlight = null;
-        }
-
-        function switchNotesTab(tab) {
-            const formTab = document.getElementById('notes-tab-form');
-            const previewTab = document.getElementById('notes-tab-preview');
-            const btnForm = document.getElementById('btn-notes-tab-form');
-            const btnPreview = document.getElementById('btn-notes-tab-preview');
-
-            if (tab === 'form') {
-                if (formTab) formTab.style.display = 'block';
-                if (previewTab) previewTab.style.display = 'none';
-                if (btnForm) btnForm.classList.add('active');
-                if (btnPreview) btnPreview.classList.remove('active');
-            } else {
-                if (formTab) formTab.style.display = 'none';
-                if (previewTab) previewTab.style.display = 'block';
-                if (btnForm) btnForm.classList.remove('active');
-                if (btnPreview) btnPreview.classList.add('active');
-                if (activeNotesFlight) {
-                    renderWhitePaperPreview(activeNotesFlight, getFormDataAsNotes());
-                }
-            }
         }
 
         function getFormDataAsNotes() {
@@ -5884,8 +5853,7 @@
                     statusEl.textContent = `Saved at: ${data.notes.updated_at ? data.notes.updated_at.replace('T', ' ').substring(0, 19) : 'Just now'} UTC`;
                 }
 
-                // Re-render preview & table
-                renderWhitePaperPreview(activeNotesFlight, activeNotesFlight.notes);
+                // Re-render table
                 renderAtisTable();
             } catch (err) {
                 if (statusEl) statusEl.textContent = `Error: ${err.message}`;
@@ -10467,101 +10435,68 @@
         </div>
     </div>
 
-    <!-- Modal: Flight Debrief White Paper & Notes -->
+    <!-- Modal: Flight Notes (Black & White Notepad Style) -->
     <div id="modal-flight-notes" class="modal-overlay atis-no-print" onclick="if(event.target===this) closeFlightNotesModal()">
-        <div class="modal-box" style="width: 880px; max-width: 95vw; height: 90vh; max-height: 850px; display: flex; flex-direction: column; padding: 0; background: #0c0d10; border: 1px solid #38bdf8; border-radius: 8px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.95); overflow: hidden;">
-            <!-- Modal Header -->
-            <div class="notes-header-bar" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; border-bottom: 1px solid #1e222a; background: #0f1217;">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <span style="display: inline-block; width: 9px; height: 9px; background: #38bdf8; border-radius: 50%; box-shadow: 0 0 8px #38bdf8;"></span>
-                    <span class="notes-header-title" style="font-size: 13px; font-weight: 700; letter-spacing: 0.6px; color: #ffffff;">FLIGHT DEBRIEF & TECHNICAL MEMORANDUM</span>
-                    <span id="notes-banner-callsign" class="terminal-callsign-badge" style="font-size: 9px; padding: 1px 6px;">ALPHA</span>
+        <div class="notepad-modal-box" style="width: 820px; max-width: 95vw; height: 88vh; max-height: 840px; display: flex; flex-direction: column; background: #ffffff !important; color: #000000 !important; border: 2px solid #000000 !important; border-radius: 4px; box-shadow: 0 15px 50px rgba(0, 0, 0, 0.85); overflow: hidden; font-family: 'Consolas', 'Courier New', monospace, sans-serif;">
+            
+            <!-- Notepad Title Bar -->
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 9px 16px; border-bottom: 1.5pt solid #000000; background: #f8fafc;">
+                <div style="font-size: 13px; font-weight: bold; letter-spacing: 0.5px; color: #000000; display: flex; align-items: center; gap: 8px;">
+                    <span style="display: inline-block; width: 8px; height: 8px; background: #000000; border-radius: 50%;"></span>
+                    <span>FLIGHT NOTES &mdash; <span id="notes-banner-logname" style="font-weight: normal;">--</span></span>
+                    <span id="notes-banner-callsign" style="border: 1px solid #000000; padding: 1px 6px; font-size: 9.5px; font-weight: bold; background: #ffffff; color: #000000;">ALPHA</span>
                 </div>
-                <button type="button" class="avionics-close-dot" onclick="closeFlightNotesModal()" title="Close">&times;</button>
+                <button type="button" onclick="closeFlightNotesModal()" style="background: #ffffff; border: 1px solid #000000; border-radius: 2px; width: 22px; height: 22px; cursor: pointer; font-size: 14px; font-weight: bold; display: flex; align-items: center; justify-content: center; line-height: 1; color: #000000;" title="Close">&times;</button>
             </div>
 
-            <!-- Flight Telemetry Summary Strip -->
-            <div class="notes-strip-bar" style="background: #090a0d; border-bottom: 1px solid #1a1c22; padding: 8px 18px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; font-size: 10.5px; font-family: 'B612', sans-serif;">
-                <div>
-                    <span style="color: #64748b; font-family:'B612 Mono', monospace; font-size: 9px;">LOG FILE:</span>
-                    <strong id="notes-banner-logname" style="color: #cbd5e1; font-family:'B612 Mono', monospace; font-size: 10px; margin-left: 4px;">--</strong>
-                </div>
-                <div>
-                    <span style="color: #64748b; font-family:'B612 Mono', monospace; font-size: 9px;">BIRD NAME:</span>
-                    <strong id="notes-banner-bird" style="color: #38bdf8; margin-left: 4px;">--</strong>
-                </div>
-                <div>
-                    <span style="color: #64748b; font-family:'B612 Mono', monospace; font-size: 9px;">FLIGHT CONTROLLER:</span>
-                    <strong id="notes-banner-fc" style="color: #f59e0b; margin-left: 4px;">--</strong>
-                </div>
-                <div>
-                    <span style="color: #64748b; font-family:'B612 Mono', monospace; font-size: 9px;">DATE & TIME:</span>
-                    <span id="notes-banner-time" style="color: #22c55e; margin-left: 4px;">--</span>
-                </div>
-                <div>
-                    <span style="color: #64748b; font-family:'B612 Mono', monospace; font-size: 9px;">ATMOSPHERE:</span>
-                    <span id="notes-banner-elev" style="color: #cbd5e1; margin-left: 4px;">--</span>
-                </div>
-                <div>
-                    <span style="color: #64748b; font-family:'B612 Mono', monospace; font-size: 9px;">METEOROLOGY:</span>
-                    <span id="notes-banner-met" style="color: #94a3b8; margin-left: 4px;">--</span>
+            <!-- Flight Telemetry Summary Header -->
+            <div style="background: #ffffff; border-bottom: 1pt solid #000000; padding: 8px 16px; font-size: 11px; line-height: 1.5; color: #000000; font-family: 'Consolas', 'Courier New', monospace;">
+                <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                    <div><strong>BIRD / AIRFRAME:</strong> <span id="notes-banner-bird">--</span></div>
+                    <div><strong>FLIGHT CONTROLLER:</strong> <span id="notes-banner-fc">--</span></div>
+                    <div><strong>DATE &amp; TIME:</strong> <span id="notes-banner-time">--</span></div>
                 </div>
             </div>
 
-            <!-- Tab Switcher -->
-            <div class="notes-tabs-bar" style="display: flex; gap: 4px; padding: 0 18px; border-bottom: 1px solid #1e222a; background: #0f1217;">
-                <button type="button" id="btn-notes-tab-form" class="notes-tab-btn active" onclick="switchNotesTab('form')">1. FLIGHT NOTES</button>
-                <button type="button" id="btn-notes-tab-preview" class="notes-tab-btn" onclick="switchNotesTab('preview')">2. A4 REPORT PREVIEW</button>
+            <!-- Notepad Document Body -->
+            <div style="flex: 1; overflow-y: auto; padding: 16px 20px; background: #ffffff;">
+                
+                <!-- 1.0 Meteorological Boundary & Telemetry Regime Table -->
+                <div style="font-size: 11.5px; font-weight: bold; color: #000000; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.5px;">
+                    1.0 METEOROLOGICAL BOUNDARY &amp; TELEMETRY REGIME
+                </div>
+                <table class="latex-table" style="background: #ffffff !important; color: #000000 !important; margin-bottom: 18px; width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr>
+                            <th style="color: #000000 !important; background: #ffffff !important; border-top: 1.5pt solid #000000 !important; border-bottom: 1pt solid #000000 !important; padding: 5px 8px; text-align: left; font-weight: bold;">Aeronautical Metric</th>
+                            <th style="color: #000000 !important; background: #ffffff !important; border-top: 1.5pt solid #000000 !important; border-bottom: 1pt solid #000000 !important; padding: 5px 8px; text-align: left; font-weight: bold;">Metric SI Units</th>
+                            <th style="color: #000000 !important; background: #ffffff !important; border-top: 1.5pt solid #000000 !important; border-bottom: 1pt solid #000000 !important; padding: 5px 8px; text-align: left; font-weight: bold;">Aviation / Imperial Units</th>
+                        </tr>
+                    </thead>
+                    <tbody id="modal-telemetry-rows" style="color: #000000 !important; background: #ffffff !important;">
+                        <!-- Populated dynamically -->
+                    </tbody>
+                </table>
+
+                <!-- 2.0 Flight Notes Notepad Textarea -->
+                <div style="font-size: 11.5px; font-weight: bold; color: #000000; text-transform: uppercase; margin-top: 18px; margin-bottom: 6px; letter-spacing: 0.5px;">
+                    2.0 FLIGHT NOTES
+                </div>
+                <textarea id="modal-notes-text" class="notepad-textarea" rows="11" placeholder="Write your flight notes here (what happened, pilot observations, what has to be changed, battery used, etc.)..." style="width: 100%; box-sizing: border-box; background: #ffffff !important; color: #000000 !important; border: 1.5pt solid #000000 !important; border-radius: 2px; padding: 12px; font-family: 'Consolas', 'Courier New', monospace; font-size: 12.5px; line-height: 1.55; min-height: 220px; resize: vertical; outline: none;"></textarea>
             </div>
 
-            <!-- Modal Body Content -->
-            <div class="notes-content-body" style="flex: 1; overflow-y: auto; padding: 16px 20px;">
-                <!-- Tab 1: Form Entry -->
-                <div id="notes-tab-form">
-                    <!-- 1.0 Meteorological Boundary & Telemetry Regime Table -->
-                    <div class="notes-section-title" style="margin-bottom: 6px;">
-                        <span>1.0 METEOROLOGICAL BOUNDARY &amp; TELEMETRY REGIME</span>
-                        <span class="notes-section-hint">Operational Atmospheric Envelope for This Flight</span>
-                    </div>
-                    <table class="latex-table" style="background: rgba(15, 23, 42, 0.35); border-radius: 4px; margin-bottom: 16px;">
-                        <thead>
-                            <tr>
-                                <th>Aeronautical Metric</th>
-                                <th>Metric SI Units</th>
-                                <th>Aviation / Imperial Units</th>
-                            </tr>
-                        </thead>
-                        <tbody id="modal-telemetry-rows">
-                            <!-- Populated dynamically -->
-                        </tbody>
-                    </table>
-
-                    <!-- 2.0 Flight Notes -->
-                    <div class="notes-section-title" style="margin-bottom: 6px;">
-                        <span>2.0 FLIGHT NOTES &amp; DEBRIEF</span>
-                        <span class="notes-section-hint">What happened, pilot observations, changes needed, battery used, etc.</span>
-                    </div>
-                    <textarea id="modal-notes-text" class="notes-textarea" rows="10" placeholder="Type your flight notes here (e.g. what happened on this flight, observations noted, modifications or parameter changes needed, battery used, etc.)..." style="min-height: 160px; font-size: 12px; font-family: 'B612', sans-serif;"></textarea>
-                </div>
-
-                <!-- Tab 2: White Paper Academic Preview -->
-                <div id="notes-tab-preview" style="display: none;">
-                    <div id="flight-whitepaper-preview"></div>
-                </div>
-            </div>
-
-            <!-- Modal Footer -->
-            <div class="notes-footer-bar" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 18px; border-top: 1px solid #1e222a; background: #0f1217;">
-                <div id="modal-notes-status" style="font-size: 10.5px; color: #94a3b8; font-family: 'B612 Mono', monospace;">
+            <!-- Notepad Footer -->
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; border-top: 1.5pt solid #000000; background: #f8fafc;">
+                <div id="modal-notes-status" style="font-size: 10.5px; color: #444444; font-family: 'Consolas', 'Courier New', monospace;">
                     Ready
                 </div>
                 <div style="display: flex; gap: 8px;">
-                    <button type="button" class="uav-pill-action-btn" onclick="closeFlightNotesModal()" style="padding: 7px 16px; font-size: 11px;">CLOSE</button>
-                    <button type="button" class="btn atis-btn atis-btn-print" onclick="printFlightWhitePaper()" style="padding: 7px 16px; font-size: 11px; font-weight: 700; display: flex; align-items: center; gap: 6px; background: rgba(56, 189, 248, 0.12); border: 1px solid #38bdf8; color: #38bdf8;" title="Print or export formal single-flight A4 White Paper">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
-                        EXPORT A4 WHITE PAPER (PDF)
+                    <button type="button" onclick="closeFlightNotesModal()" style="padding: 6px 16px; font-size: 11px; font-family: 'Consolas', 'Courier New', monospace; font-weight: bold; background: #ffffff; border: 1px solid #666666; color: #000000; border-radius: 2px; cursor: pointer;">CLOSE</button>
+                    <button type="button" onclick="printFlightWhitePaper()" style="padding: 6px 16px; font-size: 11px; font-family: 'Consolas', 'Courier New', monospace; font-weight: bold; background: #ffffff; border: 1.5pt solid #000000; color: #000000; border-radius: 2px; cursor: pointer; display: flex; align-items: center; gap: 6px;" title="Print or export formal A4 report">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                        EXPORT A4 PDF
                     </button>
-                    <button type="button" onclick="saveFlightNotesFromModal()" style="padding: 7px 20px; font-size: 11.5px; background: #0284c7; border: 1px solid #38bdf8; color: #ffffff; font-weight: 700; border-radius: 4px; cursor: pointer; letter-spacing: 0.5px;">SAVE NOTES</button>
+                    <button type="button" onclick="saveFlightNotesFromModal()" style="padding: 6px 20px; font-size: 11px; font-family: 'Consolas', 'Courier New', monospace; font-weight: bold; background: #000000; border: 1.5pt solid #000000; color: #ffffff; border-radius: 2px; cursor: pointer; letter-spacing: 0.5px;">SAVE NOTES</button>
                 </div>
             </div>
         </div>
