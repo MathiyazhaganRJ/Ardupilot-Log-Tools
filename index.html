@@ -3960,22 +3960,178 @@
         body.atis-mode-active #bottom-playback-bar {
             display: none !important;
         }
+        /* Logbook Sidebar Controls */
         #sidebar-logbook-content {
             background: var(--av-panel-bg);
         }
+        .sidebar-repo-card {
+            background: #1a1d24 !important;
+            border: 1px solid #282d38 !important;
+            border-radius: 5px;
+            padding: 8px;
+            margin: 0;
+        }
+        .sidebar-search-box {
+            width: 100% !important;
+            box-sizing: border-box !important;
+            font-size: 11px !important;
+            padding: 6px 10px !important;
+            border-radius: 4px !important;
+            background: #121418 !important;
+            border: 1px solid #282d38 !important;
+            color: #e2e8f0 !important;
+            font-family: 'JetBrains Mono', 'B612 Mono', monospace !important;
+        }
+        .sidebar-search-box:focus {
+            outline: none;
+            border-color: #22c55e !important;
+            box-shadow: 0 0 6px rgba(34, 197, 94, 0.25) !important;
+        }
+        .sidebar-folder-box {
+            width: 100% !important;
+            box-sizing: border-box !important;
+            font-size: 9.5px !important;
+            margin-bottom: 6px !important;
+            padding: 5px 6px !important;
+            background: #121418 !important;
+            border: 1px solid #282d38 !important;
+            color: #94a3b8 !important;
+            font-family: 'JetBrains Mono', 'B612 Mono', monospace !important;
+            text-overflow: ellipsis;
+        }
+        .sidebar-export-btn {
+            width: 100% !important;
+            box-sizing: border-box !important;
+            padding: 6px 10px !important;
+            font-size: 10px !important;
+            font-weight: 700 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 6px !important;
+            background: rgba(34, 197, 94, 0.12) !important;
+            border: 1px solid #22c55e !important;
+            color: #4ade80 !important;
+            border-radius: 4px !important;
+            cursor: pointer !important;
+            transition: all 0.15s ease !important;
+        }
+        .sidebar-export-btn:hover {
+            background: rgba(34, 197, 94, 0.22) !important;
+            color: #86efac !important;
+            box-shadow: 0 0 10px rgba(34, 197, 94, 0.2) !important;
+        }
+        .sidebar-metric-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            font-family: 'JetBrains Mono', 'B612 Mono', monospace;
+        }
+        .sidebar-metric-box {
+            background: #1a1d24 !important;
+            border: 1px solid #282d38 !important;
+            border-radius: 4px;
+            padding: 6px 8px;
+        }
+        .sidebar-metric-box .metric-label {
+            color: #64748b;
+            font-size: 8px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        .atis-terminal-card {
+            display: none !important;
+        }
+
+        /* Light Mode Sidebar & Logbook Refinements */
         [data-theme="light-clean"] #sidebar-logbook-content {
-            background: #ffffff;
-            color: #0f172a;
+            background: #ffffff !important;
+            color: #0f172a !important;
         }
-        [data-theme="light-clean"] #sidebar-logbook-content .sidebar-section {
-            background: #f8fafc;
-            border-color: #e2e8f0;
+        [data-theme="light-clean"] #sidebar-logbook-content .sidebar-section,
+        [data-theme="light-clean"] .sidebar-repo-card {
+            background: #ffffff !important;
+            border: 1px solid #cbd5e1 !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
         }
-        [data-theme="light-clean"] #sidebar-atis-folder-input,
-        [data-theme="light-clean"] #sidebar-atis-search-input {
-            background: #ffffff;
-            border-color: #cbd5e1;
-            color: #0f172a;
+        [data-theme="light-clean"] .sidebar-metric-box {
+            background: #ffffff !important;
+            border: 1px solid #cbd5e1 !important;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+        }
+        [data-theme="light-clean"] .sidebar-metric-box .metric-label {
+            color: #64748b !important;
+        }
+        [data-theme="light-clean"] #sidebar-stat-airborne-time {
+            color: #15803d !important;
+            font-weight: 700 !important;
+        }
+        [data-theme="light-clean"] #sidebar-stat-avg-da {
+            color: #0284c7 !important;
+            font-weight: 700 !important;
+        }
+        [data-theme="light-clean"] .sidebar-search-box {
+            background: #ffffff !important;
+            border: 1px solid #cbd5e1 !important;
+            color: #0f172a !important;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+        }
+        [data-theme="light-clean"] .sidebar-search-box::placeholder {
+            color: #94a3b8 !important;
+        }
+        [data-theme="light-clean"] .sidebar-search-box:focus {
+            border-color: #16a34a !important;
+            box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.15) !important;
+        }
+        [data-theme="light-clean"] .sidebar-folder-box {
+            background: #f8fafc !important;
+            border: 1px solid #cbd5e1 !important;
+            color: #334155 !important;
+        }
+        [data-theme="light-clean"] .sidebar-export-btn {
+            background: #dcfce7 !important;
+            border: 1px solid #16a34a !important;
+            color: #15803d !important;
+        }
+        [data-theme="light-clean"] .sidebar-export-btn:hover {
+            background: #bbf7d0 !important;
+            color: #166534 !important;
+            box-shadow: 0 1px 3px rgba(22, 163, 74, 0.2) !important;
+        }
+        [data-theme="light-clean"] #sidebar-logbook-content .btn.atis-btn {
+            background: #ffffff !important;
+            border: 1px solid #cbd5e1 !important;
+            color: #334155 !important;
+        }
+        [data-theme="light-clean"] #sidebar-logbook-content .btn.atis-btn:hover {
+            background: #f1f5f9 !important;
+            color: #0f172a !important;
+        }
+        [data-theme="light-clean"] #sidebar-logbook-content .btn.atis-btn-primary {
+            background: #16a34a !important;
+            border: 1px solid #15803d !important;
+            color: #ffffff !important;
+        }
+        [data-theme="light-clean"] #sidebar-logbook-content .btn.atis-btn-primary:hover {
+            background: #15803d !important;
+        }
+        [data-theme="light-clean"] #sidebar-logbook-content .uav-pill-action-btn {
+            background: #ffffff !important;
+            border: 1px solid #cbd5e1 !important;
+            color: #0284c7 !important;
+        }
+        [data-theme="light-clean"] #sidebar-logbook-content .uav-pill-action-btn:hover {
+            background: #f0f9ff !important;
+            color: #0369a1 !important;
+        }
+        [data-theme="light-clean"] #sidebar-logbook-content .uav-collapsible-title span {
+            color: #0f172a !important;
+        }
+        [data-theme="light-clean"] #sidebar-logbook-content .uav-collapsible-title .uav-caret {
+            color: #64748b !important;
+        }
+        [data-theme="light-clean"] .atis-terminal-card {
+            display: none !important;
         }
         .active-filter-chip {
             display: inline-flex;
@@ -4279,42 +4435,42 @@
                 <!-- 1. Header & Reset Bar -->
                 <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px; border-bottom: 1px solid var(--av-border);">
                     <div>
-                        <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.8px; color: #38bdf8; text-transform: uppercase;">LOGBOOK FILTERS</div>
-                        <div style="font-size: 9px; color: #64748b; font-family: 'B612 Mono', monospace;">AERONAUTICAL FLEET ARCHIVE</div>
+                        <div style="font-size: 11px; font-weight: 700; letter-spacing: 0.8px; color: var(--av-accent, #38bdf8); text-transform: uppercase;">LOGBOOK FILTERS</div>
+                        <div style="font-size: 9px; color: #64748b; font-family: 'JetBrains Mono', 'B612 Mono', monospace;">AERONAUTICAL FLEET ARCHIVE</div>
                     </div>
-                    <button type="button" class="uav-pill-action-btn" onclick="resetAllAtisFilters()" style="font-size: 9.5px; padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(56, 189, 248, 0.35); color: #38bdf8;" title="Reset all filters to show complete fleet archive">RESET ALL</button>
+                    <button type="button" class="uav-pill-action-btn" onclick="resetAllAtisFilters()" style="font-size: 9.5px; padding: 3px 8px; border-radius: 4px;" title="Reset all filters to show complete fleet archive">RESET ALL</button>
                 </div>
 
                 <!-- 2. Search Input -->
                 <div style="position: relative;">
-                    <input type="text" id="sidebar-atis-search-input" class="atis-input-search" placeholder="Search bird, FC, date..." oninput="filterAtisTable(this.value)" style="width: 100%; box-sizing: border-box; font-size: 11px; padding: 6px 10px; border-radius: 4px; background: rgba(0, 0, 0, 0.3); border: 1px solid var(--av-border); color: #e2e8f0; font-family: 'B612 Mono', monospace;" />
+                    <input type="text" id="sidebar-atis-search-input" class="atis-input-search sidebar-search-box" placeholder="Search bird, FC, date..." oninput="filterAtisTable(this.value)" />
                 </div>
 
                 <!-- 3. Repository & Quick Actions -->
-                <div class="sidebar-section" style="background: rgba(15, 23, 42, 0.4); border: 1px solid var(--av-border); border-radius: 5px; padding: 8px; margin: 0;">
+                <div class="sidebar-section sidebar-repo-card">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
                         <span style="font-size: 9.5px; font-weight: 700; color: #64748b; letter-spacing: 0.5px;">LOGS REPOSITORY</span>
-                        <span id="sidebar-stat-log-count" style="font-size: 9.5px; font-weight: 700; color: #22c55e; font-family: 'B612 Mono', monospace;">618 LOGS</span>
+                        <span id="sidebar-stat-log-count" style="font-size: 9.5px; font-weight: 700; color: #22c55e; font-family: 'JetBrains Mono', 'B612 Mono', monospace;">618 LOGS</span>
                     </div>
-                    <input type="text" id="sidebar-atis-folder-input" class="atis-input-path" placeholder="C:\\Users\\KARSHAK_Tamal\\Desktop\\Logs" readonly style="width: 100%; box-sizing: border-box; font-size: 9.5px; margin-bottom: 6px; padding: 5px 6px; background: rgba(0, 0, 0, 0.35); border: 1px solid var(--av-border); color: #94a3b8; font-family: 'B612 Mono', monospace;" />
+                    <input type="text" id="sidebar-atis-folder-input" class="atis-input-path sidebar-folder-box" placeholder="C:\\Users\\KARSHAK_Tamal\\Desktop\\Logs" readonly />
                     <div style="display: flex; gap: 6px; margin-bottom: 8px;">
                         <button type="button" class="btn atis-btn" onclick="browseAtisFolder()" style="flex: 1; padding: 4px 6px; font-size: 10px; font-weight: 600;">BROWSE...</button>
                         <button type="button" class="btn atis-btn atis-btn-primary" onclick="rescanAtisDatabase(true)" style="flex: 1.2; padding: 4px 6px; font-size: 10px; font-weight: 700;">RESCAN</button>
                     </div>
-                    <button type="button" class="btn atis-btn atis-btn-print" onclick="printAtisReport()" style="width: 100%; box-sizing: border-box; padding: 6px 10px; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px; background: rgba(56, 189, 248, 0.12); border: 1px solid #38bdf8; color: #38bdf8;" title="Print or export A4 academic flight report">
+                    <button type="button" class="btn atis-btn sidebar-export-btn" onclick="printAtisReport()" title="Print or export A4 academic flight report">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
                         EXPORT A4 REPORT
                     </button>
                 </div>
 
                 <!-- 4. Quick Fleet Metrics Badges -->
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-family: 'B612 Mono', monospace;">
-                    <div style="background: rgba(15, 23, 42, 0.4); border: 1px solid var(--av-border); border-radius: 4px; padding: 6px 8px;">
-                        <div style="color: #64748b; font-size: 8px; font-weight: 700; letter-spacing: 0.5px;">TOTAL AIRBORNE</div>
+                <div class="sidebar-metric-grid">
+                    <div class="sidebar-metric-box">
+                        <div class="metric-label">TOTAL AIRBORNE</div>
                         <div id="sidebar-stat-airborne-time" style="color: #22c55e; font-weight: 700; font-size: 11px; margin-top: 2px;">101h 11m</div>
                     </div>
-                    <div style="background: rgba(15, 23, 42, 0.4); border: 1px solid var(--av-border); border-radius: 4px; padding: 6px 8px;">
-                        <div style="color: #64748b; font-size: 8px; font-weight: 700; letter-spacing: 0.5px;">MEAN DA / ELEV</div>
+                    <div class="sidebar-metric-box">
+                        <div class="metric-label">MEAN DA / ELEV</div>
                         <div id="sidebar-stat-avg-da" style="color: #38bdf8; font-weight: 700; font-size: 11px; margin-top: 2px;">1075m</div>
                     </div>
                 </div>
@@ -4500,19 +4656,10 @@
                         </div>
                     </div>
 
-                    <!-- Flight Logbook & Meteorology Dispatch Card -->
-                    <div class="atis-terminal-card" id="atis-terminal-card">
-                        <div class="terminal-header">
-                            <div class="terminal-title-group">
-                                <span class="terminal-beacon-dot"></span>
-                                <span class="terminal-title">FLIGHT LOGBOOK & METEOROLOGICAL TELEMETRY DISPATCH</span>
-                                <span class="terminal-subtitle">AERONAUTICAL METEOROLOGY · FLIGHT TIME ACCUMULATION · CRUISE EFFICIENCY</span>
-                            </div>
-                            <div class="terminal-callsign-badge" id="atis-callsign-badge">LOG ENTRY · ALPHA</div>
-                        </div>
-                        <div class="terminal-body" id="atis-terminal-text">
-                            INITIALIZING FLIGHT LOGBOOK & METEOROLOGY DISPATCH...
-                        </div>
+                    <!-- Flight Logbook & Meteorology Dispatch Card (Hidden as requested: unnecessary banner) -->
+                    <div class="atis-terminal-card" id="atis-terminal-card" style="display: none !important;">
+                        <div class="terminal-body" id="atis-terminal-text" style="display: none !important;"></div>
+                        <div class="terminal-callsign-badge" id="atis-callsign-badge" style="display: none !important;"></div>
                     </div>
 
                     <!-- Seasonal Atmospheric Trend Oscillographs (Plotly Charts) -->
