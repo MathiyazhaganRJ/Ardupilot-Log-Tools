@@ -2961,13 +2961,15 @@
         /* Charts Row */
         .atis-charts-row {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
             gap: 14px;
+            width: 100%;
+            min-width: 0;
         }
 
         @media (max-width: 1024px) {
             .atis-charts-row {
-                grid-template-columns: 1fr;
+                grid-template-columns: minmax(0, 1fr);
             }
         }
 
@@ -2980,6 +2982,10 @@
             flex-direction: column;
             gap: 4px;
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+            min-width: 0;
+            width: 100%;
+            overflow: hidden;
+            box-sizing: border-box;
         }
 
         [data-theme="light-clean"] .atis-chart-card {
@@ -3015,6 +3021,8 @@
         .atis-plotly-container {
             width: 100%;
             height: 240px;
+            min-width: 0;
+            overflow: hidden;
         }
 
         /* Table Card */
@@ -3081,21 +3089,44 @@
         }
 
         .legend-chip {
-            padding: 2px 7px;
-            border-radius: 3px;
+            padding: 3px 9px;
+            border-radius: 6px;
             font-size: 9.5px;
+            font-family: 'Inter', -apple-system, sans-serif;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
         }
 
         .legend-density-normal {
-            background: rgba(34, 197, 94, 0.15);
-            color: #4ade80;
-            border: 1px solid rgba(34, 197, 94, 0.3);
+            background: rgba(48, 209, 88, 0.16);
+            color: #30d158;
+            border: 1px solid rgba(48, 209, 88, 0.35);
         }
 
         .legend-density-hot {
-            background: rgba(249, 115, 22, 0.15);
-            color: #fb923c;
-            border: 1px solid rgba(249, 115, 22, 0.3);
+            background: rgba(255, 159, 10, 0.16);
+            color: #ff9f0a;
+            border: 1px solid rgba(255, 159, 10, 0.35);
+        }
+
+        [data-theme="light-clean"] .legend-chip {
+            font-weight: 800 !important;
+            font-size: 9.5px !important;
+            padding: 3px 9px !important;
+            border-radius: 6px !important;
+        }
+
+        [data-theme="light-clean"] .legend-density-normal {
+            background: #dcfce7 !important;
+            color: #15803d !important;
+            border: 1px solid #86efac !important;
+        }
+
+        [data-theme="light-clean"] .legend-density-hot {
+            background: #ffedd5 !important;
+            color: #c2410c !important;
+            border: 1px solid #fed7aa !important;
         }
 
         .atis-table-wrapper {
@@ -3346,8 +3377,8 @@
             display: inline-flex;
             align-items: center;
             gap: 3px;
-            font-family: 'B612 Mono', monospace;
-            font-size: 9.5px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10.5px;
             font-weight: 700;
             padding: 2px 7px;
             border-radius: 4px;
@@ -3366,16 +3397,35 @@
         }
 
         .tag-specs-weight {
-            background: rgba(48, 209, 88, 0.14);
-            color: #30d158;
-            border: 1px solid rgba(48, 209, 88, 0.32);
-            border-radius: 6px;
+            background: #16a34a;
+            color: #ffffff;
+            border: none;
+            border-radius: 9999px;
+            padding: 2.5px 9px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10.5px;
+            font-weight: 800;
+            letter-spacing: 0.2px;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            box-shadow: 0 2px 6px rgba(22, 163, 74, 0.35);
+            transition: all 0.15s ease;
         }
 
         .tag-specs-weight:hover {
-            background: rgba(34, 197, 94, 0.25);
-            border-color: #4ade80;
-            box-shadow: 0 0 6px rgba(34, 197, 94, 0.3);
+            background: #15803d;
+            color: #ffffff;
+            box-shadow: 0 3px 10px rgba(34, 197, 94, 0.45);
+        }
+
+        .tag-specs-weight .bird-edit-icon {
+            stroke: #ffffff;
+            opacity: 0.85;
+        }
+
+        .tag-specs-weight:hover .bird-edit-icon {
+            opacity: 1;
         }
 
         .tag-specs-battery {
@@ -3412,11 +3462,7 @@
             opacity: 1;
         }
 
-        [data-theme="light-clean"] .tag-specs-weight {
-            color: #15803d;
-            background: #dcfce7;
-            border-color: #86efac;
-        }
+
 
         
 
@@ -3586,15 +3632,7 @@
             color: #0f172a !important;
             font-weight: 800 !important;
         }
-        [data-theme="light-clean"] .tag-flt-time {
-            color: #15803d !important;
-            font-weight: 800 !important;
-            background: #dcfce7;
-            padding: 2px 7px;
-            border-radius: 4px;
-            border: 1px solid #86efac;
-            display: inline-block;
-        }
+
         [data-theme="light-clean"] .cell-duration {
             color: #0f172a !important;
             font-weight: 800 !important;
@@ -4273,7 +4311,7 @@
             color: #64748b !important;
         }
         [data-theme="light-clean"] #sidebar-stat-airborne-time {
-            color: #15803d !important;
+            color: #30d158 !important;
             font-weight: 700 !important;
         }
         [data-theme="light-clean"] #sidebar-stat-avg-da {
@@ -4463,7 +4501,7 @@
         }
 
         [data-theme="light-clean"] .pill-stat strong {
-            color: #059669 !important;
+            color: #30d158 !important;
             font-weight: 800 !important;
         }
 
@@ -4590,17 +4628,34 @@
         }
 
         [data-theme="light-clean"] .tag-specs-weight {
-            background: #ecfdf5 !important;
-            color: #047857 !important;
-            border: 1px solid #a7f3d0 !important;
+            background: #16a34a !important;
+            color: #ffffff !important;
+            border: none !important;
+            font-family: 'JetBrains Mono', monospace !important;
+            font-size: 10.5px !important;
             font-weight: 800 !important;
-            border-radius: 6px !important;
-            padding: 2.5px 8px !important;
+            letter-spacing: 0.2px !important;
+            border-radius: 9999px !important;
+            padding: 2.5px 9px !important;
+            box-shadow: 0 2px 6px rgba(22, 163, 74, 0.25) !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 3px !important;
         }
 
         [data-theme="light-clean"] .tag-specs-weight:hover {
-            background: #d1fae5 !important;
-            border-color: #059669 !important;
+            background: #15803d !important;
+            color: #ffffff !important;
+            box-shadow: 0 3px 8px rgba(21, 128, 61, 0.35) !important;
+        }
+
+        [data-theme="light-clean"] .tag-specs-weight .bird-edit-icon {
+            stroke: #ffffff !important;
+            opacity: 0.9 !important;
+        }
+
+        [data-theme="light-clean"] .tag-specs-weight:hover .bird-edit-icon {
+            opacity: 1 !important;
         }
 
         [data-theme="light-clean"] .tag-specs-battery {
@@ -4643,7 +4698,7 @@
 
         [data-theme="light-clean"] .tag-flt-time {
             font-weight: 800 !important;
-            color: #059669 !important;
+            color: #30d158 !important;
             font-family: 'JetBrains Mono', monospace !important;
             font-size: 11.5px !important;
             background: transparent !important;
@@ -4662,7 +4717,7 @@
         }
 
         [data-theme="light-clean"] .tag-temp-nom {
-            color: #059669 !important;
+            color: #30d158 !important;
             font-weight: 800 !important;
             font-family: 'JetBrains Mono', monospace !important;
             background: transparent !important;
@@ -4784,7 +4839,7 @@
         }
 
         [data-theme="light-clean"] #sidebar-stat-airborne-time {
-            color: #059669 !important;
+            color: #30d158 !important;
             font-weight: 800 !important;
         }
 
@@ -7437,6 +7492,8 @@
             };
 
             Plotly.newPlot('chart-atis-wind-energy', [traceMeanWind, tracePeakWind, traceDir], layout2, { responsive: true, displayModeBar: false });
+            initAtisChartResizeObserver();
+            setTimeout(resizeAllAtisCharts, 60);
 
             // Hook click interactions on plots to filter/scroll to that month
             const chart1 = document.getElementById('chart-atis-density-temp');
@@ -7514,6 +7571,34 @@
             }
         }
 
+        function resizeAllAtisCharts() {
+            if (typeof Plotly === 'undefined') return;
+            const c1 = document.getElementById('chart-atis-density-temp');
+            if (c1 && c1.data) {
+                try { Plotly.Plots.resize(c1); } catch(e) {}
+            }
+            const c2 = document.getElementById('chart-atis-wind-energy');
+            if (c2 && c2.data) {
+                try { Plotly.Plots.resize(c2); } catch(e) {}
+            }
+        }
+
+        function initAtisChartResizeObserver() {
+            if (typeof ResizeObserver === 'undefined') return;
+            const row = document.querySelector('.atis-charts-row');
+            if (!row || row._hasResizeObserver) return;
+            row._hasResizeObserver = true;
+
+            let animId = null;
+            const ro = new ResizeObserver(() => {
+                if (animId) cancelAnimationFrame(animId);
+                animId = requestAnimationFrame(() => {
+                    resizeAllAtisCharts();
+                });
+            });
+            ro.observe(row);
+        }
+
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             const btn = document.getElementById('btn-toggle-sidebar');
@@ -7521,9 +7606,13 @@
             const isHidden = sidebar.style.display === 'none';
             sidebar.style.display = isHidden ? 'flex' : 'none';
             if (btn) btn.classList.toggle('active', isHidden);
-            setTimeout(() => {
-                if (isPlotVisible && typeof Plotly !== 'undefined') {
-                    try { Plotly.Plots.resize('main-plot'); } catch(e) {}
+
+            const triggerResizes = () => {
+                if (typeof Plotly !== 'undefined') {
+                    if (isPlotVisible) {
+                        try { Plotly.Plots.resize('main-plot'); } catch(e) {}
+                    }
+                    resizeAllAtisCharts();
                 }
                 if (mapInstance) {
                     try { mapInstance.invalidateSize(true); } catch(e) {}
@@ -7532,7 +7621,14 @@
                 if (sitlIframe && sitlIframe.contentWindow) {
                     try { sitlIframe.contentWindow.dispatchEvent(new Event('resize')); } catch(e) {}
                 }
-            }, 60);
+            };
+
+            // Trigger immediately and through sidebar animation transitions
+            triggerResizes();
+            setTimeout(triggerResizes, 40);
+            setTimeout(triggerResizes, 100);
+            setTimeout(triggerResizes, 220);
+            setTimeout(triggerResizes, 350);
         }
 
         // Autopilot Messages Drawer Controller
