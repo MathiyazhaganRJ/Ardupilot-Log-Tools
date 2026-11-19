@@ -334,14 +334,16 @@ class LogViewerHandler(SimpleHTTPRequestHandler):
                 self._send_json({'success': False, 'error': str(e)})
             return
 
-        # 6. API: Aviation ATIS & Historical Fleet Atmospheric Database
-        elif path == '/api/historical_atis':
+        # 6. API: Flight Logbook & Meteorological Telemetry Database
+        elif path in ('/api/historical_logbook', '/api/historical_atis'):
             target_folder = query.get('folder', [None])[0]
             force_refresh = query.get('force', ['false'])[0].lower() in ('true', '1')
+            max_logs = int(query.get('max_logs', [100])[0])
             if not target_folder:
-                target_folder = os.path.join(BASE_DIR, 'uploads')
+                default_dir = r"C:\Users\KARSHAK_Tamal\Desktop\Logs"
+                target_folder = default_dir if os.path.exists(default_dir) else os.path.join(BASE_DIR, 'uploads')
             try:
-                data = parser.get_historical_atis_database(target_folder, force_refresh=force_refresh)
+                data = parser.get_historical_flight_logbook(target_folder, force_refresh=force_refresh, max_logs=max_logs)
                 self._send_json(data)
             except Exception as e:
                 self._send_json({'success': False, 'error': str(e)})

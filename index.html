@@ -3484,7 +3484,7 @@
             <div class="aero-rocker-group view-mode-group">
                 <button class="aero-rocker-btn view-mode-btn active" id="btn-view-sitl" onclick="setViewMode('sitl')" title="3D Digital Twin Spatial Visualizer">3D SPATIAL TWIN</button>
                 <button class="aero-rocker-btn view-mode-btn" id="btn-view-map" onclick="setViewMode('map')" title="2D Tactical Satellite Map">2D TACTICAL MAP</button>
-                <button class="aero-rocker-btn view-mode-btn" id="btn-view-atis" onclick="setViewMode('atis')" title="Aviation ATIS & Historical Fleet Atmospheric Database">ATIS & FLEET</button>
+                <button class="aero-rocker-btn view-mode-btn" id="btn-view-atis" onclick="setViewMode('atis')" title="Flight Logbook & Meteorological Conditions Database">FLIGHT LOGBOOK & MET</button>
             </div>
 
             <!-- Graph Toggle Button -->
@@ -3666,14 +3666,14 @@
                     <div id="leaflet-map" style="width:100%; height:100%;"></div>
                 </div>
 
-                <!-- 3. Aviation ATIS & Historical Fleet Atmospheric Database View -->
+                <!-- 3. Flight Logbook & Historical Meteorological Database View -->
                 <div id="atis-pane" class="atis-container" style="display: none; width: 100%; height: 100%; position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 10;">
                     <!-- Print Only Header -->
                     <div class="atis-print-header" style="display: none;">
                         <div style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid #0f172a; padding-bottom: 8px;">
                             <div>
-                                <h1 style="font-size: 15pt; font-weight: 700; margin: 0; font-family: 'B612', 'Latin Modern Roman', serif; text-transform: uppercase; letter-spacing: 0.5px;">Sharkee UAV Fleet Flight Operations & Environmental Regime Report</h1>
-                                <div style="font-size: 9pt; color: #475569; margin-top: 4px; font-family: 'B612 Mono', monospace;">Historical Telemetry, Atmospheric Density Altitude, and Propulsion Energetics</div>
+                                <h1 style="font-size: 15pt; font-weight: 700; margin: 0; font-family: 'B612', 'Latin Modern Roman', serif; text-transform: uppercase; letter-spacing: 0.5px;">Sharkee UAV Flight Logbook & Meteorological Operations Report</h1>
+                                <div style="font-size: 9pt; color: #475569; margin-top: 4px; font-family: 'B612 Mono', monospace;">Historical Flight Log Telemetry, Flight Hours Tracking, Density Altitude & Propulsion Energetics</div>
                             </div>
                             <div style="text-align: right; font-size: 8.5pt; font-family: 'B612 Mono', monospace; color: #334155;">
                                 <div>ORGANIZATION: AERONAUTICAL FLIGHT RESEARCH</div>
@@ -3687,12 +3687,12 @@
                         <div class="atis-toolbar-left">
                             <span class="atis-bar-label">LOGS REPOSITORY:</span>
                             <div class="atis-path-input-group">
-                                <input type="text" id="atis-folder-input" class="atis-input-path" placeholder="Path to flight logs..." readonly />
+                                <input type="text" id="atis-folder-input" class="atis-input-path" placeholder="C:\Users\KARSHAK_Tamal\Desktop\Logs" readonly />
                                 <button class="btn atis-btn" id="btn-browse-atis-folder" onclick="browseAtisFolder()" title="Select custom folder with Windows folder picker">BROWSE...</button>
                                 <button class="btn atis-btn atis-btn-primary" id="btn-rescan-atis" onclick="rescanAtisDatabase(true)" title="Scan and detect new logs incrementally">RESCAN LOGS</button>
                             </div>
                             <div class="atis-search-group">
-                                <input type="text" id="atis-search-input" class="atis-input-search" placeholder="Filter logs (date, name, DA)..." oninput="filterAtisTable(this.value)" />
+                                <input type="text" id="atis-search-input" class="atis-input-search" placeholder="Filter logs (date, name, hours, DA)..." oninput="filterAtisTable(this.value)" />
                             </div>
                         </div>
                         <div class="atis-toolbar-right">
@@ -3707,25 +3707,25 @@
                             <div class="atis-stats-pill" id="atis-stats-pill">
                                 <span class="pill-stat">LOGS: <strong id="stat-log-count">--</strong></span>
                                 <span class="pill-sep">|</span>
-                                <span class="pill-stat">AIRBORNE: <strong id="stat-airborne-time">--</strong></span>
+                                <span class="pill-stat">TOTAL FLIGHT: <strong id="stat-airborne-time">--</strong></span>
                                 <span class="pill-sep">|</span>
                                 <span class="pill-stat">AVG DA: <strong id="stat-avg-da">--</strong></span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- D-ATIS Terminal Broadcast Card -->
+                    <!-- Flight Logbook & Meteorology Dispatch Card -->
                     <div class="atis-terminal-card" id="atis-terminal-card">
                         <div class="terminal-header">
                             <div class="terminal-title-group">
                                 <span class="terminal-beacon-dot"></span>
-                                <span class="terminal-title">AUTOMATIC TERMINAL INFORMATION SERVICE (D-ATIS)</span>
-                                <span class="terminal-subtitle">AERONAUTICAL METEOROLOGICAL TELEMETRY</span>
+                                <span class="terminal-title">FLIGHT LOGBOOK & METEOROLOGICAL TELEMETRY DISPATCH</span>
+                                <span class="terminal-subtitle">AERONAUTICAL METEOROLOGY · FLIGHT TIME ACCUMULATION · CRUISE EFFICIENCY</span>
                             </div>
-                            <div class="terminal-callsign-badge" id="atis-callsign-badge">INFO ALPHA</div>
+                            <div class="terminal-callsign-badge" id="atis-callsign-badge">LOG ENTRY · ALPHA</div>
                         </div>
                         <div class="terminal-body" id="atis-terminal-text">
-                            INITIALIZING SHARKEE D-ATIS RECEIVER...
+                            INITIALIZING FLIGHT LOGBOOK & METEOROLOGY DISPATCH...
                         </div>
                     </div>
 
@@ -3751,7 +3751,7 @@
                     <div class="atis-table-card">
                         <div class="table-card-header">
                             <div class="table-card-title">
-                                <span>HISTORICAL FLIGHT TELEMETRY & ATMOSPHERIC DATABASE</span>
+                                <span>HISTORICAL FLIGHT LOGBOOK & METEOROLOGY DATABASE</span>
                                 <span class="table-badge" id="table-flight-counter">INDEXING...</span>
                             </div>
                             <div class="table-card-legend atis-no-print">
@@ -3763,12 +3763,12 @@
                             <table class="atis-table" id="atis-table">
                                 <thead>
                                     <tr>
-                                        <th onclick="sortAtisTable('callsign')">INFO</th>
+                                        <th onclick="sortAtisTable('callsign')">REF</th>
                                         <th onclick="sortAtisTable('filename')">FLIGHT LOG</th>
                                         <th onclick="sortAtisTable('date_iso')">DATE / TIME (UTC)</th>
                                         <th onclick="sortAtisTable('lat')">AIRFIELD / COORD</th>
-                                        <th onclick="sortAtisTable('flight_time_s')">AIRBORNE</th>
-                                        <th onclick="sortAtisTable('duration_s')">TOTAL MET</th>
+                                        <th onclick="sortAtisTable('flight_time_s')">AIRBORNE TIME</th>
+                                        <th onclick="sortAtisTable('duration_s')">TOTAL DURATION</th>
                                         <th onclick="sortAtisTable('oat_mean_c')">OAT (°C)</th>
                                         <th onclick="sortAtisTable('qnh_hpa')">QNH (hPa)</th>
                                         <th onclick="sortAtisTable('rho_kgm3')">AIR DENSITY</th>
@@ -3781,7 +3781,7 @@
                                     </tr>
                                 </thead>
                                 <tbody id="atis-table-body">
-                                    <tr><td colspan="15" style="text-align:center; padding: 20px; color:#64748b;">Loading historical flights database...</td></tr>
+                                    <tr><td colspan="15" style="text-align:center; padding: 20px; color:#64748b;">Loading historical flight logbook & meteorology database...</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -4319,35 +4319,42 @@
         }
 
         async function loadHistoricalAtisData(force = false) {
-            const savedFolder = localStorage.getItem('sharkee_atis_folder') || '';
+            let savedFolder = localStorage.getItem('sharkee_atis_folder') || '';
+            if (!savedFolder || savedFolder.includes('uploads')) {
+                savedFolder = 'C:\\Users\\KARSHAK_Tamal\\Desktop\\Logs';
+            }
             const folderInput = document.getElementById('atis-folder-input');
             const terminalText = document.getElementById('atis-terminal-text');
             const tableBody = document.getElementById('atis-table-body');
             
             if (tableBody && !atisGlobalData) {
-                tableBody.innerHTML = '<tr><td colspan="15" style="text-align:center; padding: 25px; color:#38bdf8; font-family:\'B612 Mono\', monospace;">SCANNING REPOSITORY & COMPUTING ATIS ATMOSPHERIC TELEMETRY...</td></tr>';
+                tableBody.innerHTML = '<tr><td colspan="15" style="text-align:center; padding: 25px; color:#38bdf8; font-family:\'B612 Mono\', monospace;">SCANNING LOGBOOK REPOSITORY & EXTRACTING FLIGHT METEOROLOGY...</td></tr>';
             }
             if (terminalText && !atisGlobalData) {
-                terminalText.textContent = "QUERYING ATIS FLEET METEOROLOGICAL TELEMETRY & ATMOSPHERIC DATABASE...";
+                terminalText.textContent = "QUERYING FLIGHT LOGBOOK & METEOROLOGICAL TELEMETRY DATABASE...";
             }
 
             try {
-                let url = '/api/historical_atis';
+                let url = '/api/historical_logbook';
                 const params = [];
                 if (savedFolder) params.push(`folder=${encodeURIComponent(savedFolder)}`);
                 if (force) params.push('force=1');
                 if (params.length > 0) url += '?' + params.join('&');
 
-                const res = await fetch(url);
+                let res = await fetch(url);
+                if (!res.ok && res.status === 404) {
+                    url = '/api/historical_atis' + (params.length > 0 ? '?' + params.join('&') : '');
+                    res = await fetch(url);
+                }
                 if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
                 const data = await res.json();
-                if (!data.success) throw new Error(data.error || 'Failed to fetch ATIS data');
+                if (!data.success) throw new Error(data.error || 'Failed to fetch flight logbook data');
 
                 atisGlobalData = data;
                 if (folderInput) {
-                    folderInput.value = data.folder || '';
+                    folderInput.value = data.folder || savedFolder;
                 }
-                localStorage.setItem('sharkee_atis_folder', data.folder || '');
+                localStorage.setItem('sharkee_atis_folder', data.folder || savedFolder);
 
                 // Update summary badges
                 const statCount = document.getElementById('stat-log-count');
@@ -4374,12 +4381,12 @@
                 renderAtisCharts();
 
             } catch (err) {
-                console.error("ATIS Load Error:", err);
+                console.error("Flight Logbook Load Error:", err);
                 if (tableBody) {
-                    tableBody.innerHTML = `<tr><td colspan="15" style="text-align:center; padding: 25px; color:#f87171;">Error loading ATIS telemetry database: ${err.message}</td></tr>`;
+                    tableBody.innerHTML = `<tr><td colspan="15" style="text-align:center; padding: 25px; color:#f87171;">Error loading flight logbook & meteorology database: ${err.message}</td></tr>`;
                 }
                 if (terminalText) {
-                    terminalText.textContent = `[ ATIS BROADCAST SYSTEM OFFLINE ] · ERROR: ${err.message}`;
+                    terminalText.textContent = `[ FLIGHT LOGBOOK DISPATCH OFFLINE ] · ERROR: ${err.message}`;
                 }
             }
         }
@@ -4390,10 +4397,10 @@
             const callsignBadge = document.getElementById('atis-callsign-badge');
 
             if (terminalText && flight) {
-                terminalText.textContent = flight.atis_ticker || "NO TELEMETRY RECORDED FOR THIS FLIGHT";
+                terminalText.textContent = flight.logbook_ticker || flight.atis_ticker || "NO TELEMETRY RECORDED FOR THIS FLIGHT";
             }
             if (callsignBadge && flight) {
-                callsignBadge.textContent = `INFO ${flight.atis_callsign || 'ALPHA'}`;
+                callsignBadge.textContent = `LOG · ${flight.atis_callsign || 'ALPHA'}`;
             }
 
             // Update row highlighting
@@ -6712,7 +6719,7 @@
             } else if (e.code === 'ArrowRight') {
                 e.preventDefault();
                 stepReplayTime(2);
-            } else if (e.code === 'KeyA' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+            } else if ((e.code === 'KeyL' || e.code === 'KeyA') && !e.ctrlKey && !e.metaKey && !e.altKey) {
                 e.preventDefault();
                 const btnAtis = document.getElementById('btn-view-atis');
                 if (btnAtis && btnAtis.classList.contains('active')) {

@@ -4,10 +4,16 @@ Extracts synchronized flight telemetry, message formats, and aerodynamic perform
 """
 
 import os
+import sys
+import io
 import math
 import datetime
 import json
 import numpy as np
+
+# Suppress pymavlink cython fast-indexer stderr buffer spam on corrupt/unaligned binary logs
+os.environ['PYMAVLINK_FAST_INDEX'] = '0'
+
 from pymavlink import mavutil
 import organizer
 
@@ -797,9 +803,12 @@ def extract_flight_atis_summary(file_path):
     fallback_dt = organizer.get_true_log_date(file_path)
     flight_dt = None
 
+    old_stderr = sys.stderr
+    sys.stderr = io.StringIO()
     try:
-        mlog = mavutil.mavlink_connection(file_path, notimestamps=True)
+        mlog = mavutil.mavlink_connection(file_path, robust_parsing=False, notimestamps=True)
     except Exception as e:
+        sys.stderr = old_stderr
         return {'filename': os.path.basename(file_path), 'filepath': file_path, 'error': str(e)}
 
     types = ['GPS', 'BARO', 'ARSP', 'XKF2', 'NKF2', 'AHR2', 'BAT', 'MODE', 'PARM', 'MSG']
@@ -816,7 +825,10 @@ def extract_flight_atis_summary(file_path):
     max_curr_tot = 0.0
 
     while True:
-        m = mlog.recv_match(type=types, blocking=False)
+        try:
+            m = mlog.recv_match(type=types, blocking=False)
+        except Exception:
+            break
         if m is None:
             break
         mtype = m.get_type()
@@ -966,7 +978,7 @@ def extract_flight_atis_summary(file_path):
     flt_str = fmt_dur(flt_s)
 
     parse_time = round(time.time() - t0, 2)
-    return {
+    res_payload = {
         'filename': os.path.basename(file_path),
         'filepath': file_path,
         'size_mb': size_mb,
@@ -1009,28 +1021,39 @@ def extract_flight_atis_summary(file_path):
         'has_valid_flight': flt_s > 30.0,
         'parse_time_s': parse_time
     }
+    sys.stderr = old_stderr
+    return res_payload
 
 
-def get_historical_atis_database(folder_path=None, force_refresh=False):
+DEFAULT_LOGBOOK_DIR = r"C:\Users\KARSHAK_Tamal\Desktop\Logs"
+
+def get_historical_flight_logbook(folder_path=None, force_refresh=False, max_logs=250):
     """
     Scans folder_path for all ArduPilot .bin flight logs, leveraging a disk cache
-    (.atis_flight_cache.json) to achieve sub-millisecond retrieval on subsequent calls.
+    (.flight_logbook_cache.json) to achieve sub-millisecond retrieval on subsequent calls.
+    Tracks flight logs, cumulative flying hours, and meteorological atmospheric conditions.
     """
     if not folder_path or not os.path.exists(folder_path):
-        folder_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
+        if os.path.exists(DEFAULT_LOGBOOK_DIR):
+            folder_path = DEFAULT_LOGBOOK_DIR
+        else:
+            folder_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
     
     folder_path = os.path.normpath(folder_path)
-    cache_file = os.path.join(folder_path, '.atis_flight_cache.json')
+    cache_file = os.path.join(folder_path, '.flight_logbook_cache.json')
+    legacy_cache_file = os.path.join(folder_path, '.atis_flight_cache.json')
     
-    cache_data = {'version': 1, 'files': {}}
-    if not force_refresh and os.path.exists(cache_file):
+    cache_data = {'version': 2, 'files': {}}
+    target_cache_file = cache_file if os.path.exists(cache_file) else (legacy_cache_file if os.path.exists(legacy_cache_file) else cache_file)
+
+    if not force_refresh and os.path.exists(target_cache_file):
         try:
-            with open(cache_file, 'r', encoding='utf-8') as f:
+            with open(target_cache_file, 'r', encoding='utf-8') as f:
                 loaded = json.load(f)
-                if loaded.get('version') == 1 and isinstance(loaded.get('files'), dict):
+                if isinstance(loaded.get('files'), dict):
                     cache_data = loaded
         except Exception:
-            cache_data = {'version': 1, 'files': {}}
+            cache_data = {'version': 2, 'files': {}}
 
     cached_files = cache_data.get('files', {})
     updated = False
@@ -1038,16 +1061,25 @@ def get_historical_atis_database(folder_path=None, force_refresh=False):
     # Discover all .bin files in folder and direct subfolders
     found_paths = []
     for root, dirs, files in os.walk(folder_path):
-        # Ignore hidden / temporary folders
         dirs[:] = [d for d in dirs if not d.startswith('.') and d != '_temp_org']
         for fn in files:
             if fn.lower().endswith('.bin'):
                 found_paths.append(os.path.join(root, fn))
                 
+    # Sort files by modification time descending (newest flights first)
+    found_paths.sort(key=lambda p: os.path.getmtime(p) if os.path.exists(p) else 0, reverse=True)
+
+    # In massive directories (e.g. 800+ files), scan up to max_logs for cold performance
+    if max_logs and max_logs > 0 and len(found_paths) > max_logs:
+        target_paths = found_paths[:max_logs]
+    else:
+        target_paths = found_paths
+
     valid_filenames = set()
     flights = []
+    new_parsed_count = 0
     
-    for fpath in found_paths:
+    for fpath in target_paths:
         fname = os.path.basename(fpath)
         valid_filenames.add(fname)
         try:
@@ -1057,7 +1089,6 @@ def get_historical_atis_database(folder_path=None, force_refresh=False):
         except Exception:
             continue
             
-        # Cache check: key is filename, size, and mtime
         cached_entry = cached_files.get(fname)
         if (cached_entry and 
             cached_entry.get('size') == fsize and 
@@ -1067,7 +1098,10 @@ def get_historical_atis_database(folder_path=None, force_refresh=False):
             summary['filepath'] = fpath
             flights.append(summary)
         else:
-            summary = extract_flight_atis_summary(fpath)
+            try:
+                summary = extract_flight_atis_summary(fpath)
+            except Exception as e:
+                summary = {'filename': fname, 'filepath': fpath, 'error': str(e)}
             cached_files[fname] = {
                 'size': fsize,
                 'mtime': fmtime,
@@ -1075,6 +1109,14 @@ def get_historical_atis_database(folder_path=None, force_refresh=False):
             }
             flights.append(summary)
             updated = True
+            new_parsed_count += 1
+            # Periodically flush cache every 15 newly parsed logs
+            if new_parsed_count % 15 == 0:
+                try:
+                    with open(cache_file, 'w', encoding='utf-8') as f:
+                        json.dump(cache_data, f, indent=2)
+                except Exception:
+                    pass
 
     # Purge removed files from cache
     stale_keys = [k for k in cached_files if k not in valid_filenames]
@@ -1090,17 +1132,18 @@ def get_historical_atis_database(folder_path=None, force_refresh=False):
             with open(cache_file, 'w', encoding='utf-8') as f:
                 json.dump(cache_data, f, indent=2)
         except Exception as e:
-            print(f"Warning: could not write ATIS cache: {e}")
+            print(f"Warning: could not write logbook cache: {e}")
 
     # Sort flights newest first
     flights.sort(key=lambda x: x.get('date_iso', ''), reverse=True)
 
-    # Assign cyclic phonetic callsign (ZULU down to ALPHA)
+    # Assign cyclic entry callsign
     for idx, flt in enumerate(flights):
         p_letter = PHONETIC_ALPHABET[idx % len(PHONETIC_ALPHABET)]
+        flt['logbook_callsign'] = f"LOG {p_letter}"
         flt['atis_callsign'] = p_letter
         
-        # Build standard ICAO D-ATIS ticker
+        # Build standard Aeronautical Weather & Flight Telemetry Dispatch Ticker
         d_utc = flt.get('date_str', '').split(' ')[1].replace(':', '')[:4] if ' ' in flt.get('date_str', '') else '1200'
         day_str = f"{flt.get('day', 1):02d}"
         zulu_time = f"{day_str}{d_utc}Z"
@@ -1117,12 +1160,14 @@ def get_historical_atis_database(folder_path=None, force_refresh=False):
         pwr_val = flt.get('mean_pwr_w', 0.0)
         tas_val = flt.get('mean_tas_ms', 0.0)
         
-        flt['atis_ticker'] = (
-            f"SHARKEE FIELD INFO {p_letter} · {zulu_time} · WIND {w_dir}/{w_kt}KT · VIS 10KM+ · CLR · "
+        flt['logbook_ticker'] = (
+            f"SHARKEE FLIGHT LOG & METEOROLOGICAL DISPATCH · ENTRY {p_letter} · {zulu_time} · "
+            f"WIND {w_dir}/{w_kt}KT · VIS 10KM+ · CLR · "
             f"TEMP {oat_str} · QNH {qnh_val:.1f} HPA · DENSITY ALT {da_val:.0f}M ({da_ft_val}FT) · "
             f"RHO {rho_val:.4f} KG/M³ · CRUISE {tas_val:.1f}M/S @ {pwr_val:.0f}W ({wh_km_val:.2f} WH/KM) · "
-            f"FLT {flt_dur} · AIRFRAME NOMINAL"
+            f"AIRBORNE FLT {flt_dur} · METEOROLOGICAL CONDITIONS NOMINAL"
         )
+        flt['atis_ticker'] = flt['logbook_ticker']
 
     # Compute aggregate fleet atmospheric & performance summary
     total_flt_sec = sum(f.get('flight_time_s', 0) for f in flights)
@@ -1140,14 +1185,17 @@ def get_historical_atis_database(folder_path=None, force_refresh=False):
         m = int((s % 3600) // 60)
         return f"{h}h {m:02d}m"
         
+    valid_dates = [f['date_str'] for f in flights if f.get('date_str')]
+        
     summary = {
         'total_logs': len(flights),
+        'total_repository_logs': len(found_paths),
         'valid_flights_count': len(valid_flights),
         'total_airborne_time': fmt_cum_dur(total_flt_sec),
         'total_airborne_sec': round(total_flt_sec, 1),
         'total_operations_time': fmt_cum_dur(total_dur_sec),
-        'date_earliest': flights[-1]['date_str'] if flights else 'N/A',
-        'date_latest': flights[0]['date_str'] if flights else 'N/A',
+        'date_earliest': valid_dates[-1] if valid_dates else 'N/A',
+        'date_latest': valid_dates[0] if valid_dates else 'N/A',
         'temp_min_c': min(oats) if oats else 25.0,
         'temp_max_c': max(oats) if oats else 25.0,
         'temp_mean_c': round(sum(oats)/len(oats), 1) if oats else 25.0,
@@ -1168,4 +1216,8 @@ def get_historical_atis_database(folder_path=None, force_refresh=False):
         'summary': summary,
         'flights': flights
     }
+
+# Backwards compatibility aliases
+get_historical_atis_database = get_historical_flight_logbook
+extract_flight_logbook_summary = extract_flight_atis_summary
 
