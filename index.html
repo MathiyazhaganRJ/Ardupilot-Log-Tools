@@ -3201,22 +3201,25 @@
 
         .tag-fc-name {
             display: inline-block;
-            padding: 2px 7px;
+            padding: 2.5px 8px;
             border-radius: 6px;
-            font-size: 9px;
+            font-size: 9.5px;
             font-weight: 700;
-            background: rgba(100, 210, 255, 0.12);
-            color: #64d2ff;
-            border: 1px solid rgba(100, 210, 255, 0.28);
+            background: rgba(255, 159, 10, 0.15);
+            color: #ff9f0a;
+            border: 1px solid rgba(255, 159, 10, 0.35);
             white-space: nowrap;
             font-family: 'Inter', -apple-system, sans-serif;
+            transition: all 0.12s ease;
         }
 
-        [data-theme="light-clean"] .tag-fc-name {
-            background: #e0f2fe;
-            color: #0369a1;
-            border-color: #bae6fd;
+        .tag-fc-name:hover {
+            background: rgba(255, 159, 10, 0.25);
+            border-color: #ff9f0a;
+            box-shadow: 0 0 8px rgba(255, 159, 10, 0.3);
         }
+
+        
 
         .tag-date-time {
             font-weight: 600;
@@ -3374,16 +3377,17 @@
         }
 
         .tag-specs-battery {
-            background: rgba(191, 90, 242, 0.14);
-            color: #bf5af2;
-            border: 1px solid rgba(191, 90, 242, 0.32);
+            background: rgba(255, 214, 10, 0.14);
+            color: #ffd60a;
+            border: 1px solid rgba(255, 214, 10, 0.35);
             border-radius: 6px;
+            font-weight: 700;
+            transition: all 0.12s ease;
         }
-
         .tag-specs-battery:hover {
-            background: rgba(168, 85, 247, 0.25);
-            border-color: #c084fc;
-            box-shadow: 0 0 6px rgba(168, 85, 247, 0.3);
+            background: rgba(255, 214, 10, 0.25);
+            border-color: #ffd60a;
+            box-shadow: 0 0 8px rgba(255, 214, 10, 0.3);
         }
 
         [data-theme="light-clean"] .tag-specs-weight {
@@ -3392,11 +3396,7 @@
             border-color: #86efac;
         }
 
-        [data-theme="light-clean"] .tag-specs-battery {
-            color: #7e22ce;
-            background: #f3e8ff;
-            border-color: #d8b4fe;
-        }
+        
 
         [data-theme="light-clean"] .tag-bird-name {
             color: #0369a1;
@@ -4582,30 +4582,35 @@
         }
 
         [data-theme="light-clean"] .tag-specs-battery {
-            background: #faf5ff !important;
-            color: #7e22ce !important;
-            border: 1px solid #e9d5ff !important;
+            background: #fef3c7 !important;
+            color: #b45309 !important;
+            border: 1px solid #fde68a !important;
             font-weight: 800 !important;
             border-radius: 6px !important;
             padding: 2.5px 8px !important;
         }
 
         [data-theme="light-clean"] .tag-specs-battery:hover {
-            background: #f3e8ff !important;
-            border-color: #9333ea !important;
+            background: #fde68a !important;
+            border-color: #d97706 !important;
         }
 
         [data-theme="light-clean"] .tag-fc-name {
             display: inline-block !important;
-            padding: 2px 7px !important;
+            padding: 2.5px 8px !important;
             border-radius: 6px !important;
-            font-size: 9px !important;
-            font-weight: 700 !important;
-            background: #f0f9ff !important;
-            color: #0284c7 !important;
-            border: 1px solid #bae6fd !important;
+            font-size: 9.5px !important;
+            font-weight: 800 !important;
+            background: #ffedd5 !important;
+            color: #c2410c !important;
+            border: 1px solid #fed7aa !important;
             white-space: nowrap !important;
             font-family: 'Inter', -apple-system, sans-serif !important;
+        }
+
+        [data-theme="light-clean"] .tag-fc-name:hover {
+            background: #fed7aa !important;
+            border-color: #ea580c !important;
         }
 
         [data-theme="light-clean"] .tag-flt-time {
