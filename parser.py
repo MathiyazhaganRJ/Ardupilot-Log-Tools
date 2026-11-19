@@ -9,6 +9,7 @@ import io
 import math
 import datetime
 import json
+import re
 import numpy as np
 
 # Suppress pymavlink cython fast-indexer stderr buffer spam on corrupt/unaligned binary logs
@@ -1250,6 +1251,107 @@ def save_flight_notes_for_path(path, notes_dict, folder_path=None):
     save_flight_notes_map(notes_map, folder_path)
     return notes_dict
 
+def get_flight_specs_file(folder_path=None):
+    base_dir = folder_path or get_default_logs_dir()
+    return os.path.join(base_dir, '.flight_specs.json')
+
+def get_flight_specs_map(folder_path=None):
+    sf = get_flight_specs_file(folder_path)
+    if os.path.exists(sf):
+        try:
+            with open(sf, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                if isinstance(data, dict):
+                    return data
+        except Exception:
+            pass
+    return {'by_path': {}, 'by_bird': {}, 'by_fc': {}}
+
+def save_flight_specs_map(specs_map, folder_path=None):
+    sf = get_flight_specs_file(folder_path)
+    _atomic_write_json(sf, specs_map)
+
+def extract_battery_from_notes(notes):
+    if not notes or not isinstance(notes, dict):
+        return ''
+    raw_texts = []
+    if notes.get('notes_text'): raw_texts.append(notes['notes_text'])
+    if notes.get('battery_pack'): raw_texts.append(notes['battery_pack'])
+    if notes.get('battery_info'): raw_texts.append(notes['battery_info'])
+    if notes.get('battery_notes'): raw_texts.append(notes['battery_notes'])
+    combined = ' \n '.join(raw_texts)
+    if not combined:
+        return ''
+    m = re.search(r'(?:battery\s*(?:used|pack|type)?[:\s\*\-]+)?((?:solid\s*state\s*)?(?:[1-9][0-9]?[sS]\s*)?[0-9]+(?:\.[0-9]+)?\s*(?:mah|ah)(?:\s*(?:lipo|liion|li-ion|solid\s*state|pack[^\n\r,]*))?)', combined, re.IGNORECASE)
+    if m:
+        res = m.group(1).strip()
+        res = re.sub(r'[\*\#].*$', '', res).strip()
+        return res
+    return ''
+
+def resolve_flight_specs(rel_path, bird_name, fc_name, specs_map, notes=None):
+    norm_rel = rel_path.replace('/', '\\')
+    base_name = os.path.basename(rel_path)
+
+    by_path = specs_map.get('by_path', {})
+    spec = by_path.get(norm_rel) or by_path.get(base_name)
+    w_val = spec.get('weight', '') if spec else ''
+    b_val = spec.get('battery', '') if spec else ''
+
+    if not w_val or not b_val:
+        by_bird = specs_map.get('by_bird', {})
+        if bird_name in by_bird:
+            b_spec = by_bird[bird_name]
+            if not w_val and b_spec.get('weight'): w_val = b_spec['weight']
+            if not b_val and b_spec.get('battery'): b_val = b_spec['battery']
+
+    if not w_val or not b_val:
+        by_fc = specs_map.get('by_fc', {})
+        if fc_name in by_fc:
+            fc_spec = by_fc[fc_name]
+            if not w_val and fc_spec.get('weight'): w_val = fc_spec['weight']
+            if not b_val and fc_spec.get('battery'): b_val = fc_spec['battery']
+
+    # Auto-fallback: extract battery from pilot flight notes if not explicitly set
+    if not b_val and notes:
+        b_val = extract_battery_from_notes(notes)
+
+    return w_val, b_val
+
+def set_flight_specs(path, weight=None, battery=None, scope='single', bird_name=None, fc_name=None, folder_path=None):
+    specs_map = get_flight_specs_map(folder_path)
+    if 'by_path' not in specs_map: specs_map['by_path'] = {}
+    if 'by_bird' not in specs_map: specs_map['by_bird'] = {}
+    if 'by_fc' not in specs_map: specs_map['by_fc'] = {}
+
+    rel_path = path
+    if folder_path and os.path.isabs(path):
+        try:
+            rel_path = os.path.relpath(path, folder_path).replace('/', '\\')
+        except Exception:
+            rel_path = os.path.basename(path)
+
+    spec_update = {}
+    if weight is not None: spec_update['weight'] = str(weight).strip()
+    if battery is not None: spec_update['battery'] = str(battery).strip()
+
+    if scope == 'single':
+        cur = specs_map['by_path'].get(rel_path, {})
+        cur.update(spec_update)
+        specs_map['by_path'][rel_path] = cur
+        specs_map['by_path'][os.path.basename(path)] = cur
+    elif scope == 'bird' and bird_name:
+        cur = specs_map['by_bird'].get(bird_name, {})
+        cur.update(spec_update)
+        specs_map['by_bird'][bird_name] = cur
+    elif scope == 'fc' and fc_name:
+        cur = specs_map['by_fc'].get(fc_name, {})
+        cur.update(spec_update)
+        specs_map['by_fc'][fc_name] = cur
+
+    save_flight_specs_map(specs_map, folder_path)
+    return specs_map
+
 def get_historical_flight_logbook(folder_path=None, force_refresh=False, max_logs=None):
     """
     Scans folder_path for all ArduPilot .bin flight logs, leveraging a disk cache
@@ -1378,6 +1480,7 @@ def get_historical_flight_logbook(folder_path=None, force_refresh=False, max_log
 
     bird_map = get_bird_names_map(folder_path)
     notes_map = get_flight_notes_map(folder_path)
+    specs_map = get_flight_specs_map(folder_path)
 
     valid_flights = []
     for flt in flights:
@@ -1393,10 +1496,15 @@ def get_historical_flight_logbook(folder_path=None, force_refresh=False, max_log
         if fc in EXCLUDED_FCS:
             continue
 
-        # Resolve persistent bird name & flight debrief white-paper notes
+        # Resolve persistent bird name, flight debrief white-paper notes, and aircraft specs (weight, battery)
         r_key = os.path.relpath(flt['filepath'], folder_path).replace('/', '\\')
         flt['bird_name'] = resolve_bird_name(r_key, fc, bird_map, folder_path)
         flt['notes'] = get_flight_notes_for_path(r_key, notes_map, folder_path)
+        w_val, b_val = resolve_flight_specs(r_key, flt['bird_name'], fc, specs_map, flt['notes'])
+        flt['weight'] = w_val
+        flt['battery'] = b_val
+        flt['weight_str'] = w_val if w_val else '--'
+        flt['battery_str'] = b_val if b_val else '--'
         valid_flights.append(flt)
 
     # Sort flights newest first

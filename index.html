@@ -3294,6 +3294,65 @@
             opacity: 1;
         }
 
+        .tag-specs-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            font-family: 'B612 Mono', monospace;
+            font-size: 9.5px;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+        }
+
+        .tag-specs-badge .bird-edit-icon {
+            opacity: 0.55;
+            transition: opacity 0.15s ease;
+        }
+
+        .tag-specs-badge:hover .bird-edit-icon {
+            opacity: 1;
+        }
+
+        .tag-specs-weight {
+            color: #4ade80;
+            background: rgba(34, 197, 94, 0.12);
+            border: 1px solid rgba(34, 197, 94, 0.35);
+        }
+
+        .tag-specs-weight:hover {
+            background: rgba(34, 197, 94, 0.25);
+            border-color: #4ade80;
+            box-shadow: 0 0 6px rgba(34, 197, 94, 0.3);
+        }
+
+        .tag-specs-battery {
+            color: #c084fc;
+            background: rgba(168, 85, 247, 0.12);
+            border: 1px solid rgba(168, 85, 247, 0.35);
+        }
+
+        .tag-specs-battery:hover {
+            background: rgba(168, 85, 247, 0.25);
+            border-color: #c084fc;
+            box-shadow: 0 0 6px rgba(168, 85, 247, 0.3);
+        }
+
+        [data-theme="light-clean"] .tag-specs-weight {
+            color: #15803d;
+            background: #dcfce7;
+            border-color: #86efac;
+        }
+
+        [data-theme="light-clean"] .tag-specs-battery {
+            color: #7e22ce;
+            background: #f3e8ff;
+            border-color: #d8b4fe;
+        }
+
         [data-theme="light-clean"] .tag-bird-name {
             color: #0369a1;
             background: #e0f2fe;
@@ -4265,6 +4324,32 @@
                     </div>
                 </div>
 
+                <!-- 8. Battery Type Section -->
+                <div class="sidebar-section" style="border: 1px solid var(--av-border); border-radius: 5px; padding: 8px 10px; margin: 0;">
+                    <div class="uav-collapsible-title" onclick="toggleUavSection('sidebar-battery-filter-wrapper', this)" style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none;">
+                        <span style="font-size: 10px; font-weight: 700; color: #c084fc; letter-spacing: 0.5px;">BATTERY TYPE</span>
+                        <span class="uav-caret">&#9662;</span>
+                    </div>
+                    <div id="sidebar-battery-filter-wrapper" style="margin-top: 8px;">
+                        <div class="fc-filter-tabs-bar" id="battery-filter-tabs-bar" style="display: flex; flex-direction: column; gap: 4px; border: none; padding: 0;">
+                            <!-- Battery buttons rendered here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 9. Model Flying Weight Section -->
+                <div class="sidebar-section" style="border: 1px solid var(--av-border); border-radius: 5px; padding: 8px 10px; margin: 0;">
+                    <div class="uav-collapsible-title" onclick="toggleUavSection('sidebar-weight-filter-wrapper', this)" style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none;">
+                        <span style="font-size: 10px; font-weight: 700; color: #4ade80; letter-spacing: 0.5px;">FLYING WEIGHT (AUW)</span>
+                        <span class="uav-caret">&#9662;</span>
+                    </div>
+                    <div id="sidebar-weight-filter-wrapper" style="margin-top: 8px;">
+                        <div class="fc-filter-tabs-bar" id="weight-filter-tabs-bar" style="display: flex; flex-direction: column; gap: 4px; border: none; padding: 0;">
+                            <!-- Weight buttons rendered here -->
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
 
@@ -4439,6 +4524,8 @@
                                     <tr>
                                         <th onclick="sortAtisTable('callsign')">REF</th>
                                         <th onclick="sortAtisTable('bird_name')">BIRD NAME</th>
+                                        <th onclick="sortAtisTable('weight')">FLYING WEIGHT</th>
+                                        <th onclick="sortAtisTable('battery')">BATTERY TYPE</th>
                                         <th onclick="sortAtisTable('date_iso')">DATE / TIME (UTC)</th>
                                         <th onclick="sortAtisTable('fc_name')">FC NAME</th>
                                         <th onclick="sortAtisTable('lat')">AIRFIELD / COORD</th>
@@ -4454,7 +4541,7 @@
                                     </tr>
                                 </thead>
                                 <tbody id="atis-table-body">
-                                    <tr><td colspan="14" style="text-align:center; padding: 20px; color:#64748b;">Loading historical flight logbook & meteorology database...</td></tr>
+                                    <tr><td colspan="16" style="text-align:center; padding: 20px; color:#64748b;">Loading historical flight logbook & meteorology database...</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -5030,8 +5117,14 @@
         let activeYearFilter = 'ALL';
         let activeMonthFilter = 'ALL';
         let activeBirdFilter = 'ALL';
+        let activeBatteryFilter = 'ALL';
+        let activeWeightFilter = 'ALL';
         let modalCurrentLogPath = '';
         let modalCurrentFc = '';
+        let modalSpecsPath = '';
+        let modalSpecsBird = '';
+        let modalSpecsFc = '';
+        let modalSpecsFilename = '';
 
         function escapeHtml(str) {
             if (!str) return '';
@@ -5134,6 +5227,12 @@
             if (activeFcFilter && activeFcFilter !== 'ALL') {
                 chips.push(`<span class="active-filter-chip" onclick="setFcFilter('ALL')">FC: <strong>${escapeHtml(activeFcFilter)}</strong> <span class="chip-remove">✕</span></span>`);
             }
+            if (activeBatteryFilter && activeBatteryFilter !== 'ALL') {
+                chips.push(`<span class="active-filter-chip" onclick="setBatteryFilter('ALL')" style="border-color:#c084fc; color:#c084fc;">BATTERY: <strong>${escapeHtml(activeBatteryFilter)}</strong> <span class="chip-remove">✕</span></span>`);
+            }
+            if (activeWeightFilter && activeWeightFilter !== 'ALL') {
+                chips.push(`<span class="active-filter-chip" onclick="setWeightFilter('ALL')" style="border-color:#4ade80; color:#4ade80;">WEIGHT: <strong>${escapeHtml(activeWeightFilter)}</strong> <span class="chip-remove">✕</span></span>`);
+            }
             if (atisFilterQuery.trim() !== '') {
                 chips.push(`<span class="active-filter-chip" onclick="filterAtisTable('')">SEARCH: <strong>"${escapeHtml(atisFilterQuery.trim())}"</strong> <span class="chip-remove">✕</span></span>`);
             }
@@ -5153,14 +5252,19 @@
             activeYearFilter = 'ALL';
             activeMonthFilter = 'ALL';
             activeBirdFilter = 'ALL';
+            activeBatteryFilter = 'ALL';
+            activeWeightFilter = 'ALL';
             atisFilterQuery = '';
             const s1 = document.getElementById('sidebar-atis-search-input');
             if (s1) s1.value = '';
             const s2 = document.getElementById('atis-search-input');
             if (s2) s2.value = '';
-            renderFcFilterTabs(atisGlobalData ? atisGlobalData.flights : []);
-            renderYearFilterTabs(atisGlobalData ? atisGlobalData.flights : []);
-            renderBirdFilterTabs(atisGlobalData ? atisGlobalData.flights : []);
+            const flights = atisGlobalData ? atisGlobalData.flights : [];
+            renderFcFilterTabs(flights);
+            renderYearFilterTabs(flights);
+            renderBirdFilterTabs(flights);
+            renderBatteryFilterTabs(flights);
+            renderWeightFilterTabs(flights);
             updateActiveFilterChips();
             renderAtisTable();
             renderAtisCharts();
@@ -5281,12 +5385,19 @@
             updateActiveFilterChips();
         }
 
+        function refreshAllFilterTabs() {
+            const flights = atisGlobalData ? atisGlobalData.flights : [];
+            renderFcFilterTabs(flights);
+            renderYearFilterTabs(flights);
+            renderBirdFilterTabs(flights);
+            renderBatteryFilterTabs(flights);
+            renderWeightFilterTabs(flights);
+            updateActiveFilterChips();
+        }
+
         function setFcFilter(fcName) {
             activeFcFilter = fcName;
-            renderFcFilterTabs(atisGlobalData ? atisGlobalData.flights : []);
-            renderYearFilterTabs(atisGlobalData ? atisGlobalData.flights : []);
-            renderBirdFilterTabs(atisGlobalData ? atisGlobalData.flights : []);
-            updateActiveFilterChips();
+            refreshAllFilterTabs();
             renderAtisTable();
             renderAtisCharts();
         }
@@ -5294,17 +5405,14 @@
         function setYearFilter(yr) {
             activeYearFilter = yr;
             activeMonthFilter = 'ALL';
-            renderYearFilterTabs(atisGlobalData ? atisGlobalData.flights : []);
-            renderBirdFilterTabs(atisGlobalData ? atisGlobalData.flights : []);
-            updateActiveFilterChips();
+            refreshAllFilterTabs();
             renderAtisTable();
             renderAtisCharts();
         }
 
         function setBirdFilter(birdName) {
             activeBirdFilter = birdName;
-            renderBirdFilterTabs(atisGlobalData ? atisGlobalData.flights : []);
-            updateActiveFilterChips();
+            refreshAllFilterTabs();
             renderAtisTable();
             renderAtisCharts();
         }
@@ -5314,9 +5422,7 @@
             if (ym !== 'ALL') {
                 activeYearFilter = ym.split('-')[0];
             }
-            renderYearFilterTabs(atisGlobalData ? atisGlobalData.flights : []);
-            renderBirdFilterTabs(atisGlobalData ? atisGlobalData.flights : []);
-            updateActiveFilterChips();
+            refreshAllFilterTabs();
             renderAtisTable();
             renderAtisCharts();
             if (ym !== 'ALL') {
@@ -5325,6 +5431,94 @@
                     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }, 80);
             }
+        }
+
+        function renderBatteryFilterTabs(flights) {
+            const container = document.getElementById('battery-filter-tabs-bar');
+            if (!container || !flights) return;
+
+            let source = flights;
+            if (activeBirdFilter && activeBirdFilter !== 'ALL') {
+                source = source.filter(f => (f.bird_name || 'Sharkee VTOL') === activeBirdFilter);
+            }
+            if (activeFcFilter && activeFcFilter !== 'ALL') {
+                source = source.filter(f => (f.fc_name || 'MatekF405-TE') === activeFcFilter);
+            }
+
+            const counts = { 'ALL': source.length };
+            source.forEach(f => {
+                const b = f.battery ? f.battery.trim() : 'Unassigned';
+                counts[b] = (counts[b] || 0) + 1;
+            });
+
+            const batteries = Object.keys(counts).filter(k => k !== 'ALL').sort((a,b) => counts[b] - counts[a]);
+            const allKeys = ['ALL', ...batteries];
+
+            let html = '';
+            allKeys.forEach(k => {
+                const isActive = (activeBatteryFilter === k);
+                const count = counts[k] || 0;
+                const displayName = k === 'ALL' ? 'ALL BATTERIES' : k;
+                html += `
+                    <button type="button" class="fc-tab-btn ${isActive ? 'active' : ''}" onclick="setBatteryFilter('${escapeHtml(k)}')" style="display: flex; justify-content: space-between; align-items: center; width: 100%; text-align: left; margin: 0; padding: 5px 8px; font-size: 10.5px; border-radius: 4px;">
+                        <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 185px;">${escapeHtml(displayName)}</span>
+                        <span class="tab-count-badge" style="font-size: 9.5px; opacity: 0.85; font-family: 'B612 Mono', monospace; font-weight: 700;">${count}</span>
+                    </button>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function setBatteryFilter(batName) {
+            activeBatteryFilter = batName;
+            refreshAllFilterTabs();
+            renderAtisTable();
+            renderAtisCharts();
+        }
+
+        function renderWeightFilterTabs(flights) {
+            const container = document.getElementById('weight-filter-tabs-bar');
+            if (!container || !flights) return;
+
+            let source = flights;
+            if (activeBirdFilter && activeBirdFilter !== 'ALL') {
+                source = source.filter(f => (f.bird_name || 'Sharkee VTOL') === activeBirdFilter);
+            }
+            if (activeFcFilter && activeFcFilter !== 'ALL') {
+                source = source.filter(f => (f.fc_name || 'MatekF405-TE') === activeFcFilter);
+            }
+
+            const counts = { 'ALL': source.length };
+            source.forEach(f => {
+                const w = f.weight ? f.weight.trim() : 'Unassigned';
+                counts[w] = (counts[w] || 0) + 1;
+            });
+
+            const weights = Object.keys(counts).filter(k => k !== 'ALL').sort((a,b) => counts[b] - counts[a]);
+            const allKeys = ['ALL', ...weights];
+
+            let html = '';
+            allKeys.forEach(k => {
+                const isActive = (activeWeightFilter === k);
+                const count = counts[k] || 0;
+                const displayName = k === 'ALL' ? 'ALL WEIGHTS' : k;
+                html += `
+                    <button type="button" class="fc-tab-btn ${isActive ? 'active' : ''}" onclick="setWeightFilter('${escapeHtml(k)}')" style="display: flex; justify-content: space-between; align-items: center; width: 100%; text-align: left; margin: 0; padding: 5px 8px; font-size: 10.5px; border-radius: 4px;">
+                        <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 185px;">${escapeHtml(displayName)}</span>
+                        <span class="tab-count-badge" style="font-size: 9.5px; opacity: 0.85; font-family: 'B612 Mono', monospace; font-weight: 700;">${count}</span>
+                    </button>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function setWeightFilter(weightVal) {
+            activeWeightFilter = weightVal;
+            refreshAllFilterTabs();
+            renderAtisTable();
+            renderAtisCharts();
         }
 
         async function loadHistoricalAtisData(force = false) {
@@ -5399,6 +5593,8 @@
                 renderFcFilterTabs(data.flights || []);
                 renderYearFilterTabs(data.flights || []);
                 renderBirdFilterTabs(data.flights || []);
+                renderBatteryFilterTabs(data.flights || []);
+                renderWeightFilterTabs(data.flights || []);
 
                 // Default active flight to the newest one
                 if (data.flights && data.flights.length > 0) {
@@ -5411,7 +5607,7 @@
             } catch (err) {
                 console.error("Flight Logbook Load Error:", err);
                 if (tableBody) {
-                    tableBody.innerHTML = `<tr><td colspan="14" style="text-align:center; padding: 25px; color:#f87171;">Error loading flight logbook & meteorology database: ${err.message}</td></tr>`;
+                    tableBody.innerHTML = `<tr><td colspan="16" style="text-align:center; padding: 25px; color:#f87171;">Error loading flight logbook & meteorology database: ${err.message}</td></tr>`;
                 }
                 if (terminalText) {
                     terminalText.textContent = `[ FLIGHT LOGBOOK DISPATCH OFFLINE ] · ERROR: ${err.message}`;
@@ -5475,12 +5671,24 @@
                 list = list.filter(f => (f.bird_name || 'Sharkee VTOL') === activeBirdFilter);
             }
 
-            // Search Query Filter (Searches Bird, FC, Date, Metrics, and Flight Debrief Notes)
+            // Battery Type Filter
+            if (activeBatteryFilter && activeBatteryFilter !== 'ALL') {
+                list = list.filter(f => (f.battery ? f.battery.trim() : 'Unassigned') === activeBatteryFilter);
+            }
+
+            // Model Flying Weight Filter
+            if (activeWeightFilter && activeWeightFilter !== 'ALL') {
+                list = list.filter(f => (f.weight ? f.weight.trim() : 'Unassigned') === activeWeightFilter);
+            }
+
+            // Search Query Filter (Searches Bird, FC, Specs, Date, Metrics, and Flight Debrief Notes)
             if (atisFilterQuery.trim() !== '') {
                 const q = atisFilterQuery.toLowerCase().trim();
                 list = list.filter(f => 
                     (f.filename && f.filename.toLowerCase().includes(q)) ||
                     (f.bird_name && f.bird_name.toLowerCase().includes(q)) ||
+                    (f.weight && f.weight.toLowerCase().includes(q)) ||
+                    (f.battery && f.battery.toLowerCase().includes(q)) ||
                     (f.date_str && f.date_str.toLowerCase().includes(q)) ||
                     (f.fc_name && f.fc_name.toLowerCase().includes(q)) ||
                     (f.board && f.board.toLowerCase().includes(q)) ||
@@ -5488,6 +5696,7 @@
                     (f.oat_mean_c && f.oat_mean_c.toString().includes(q)) ||
                     (f.density_alt_m && f.density_alt_m.toString().includes(q)) ||
                     (f.notes && (
+                        (f.notes.notes_text && f.notes.notes_text.toLowerCase().includes(q)) ||
                         (f.notes.flight_narrative && f.notes.flight_narrative.toLowerCase().includes(q)) ||
                         (f.notes.pilot_observations && f.notes.pilot_observations.toLowerCase().includes(q)) ||
                         (f.notes.modifications_required && f.notes.modifications_required.toLowerCase().includes(q)) ||
@@ -5501,7 +5710,7 @@
             }
 
             if (list.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="14" style="text-align:center; padding: 25px; color:#94a3b8;">No matching flight logs found in database.</td></tr>';
+                tableBody.innerHTML = '<tr><td colspan="16" style="text-align:center; padding: 25px; color:#94a3b8;">No matching flight logs found in database.</td></tr>';
                 return;
             }
 
@@ -5566,7 +5775,7 @@
                 // Month Group Header Banner Row
                 html += `
                     <tr class="atis-month-group-row" id="month-group-${ym}">
-                        <td colspan="14">
+                        <td colspan="16">
                             <div class="month-group-banner">
                                 <div class="month-banner-left">
                                     <span class="month-badge-pill">${monthTitle}</span>
@@ -5605,6 +5814,8 @@
                     const qnhStr = (typeof f.qnh_hpa === 'number') ? f.qnh_hpa.toFixed(1) : '1013.2';
                     const fcDisp = f.fc_name || 'MatekF405-TE';
                     const birdDisp = f.bird_name || 'Sharkee VTOL';
+                    const weightDisp = f.weight || '';
+                    const batteryDisp = f.battery || '';
                     const hasNotes = !!(f.notes && (f.notes.notes_text || f.notes.flight_narrative || f.notes.pilot_observations || f.notes.battery_pack || f.notes.battery_info || f.notes.modifications_required));
 
                     html += `
@@ -5614,6 +5825,18 @@
                                 <span class="tag-bird-name" onclick="event.stopPropagation(); openBirdNameModal('${f.filepath.replace(/\\/g, '\\\\')}', '${escapeHtml(birdDisp)}', '${escapeHtml(fcDisp)}', '${escapeHtml(f.filename)}')" title="Click to rename bird or assign airframe label">
                                     ${escapeHtml(birdDisp)}
                                     <svg class="bird-edit-icon" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 3px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                </span>
+                            </td>
+                            <td>
+                                <span class="tag-specs-badge tag-specs-weight" onclick="event.stopPropagation(); openSpecsModal('${f.filepath.replace(/\\/g, '\\\\')}', '${escapeHtml(birdDisp)}', '${escapeHtml(fcDisp)}', '${escapeHtml(f.filename)}', '${escapeHtml(weightDisp)}', '${escapeHtml(batteryDisp)}')" title="Click to configure model flying weight">
+                                    ${weightDisp ? escapeHtml(weightDisp) : '<span style="color:#64748b; font-size:10px;">--</span>'}
+                                    <svg class="bird-edit-icon" width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 2px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                </span>
+                            </td>
+                            <td>
+                                <span class="tag-specs-badge tag-specs-battery" onclick="event.stopPropagation(); openSpecsModal('${f.filepath.replace(/\\/g, '\\\\')}', '${escapeHtml(birdDisp)}', '${escapeHtml(fcDisp)}', '${escapeHtml(f.filename)}', '${escapeHtml(weightDisp)}', '${escapeHtml(batteryDisp)}')" title="Click to configure battery type">
+                                    ${batteryDisp ? escapeHtml(batteryDisp) : '<span style="color:#64748b; font-size:10px;">--</span>'}
+                                    <svg class="bird-edit-icon" width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 2px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                                 </span>
                             </td>
                             <td><span class="tag-date-time" title="${f.filename}">${cleanDate}</span></td>
@@ -5754,9 +5977,18 @@
                     <td style="color: #000000; padding: 4.5px 8px; border-bottom: 0.5pt solid #d1d5db;">${windDirSpd}</td>
                 </tr>
                 <tr>
-                    <td style="color: #000000; padding: 4.5px 8px; border-bottom: 1.5pt solid #000000;"><strong>Airborne Flight / Power Time</strong></td>
-                    <td style="color: #000000; padding: 4.5px 8px; border-bottom: 1.5pt solid #000000;">${fltTime}</td>
-                    <td style="color: #000000; padding: 4.5px 8px; border-bottom: 1.5pt solid #000000;">${totalTime}</td>
+                    <td style="color: #000000; padding: 4.5px 8px; border-bottom: 0.5pt solid #d1d5db;"><strong>Airborne Flight / Power Time</strong></td>
+                    <td style="color: #000000; padding: 4.5px 8px; border-bottom: 0.5pt solid #d1d5db;">${fltTime}</td>
+                    <td style="color: #000000; padding: 4.5px 8px; border-bottom: 0.5pt solid #d1d5db;">${totalTime}</td>
+                </tr>
+                <tr>
+                    <td style="color: #000000; padding: 4.5px 8px; border-bottom: 0.5pt solid #d1d5db;"><strong>Model Flying Weight (AUW)</strong></td>
+                    <td style="color: #000000; padding: 4.5px 8px; border-bottom: 0.5pt solid #d1d5db;">${flight.weight || '--'}</td>
+                    <td style="color: #000000; padding: 4.5px 8px; border-bottom: 0.5pt solid #d1d5db;">${flight.weight ? (parseFloat(flight.weight) ? (parseFloat(flight.weight)*2.20462).toFixed(2) + ' lb' : flight.weight) : '--'}</td>
+                </tr>
+                <tr>
+                    <td style="color: #000000; padding: 4.5px 8px; border-bottom: 1.5pt solid #000000;"><strong>Battery Type &amp; Chemistry</strong></td>
+                    <td colspan="2" style="color: #000000; padding: 4.5px 8px; border-bottom: 1.5pt solid #000000;">${flight.battery || '--'}</td>
                 </tr>
             `;
         }
@@ -5780,6 +6012,10 @@
             document.getElementById('notes-banner-bird').textContent = birdName;
             document.getElementById('notes-banner-fc').textContent = fcName;
             document.getElementById('notes-banner-time').textContent = `${cleanDate} (Airborne: ${flight.flt_str || '--'})`;
+            const noteWeightEl = document.getElementById('notes-banner-weight');
+            const noteBatEl = document.getElementById('notes-banner-battery');
+            if (noteWeightEl) noteWeightEl.textContent = flight.weight || '--';
+            if (noteBatEl) noteBatEl.textContent = flight.battery || '--';
 
             // Render Meteorological Table in Modal
             renderModalTelemetryTable(flight);
@@ -5906,6 +6142,8 @@
                         <strong>Airframe ID:</strong> ${escapeHtml(birdName)} &nbsp;|&nbsp; 
                         <strong>Callsign:</strong> ${escapeHtml(callsign)} &nbsp;|&nbsp; 
                         <strong>Avionics:</strong> ${escapeHtml(fcName)}<br>
+                        <strong>Model Flying Weight (AUW):</strong> ${escapeHtml(flight.weight || 'Not Specified')} &nbsp;|&nbsp; 
+                        <strong>Battery Type:</strong> ${escapeHtml(flight.battery || 'Not Specified')}<br>
                         <strong>Mission Timestamp:</strong> ${dateStr} UTC &nbsp;|&nbsp; 
                         <strong>Airborne Flight Duration:</strong> ${fltTime} (Total Power: ${totalTime})
                     </div>
@@ -5954,6 +6192,15 @@
                                 <td><strong>Airborne Flight / Power Time</strong></td>
                                 <td>${fltTime} Airborne</td>
                                 <td>${totalTime} Power-On</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Model Flying Weight (AUW)</strong></td>
+                                <td>${flight.weight || 'Not Specified'}</td>
+                                <td>${flight.weight ? (parseFloat(flight.weight) ? (parseFloat(flight.weight)*2.20462).toFixed(2) + ' lb' : flight.weight) : '--'}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Battery Type & Chemistry</strong></td>
+                                <td colspan="2">${flight.battery || 'Not Specified'}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -6067,6 +6314,97 @@
             }
         }
 
+        function openSpecsModal(filepath, birdName, fcName, filename, curWeight, curBattery) {
+            modalSpecsPath = filepath;
+            modalSpecsBird = birdName;
+            modalSpecsFc = fcName;
+            modalSpecsFilename = filename || (filepath ? filepath.split('\\').pop() : '--');
+
+            const modal = document.getElementById('modal-flight-specs');
+            const inWeight = document.getElementById('modal-specs-weight-input');
+            const inBattery = document.getElementById('modal-specs-battery-input');
+            const lblLog = document.getElementById('modal-specs-logname');
+            const lblBird = document.getElementById('modal-specs-birdname');
+            const lblFc = document.getElementById('modal-specs-fcname');
+
+            if (modal) modal.style.display = 'flex';
+            if (inWeight) {
+                inWeight.value = curWeight || '';
+            }
+            if (inBattery) {
+                inBattery.value = curBattery || '';
+                setTimeout(() => { inBattery.focus(); }, 60);
+            }
+            if (lblLog) lblLog.textContent = modalSpecsFilename;
+            if (lblBird) lblBird.textContent = birdName || 'Shark FW';
+            if (lblFc) lblFc.textContent = fcName || 'MatekF405-TE';
+        }
+
+        function closeSpecsModal() {
+            const modal = document.getElementById('modal-flight-specs');
+            if (modal) modal.style.display = 'none';
+        }
+
+        async function saveSpecsFromModal() {
+            const inWeight = document.getElementById('modal-specs-weight-input');
+            const inBattery = document.getElementById('modal-specs-battery-input');
+            const newWeight = inWeight ? inWeight.value.trim() : '';
+            const newBattery = inBattery ? inBattery.value.trim() : '';
+
+            const radios = document.getElementsByName('specs-scope');
+            let scope = 'single';
+            for (const r of radios) {
+                if (r.checked) scope = r.value;
+            }
+
+            const currentFolder = localStorage.getItem('sharkee_atis_folder') || '';
+
+            try {
+                const res = await fetch('/api/set_flight_specs', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        path: modalSpecsPath,
+                        weight: newWeight,
+                        battery: newBattery,
+                        scope: scope,
+                        bird_name: modalSpecsBird,
+                        fc_name: modalSpecsFc,
+                        folder: currentFolder
+                    })
+                });
+                const data = await res.json();
+                if (!data.success) {
+                    throw new Error(data.error || 'Failed to update flight specs');
+                }
+
+                // Update in-memory flights immediately
+                if (atisGlobalData && atisGlobalData.flights) {
+                    atisGlobalData.flights.forEach(f => {
+                        let match = false;
+                        if (scope === 'single' && (f.filepath === modalSpecsPath || f.filename === modalSpecsFilename)) {
+                            match = true;
+                        } else if (scope === 'bird' && f.bird_name === modalSpecsBird) {
+                            match = true;
+                        } else if (scope === 'fc' && f.fc_name === modalSpecsFc) {
+                            match = true;
+                        }
+                        if (match) {
+                            if (newWeight !== '') f.weight = newWeight;
+                            if (newBattery !== '') f.battery = newBattery;
+                        }
+                    });
+                    refreshAllFilterTabs();
+                    renderAtisTable();
+                    renderAtisCharts();
+                }
+
+                closeSpecsModal();
+            } catch (err) {
+                alert('Error saving flight specs: ' + err.message);
+            }
+        }
+
         function renderAtisCharts() {
             if (!atisGlobalData || !atisGlobalData.flights || atisGlobalData.flights.length === 0) return;
             if (typeof Plotly === 'undefined') return;
@@ -6080,6 +6418,12 @@
             }
             if (activeBirdFilter && activeBirdFilter !== 'ALL') {
                 filteredFlights = filteredFlights.filter(f => (f.bird_name || 'Sharkee VTOL') === activeBirdFilter);
+            }
+            if (activeBatteryFilter && activeBatteryFilter !== 'ALL') {
+                filteredFlights = filteredFlights.filter(f => (f.battery ? f.battery.trim() : 'Unassigned') === activeBatteryFilter);
+            }
+            if (activeWeightFilter && activeWeightFilter !== 'ALL') {
+                filteredFlights = filteredFlights.filter(f => (f.weight ? f.weight.trim() : 'Unassigned') === activeWeightFilter);
             }
             if (filteredFlights.length === 0) return;
 
@@ -8266,7 +8610,35 @@
         }
 
         window.addEventListener('keydown', (e) => {
-            if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT')) return;
+            // Guard 1: Never intercept keystrokes if the user is typing in ANY input, textarea, select, or contenteditable element
+            const tag = (e.target && e.target.tagName) ? e.target.tagName.toUpperCase() : '';
+            if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (e.target && e.target.isContentEditable)) {
+                return;
+            }
+
+            // Guard 2: Never intercept keystrokes if ANY modal dialog is currently visible/open
+            const openModal = document.querySelector('.modal-overlay[style*="display: flex"], .modal-overlay[style*="display: block"], .modal-overlay:not([style*="display: none"]):not([style*="display:none"])');
+            if (openModal) {
+                // Allow Escape key to close the active modal dialog gracefully
+                if (e.key === 'Escape') {
+                    if (document.getElementById('modal-flight-notes')?.style.display !== 'none') {
+                        closeFlightNotesModal();
+                    } else if (document.getElementById('modal-flight-specs')?.style.display !== 'none') {
+                        closeSpecsModal();
+                    } else if (document.getElementById('modal-bird-name')?.style.display !== 'none') {
+                        closeBirdNameModal();
+                    } else if (document.getElementById('expression-modal')?.style.display !== 'none') {
+                        closeExpressionModal();
+                    } else if (document.getElementById('params-modal')?.style.display !== 'none') {
+                        closeParametersModal();
+                    } else if (document.getElementById('organizer-modal')?.style.display !== 'none') {
+                        closeOrganizerModal();
+                    }
+                }
+                return;
+            }
+
+            // Global Replay timeline shortcuts (ONLY active when outside all modals and text fields)
             if (e.code === 'Space') {
                 e.preventDefault();
                 toggleReplayPlayback();
@@ -8276,14 +8648,6 @@
             } else if (e.code === 'ArrowRight') {
                 e.preventDefault();
                 stepReplayTime(2);
-            } else if ((e.code === 'KeyL' || e.code === 'KeyA') && !e.ctrlKey && !e.metaKey && !e.altKey) {
-                e.preventDefault();
-                const btnAtis = document.getElementById('btn-view-atis');
-                if (btnAtis && btnAtis.classList.contains('active')) {
-                    setViewMode('sitl');
-                } else {
-                    setViewMode('atis');
-                }
             }
         });
 
@@ -10436,8 +10800,8 @@
     </div>
 
     <!-- Modal: Flight Notes (Black & White Notepad Style) -->
-    <div id="modal-flight-notes" class="modal-overlay atis-no-print" onclick="if(event.target===this) closeFlightNotesModal()">
-        <div class="notepad-modal-box" style="width: 820px; max-width: 95vw; height: 88vh; max-height: 840px; display: flex; flex-direction: column; background: #ffffff !important; color: #000000 !important; border: 2px solid #000000 !important; border-radius: 4px; box-shadow: 0 15px 50px rgba(0, 0, 0, 0.85); overflow: hidden; font-family: 'Consolas', 'Courier New', monospace, sans-serif;">
+    <div id="modal-flight-notes" class="modal-overlay atis-no-print" onclick="if(event.target===this) closeFlightNotesModal()" onkeydown="event.stopPropagation()" onkeyup="event.stopPropagation()">
+        <div class="notepad-modal-box" onkeydown="event.stopPropagation()" onkeyup="event.stopPropagation()" style="width: 820px; max-width: 95vw; height: 88vh; max-height: 840px; display: flex; flex-direction: column; background: #ffffff !important; color: #000000 !important; border: 2px solid #000000 !important; border-radius: 4px; box-shadow: 0 15px 50px rgba(0, 0, 0, 0.85); overflow: hidden; font-family: 'Consolas', 'Courier New', monospace, sans-serif;">
             
             <!-- Notepad Title Bar -->
             <div style="display: flex; justify-content: space-between; align-items: center; padding: 9px 16px; border-bottom: 1.5pt solid #000000; background: #f8fafc;">
@@ -10455,6 +10819,10 @@
                     <div><strong>BIRD / AIRFRAME:</strong> <span id="notes-banner-bird">--</span></div>
                     <div><strong>FLIGHT CONTROLLER:</strong> <span id="notes-banner-fc">--</span></div>
                     <div><strong>DATE &amp; TIME:</strong> <span id="notes-banner-time">--</span></div>
+                </div>
+                <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-top: 4px; padding-top: 4px; border-top: 0.5pt dashed #cccccc;">
+                    <div><strong>FLYING WEIGHT (AUW):</strong> <span id="notes-banner-weight" style="font-weight: bold;">--</span></div>
+                    <div><strong>BATTERY TYPE:</strong> <span id="notes-banner-battery" style="font-weight: bold;">--</span></div>
                 </div>
             </div>
 
@@ -10482,7 +10850,7 @@
                 <div style="font-size: 11.5px; font-weight: bold; color: #000000; text-transform: uppercase; margin-top: 18px; margin-bottom: 6px; letter-spacing: 0.5px;">
                     2.0 FLIGHT NOTES
                 </div>
-                <textarea id="modal-notes-text" class="notepad-textarea" rows="11" placeholder="Write your flight notes here (what happened, pilot observations, what has to be changed, battery used, etc.)..." style="width: 100%; box-sizing: border-box; background: #ffffff !important; color: #000000 !important; border: 1.5pt solid #000000 !important; border-radius: 2px; padding: 12px; font-family: 'Consolas', 'Courier New', monospace; font-size: 12.5px; line-height: 1.55; min-height: 220px; resize: vertical; outline: none;"></textarea>
+                <textarea id="modal-notes-text" class="notepad-textarea" rows="11" onkeydown="event.stopPropagation()" onkeyup="event.stopPropagation()" onkeypress="event.stopPropagation()" placeholder="Write your flight notes here (what happened, pilot observations, what has to be changed, battery used, etc.)..." style="width: 100%; box-sizing: border-box; background: #ffffff !important; color: #000000 !important; border: 1.5pt solid #000000 !important; border-radius: 2px; padding: 12px; font-family: 'Consolas', 'Courier New', monospace; font-size: 12.5px; line-height: 1.55; min-height: 220px; resize: vertical; outline: none;"></textarea>
             </div>
 
             <!-- Notepad Footer -->
@@ -10538,6 +10906,79 @@
             <div style="display: flex; justify-content: flex-end; gap: 8px;">
                 <button type="button" class="uav-pill-action-btn" onclick="closeBirdNameModal()" style="padding: 7px 16px; font-size: 11px;">CANCEL</button>
                 <button type="button" onclick="saveBirdNameFromModal()" style="padding: 7px 20px; font-size: 11.5px; background: #0284c7; border: 1px solid #38bdf8; color: #ffffff; font-weight: 700; border-radius: 4px; cursor: pointer; letter-spacing: 0.5px;">SAVE BIRD NAME</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Assign Model Flying Weight & Battery Type -->
+    <div id="modal-flight-specs" class="modal-overlay atis-no-print" style="display: none;" onclick="if(event.target===this) closeSpecsModal()" onkeydown="event.stopPropagation()" onkeyup="event.stopPropagation()">
+        <div class="modal-box" onkeydown="event.stopPropagation()" onkeyup="event.stopPropagation()" style="width: 480px; max-width: 92vw; padding: 20px; background: #0c0d10; border: 1px solid #38bdf8; border-radius: 6px; box-shadow: 0 15px 40px rgba(0, 0, 0, 0.95); font-family: 'B612', sans-serif;">
+            <div class="modal-title" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; border-bottom: 1px solid #1a1c22; padding-bottom: 8px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="display: inline-block; width: 8px; height: 8px; background: #38bdf8; border-radius: 50%;"></span>
+                    <span style="font-size: 12px; font-weight: 700; letter-spacing: 0.6px; color: #ffffff;">MODEL FLYING WEIGHT &amp; BATTERY TYPE</span>
+                </div>
+                <button type="button" class="avionics-close-dot" onclick="closeSpecsModal()" title="Close">&times;</button>
+            </div>
+            
+            <div style="font-size: 11px; color: #94a3b8; margin-bottom: 14px; line-height: 1.4;">
+                Configure operational all-up weight (AUW) and battery chemistry for performance and flight debrief tracking:
+            </div>
+
+            <!-- Flying Weight Input -->
+            <div style="margin-bottom: 14px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                    <label style="font-size: 10px; font-family: 'B612 Mono', monospace; color: #4ade80; font-weight: 700;">MODEL FLYING WEIGHT (AUW):</label>
+                    <span style="font-size: 9px; color: #64748b;">e.g. 4.2 kg or 4200g</span>
+                </div>
+                <input type="text" id="modal-specs-weight-input" class="modal-input" placeholder="e.g. 4.2 kg" style="margin-bottom: 6px; height: 34px; font-family: 'B612 Mono', monospace; background: #090a0c; border: 1px solid #24262c; color: #ffffff; padding: 0 10px; width: 100%; box-sizing: border-box; border-radius: 4px;" />
+                <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                    <button type="button" class="uav-pill-action-btn" onclick="document.getElementById('modal-specs-weight-input').value='3.8 kg'" style="font-size: 9px; padding: 2px 7px;">3.8 kg</button>
+                    <button type="button" class="uav-pill-action-btn" onclick="document.getElementById('modal-specs-weight-input').value='4.0 kg'" style="font-size: 9px; padding: 2px 7px;">4.0 kg</button>
+                    <button type="button" class="uav-pill-action-btn" onclick="document.getElementById('modal-specs-weight-input').value='4.2 kg'" style="font-size: 9px; padding: 2px 7px;">4.2 kg</button>
+                    <button type="button" class="uav-pill-action-btn" onclick="document.getElementById('modal-specs-weight-input').value='4.5 kg'" style="font-size: 9px; padding: 2px 7px;">4.5 kg</button>
+                    <button type="button" class="uav-pill-action-btn" onclick="document.getElementById('modal-specs-weight-input').value='5.0 kg'" style="font-size: 9px; padding: 2px 7px;">5.0 kg</button>
+                </div>
+            </div>
+
+            <!-- Battery Type Input -->
+            <div style="margin-bottom: 14px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                    <label style="font-size: 10px; font-family: 'B612 Mono', monospace; color: #c084fc; font-weight: 700;">BATTERY TYPE &amp; CAPACITY:</label>
+                    <span style="font-size: 9px; color: #64748b;">e.g. 15000 mah or 6S 22000mAh</span>
+                </div>
+                <input type="text" id="modal-specs-battery-input" class="modal-input" placeholder="e.g. 15000 mah" style="margin-bottom: 6px; height: 34px; font-family: 'B612 Mono', monospace; background: #090a0c; border: 1px solid #24262c; color: #ffffff; padding: 0 10px; width: 100%; box-sizing: border-box; border-radius: 4px;" />
+                <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                    <button type="button" class="uav-pill-action-btn" onclick="document.getElementById('modal-specs-battery-input').value='15000 mah'" style="font-size: 9px; padding: 2px 7px;">15000 mah</button>
+                    <button type="button" class="uav-pill-action-btn" onclick="document.getElementById('modal-specs-battery-input').value='Solid State 6S 22000mAh'" style="font-size: 9px; padding: 2px 7px;">Solid State 6S</button>
+                    <button type="button" class="uav-pill-action-btn" onclick="document.getElementById('modal-specs-battery-input').value='6S 22000mAh Li-Ion'" style="font-size: 9px; padding: 2px 7px;">6S 22000mAh</button>
+                    <button type="button" class="uav-pill-action-btn" onclick="document.getElementById('modal-specs-battery-input').value='6S LiPo 16000mAh'" style="font-size: 9px; padding: 2px 7px;">6S 16000mAh</button>
+                    <button type="button" class="uav-pill-action-btn" onclick="document.getElementById('modal-specs-battery-input').value='4S LiPo 5000mAh'" style="font-size: 9px; padding: 2px 7px;">4S 5000mAh</button>
+                </div>
+            </div>
+
+            <!-- Apply Scope -->
+            <div style="margin-bottom: 18px; background: #090a0c; border: 1px solid #24262c; border-radius: 4px; padding: 10px 12px;">
+                <label style="display: block; font-size: 9.5px; font-family: 'B612 Mono', monospace; color: #64748b; margin-bottom: 6px; font-weight: 700;">APPLY SCOPE:</label>
+                <div style="display: flex; flex-direction: column; gap: 7px; font-size: 11px; color: #cbd5e1;">
+                    <label style="display: flex; align-items: center; gap: 7px; cursor: pointer;">
+                        <input type="radio" name="specs-scope" value="single" checked style="accent-color: #38bdf8;" />
+                        <span>Apply to this flight only (<span id="modal-specs-logname" style="font-family:'B612 Mono', monospace; color:#38bdf8;">--</span>)</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 7px; cursor: pointer;">
+                        <input type="radio" name="specs-scope" value="bird" style="accent-color: #38bdf8;" />
+                        <span>Apply to ALL flights for Bird: <strong id="modal-specs-birdname" style="color:#38bdf8;">--</strong></span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 7px; cursor: pointer;">
+                        <input type="radio" name="specs-scope" value="fc" style="accent-color: #38bdf8;" />
+                        <span>Apply to ALL flights with FC: <strong id="modal-specs-fcname" style="color:#f59e0b;">--</strong></span>
+                    </label>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                <button type="button" class="uav-pill-action-btn" onclick="closeSpecsModal()" style="padding: 7px 16px; font-size: 11px;">CANCEL</button>
+                <button type="button" onclick="saveSpecsFromModal()" style="padding: 7px 20px; font-size: 11.5px; background: #0284c7; border: 1px solid #38bdf8; color: #ffffff; font-weight: 700; border-radius: 4px; cursor: pointer; letter-spacing: 0.5px;">SAVE SPECS</button>
             </div>
         </div>
     </div>

@@ -366,6 +366,25 @@ class LogViewerHandler(SimpleHTTPRequestHandler):
                 self._send_json({'success': False, 'error': str(e)})
             return
 
+        # 7b. API: Set Flight Specs (Model Flying Weight & Battery Type) (GET)
+        elif path == '/api/set_flight_specs':
+            target_path = query.get('path', [None])[0]
+            weight = query.get('weight', [None])[0]
+            battery = query.get('battery', [None])[0]
+            scope = query.get('scope', ['single'])[0]
+            bird_name = query.get('bird_name', [None])[0]
+            fc_name = query.get('fc_name', [None])[0]
+            folder = query.get('folder', [None])[0]
+            if not target_path:
+                self._send_json({'success': False, 'error': 'Missing path parameter'})
+                return
+            try:
+                parser.set_flight_specs(target_path, weight=weight, battery=battery, scope=scope, bird_name=bird_name, fc_name=fc_name, folder_path=folder)
+                self._send_json({'success': True, 'path': target_path, 'weight': weight, 'battery': battery, 'scope': scope})
+            except Exception as e:
+                self._send_json({'success': False, 'error': str(e)})
+            return
+
         # 8. API: Get Flight Debrief Notes
         elif path == '/api/get_flight_notes':
             target_path = query.get('path', [None])[0]
@@ -464,6 +483,28 @@ class LogViewerHandler(SimpleHTTPRequestHandler):
                     return
                 parser.set_bird_name_label(target_path, bird_name, scope=scope, folder_path=folder)
                 self._send_json({'success': True, 'bird_name': bird_name, 'scope': scope, 'path': target_path})
+            except Exception as e:
+                self._send_json({'success': False, 'error': str(e)})
+            return
+
+        # 7b. API: Set Flight Specs (Model Flying Weight & Battery Type) (POST)
+        elif path == '/api/set_flight_specs':
+            length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(length)
+            try:
+                req = json.loads(body.decode('utf-8'))
+                target_path = req.get('path')
+                weight = req.get('weight')
+                battery = req.get('battery')
+                scope = req.get('scope', 'single')
+                bird_name = req.get('bird_name')
+                fc_name = req.get('fc_name')
+                folder = req.get('folder', None)
+                if not target_path:
+                    self._send_json({'success': False, 'error': 'Missing path parameter'})
+                    return
+                parser.set_flight_specs(target_path, weight=weight, battery=battery, scope=scope, bird_name=bird_name, fc_name=fc_name, folder_path=folder)
+                self._send_json({'success': True, 'path': target_path, 'weight': weight, 'battery': battery, 'scope': scope})
             except Exception as e:
                 self._send_json({'success': False, 'error': str(e)})
             return
