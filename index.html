@@ -896,10 +896,11 @@
             color: #cbd5e1;
         }
         .aero-rocker-btn.active {
-            background: #18191d;
-            border: 1px solid #22c55e;
-            color: #22c55e;
-            box-shadow: none;
+            background: #007aff !important;
+            border: 1px solid #007aff !important;
+            color: #ffffff !important;
+            box-shadow: 0 1px 6px rgba(0, 122, 255, 0.4) !important;
+            font-weight: 700 !important;
         }
 
         /* Dark / Light Mode Toggle Button (Base / Dark Mode) */
@@ -2663,7 +2664,7 @@
             width: 100%;
             height: 100%;
             overflow-y: auto;
-            background: #121418;
+            background: #0a0c10;
             color: #f1f5f9;
             padding: 14px 18px 24px 18px;
             box-sizing: border-box;
@@ -2679,12 +2680,13 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: #1a1d24;
-            border: 1px solid #282d38;
-            border-radius: 6px;
-            padding: 8px 12px;
+            background: #151821;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            padding: 9px 14px;
             gap: 12px;
             flex-wrap: wrap;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
         }
 
         [data-theme="light-clean"] .atis-toolbar {
@@ -2728,13 +2730,13 @@
         }
 
         .atis-input-path {
-            background: #05080c;
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 4px;
-            color: #38bdf8;
-            font-family: 'B612 Mono', monospace;
+            background: #11141c;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #64d2ff;
+            font-family: 'JetBrains Mono', monospace;
             font-size: 11px;
-            padding: 4px 10px;
+            padding: 5px 12px;
             width: 280px;
             max-width: 380px;
             outline: none;
@@ -2748,70 +2750,76 @@
         }
 
         .atis-btn {
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            color: #cbd5e1;
-            font-family: 'B612 Mono', monospace;
+            background: #232733;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #f2f2f7;
+            font-family: 'Inter', -apple-system, sans-serif;
             font-size: 10px;
             font-weight: 700;
-            padding: 4px 10px;
-            border-radius: 4px;
+            padding: 5px 12px;
+            border-radius: 8px;
             cursor: pointer;
             transition: all 0.15s ease;
             white-space: nowrap;
         }
 
         .atis-btn:hover {
-            background: rgba(255, 255, 255, 0.12);
+            background: #2d3342;
             color: #ffffff;
-            border-color: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.22);
         }
 
         [data-theme="light-clean"] .atis-btn {
-            background: #f1f5f9;
+            background: #ffffff;
             border-color: #cbd5e1;
             color: #334155;
         }
 
         [data-theme="light-clean"] .atis-btn:hover {
-            background: #e2e8f0;
+            background: #f1f5f9;
             color: #0f172a;
         }
 
         .atis-btn-primary {
-            background: rgba(34, 197, 94, 0.15);
-            border-color: #22c55e;
-            color: #4ade80;
+            background: #30d158;
+            border: none;
+            color: #051408;
+            font-weight: 800;
+            box-shadow: 0 2px 8px rgba(48, 209, 88, 0.35);
         }
 
         .atis-btn-primary:hover {
-            background: rgba(34, 197, 94, 0.28);
-            color: #86efac;
+            background: #34c759;
+            color: #000000;
         }
 
         [data-theme="light-clean"] .atis-btn-primary {
-            background: #dcfce7;
-            border-color: #16a34a;
-            color: #15803d;
+            background: #16a34a;
+            border: 1px solid #15803d;
+            color: #ffffff;
         }
 
         .atis-btn-print {
-            background: rgba(56, 189, 248, 0.12);
-            border-color: #38bdf8;
-            color: #7dd3fc;
+            background: #007aff !important;
+            border: none !important;
+            color: #ffffff !important;
+            font-weight: 700 !important;
+            border-radius: 8px !important;
+            box-shadow: 0 2px 10px rgba(0, 122, 255, 0.4) !important;
             display: inline-flex;
             align-items: center;
+            padding: 6px 14px !important;
         }
 
         .atis-btn-print:hover {
-            background: rgba(56, 189, 248, 0.25);
-            color: #bae6fd;
+            background: #0a84ff !important;
+            box-shadow: 0 4px 14px rgba(0, 122, 255, 0.5) !important;
         }
 
         [data-theme="light-clean"] .atis-btn-print {
-            background: #e0f2fe;
-            border-color: #0284c7;
-            color: #0369a1;
+            background: #007aff !important;
+            border: none !important;
+            color: #ffffff !important;
         }
 
         .atis-input-search {
@@ -2835,33 +2843,33 @@
         .atis-stats-pill {
             display: flex;
             align-items: center;
-            gap: 8px;
-            background: rgba(255, 255, 255, 0.04);
+            gap: 10px;
+            background: #181c26;
             border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 4px;
-            padding: 4px 10px;
+            border-radius: 8px;
+            padding: 5px 12px;
             font-size: 10px;
-            font-family: 'B612 Mono', monospace;
-            color: #94a3b8;
+            font-family: 'JetBrains Mono', monospace;
+            color: #8e8e93;
         }
 
         [data-theme="light-clean"] .atis-stats-pill {
-            background: #f1f5f9;
-            border-color: #e2e8f0;
+            background: #f8fafc;
+            border-color: #cbd5e1;
             color: #64748b;
         }
 
         .pill-stat strong {
-            color: #22c55e;
-            font-weight: 700;
+            color: #30d158;
+            font-weight: 800;
         }
 
         [data-theme="light-clean"] .pill-stat strong {
-            color: #16a34a;
+            color: #15803d;
         }
 
         .pill-sep {
-            color: rgba(255, 255, 255, 0.2);
+            color: rgba(255, 255, 255, 0.15);
         }
 
         /* D-ATIS Terminal Card */
@@ -2964,13 +2972,14 @@
         }
 
         .atis-chart-card {
-            background: #1a1d24;
-            border: 1px solid #282d38;
-            border-radius: 6px;
-            padding: 10px 14px 6px 14px;
+            background: #151821;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            padding: 12px 16px 8px 16px;
             display: flex;
             flex-direction: column;
             gap: 4px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
         }
 
         [data-theme="light-clean"] .atis-chart-card {
@@ -2986,11 +2995,11 @@
         }
 
         .chart-card-title {
-            font-family: 'B612 Mono', monospace;
-            font-size: 10px;
+            font-family: 'Inter', -apple-system, sans-serif;
+            font-size: 10.5px;
             font-weight: 700;
-            letter-spacing: 0.6px;
-            color: #cbd5e1;
+            letter-spacing: 0.5px;
+            color: #f2f2f7;
         }
 
         [data-theme="light-clean"] .chart-card-title {
@@ -2999,7 +3008,7 @@
 
         .chart-card-sub {
             font-size: 9.5px;
-            color: #64748b;
+            color: #8e8e93;
             font-family: 'Inter', sans-serif;
         }
 
@@ -3010,13 +3019,14 @@
 
         /* Table Card */
         .atis-table-card {
-            background: #1a1d24;
-            border: 1px solid #282d38;
-            border-radius: 6px;
-            padding: 12px 14px;
+            background: #151821;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            padding: 14px;
             display: flex;
             flex-direction: column;
             gap: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
         }
 
         [data-theme="light-clean"] .atis-table-card {
@@ -3035,11 +3045,11 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            font-family: 'B612 Mono', monospace;
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 0.6px;
-            color: #cbd5e1;
+            font-family: 'Inter', -apple-system, sans-serif;
+            font-size: 11.5px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            color: #ffffff;
         }
 
         [data-theme="light-clean"] .table-card-title {
@@ -3047,13 +3057,13 @@
         }
 
         .table-badge {
-            background: rgba(34, 197, 94, 0.15);
-            border: 1px solid #22c55e;
-            color: #4ade80;
+            background: rgba(0, 122, 255, 0.16);
+            border: 1px solid rgba(0, 122, 255, 0.35);
+            color: #64d2ff;
             font-size: 9.5px;
-            font-weight: 700;
-            padding: 1px 6px;
-            border-radius: 4px;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 6px;
             font-family: 'JetBrains Mono', monospace;
         }
 
@@ -3090,41 +3100,44 @@
 
         .atis-table-wrapper {
             overflow-x: auto;
-            border-radius: 4px;
+            border-radius: 8px;
             border: 1px solid rgba(255, 255, 255, 0.06);
+            background: #11141c;
         }
 
         [data-theme="light-clean"] .atis-table-wrapper {
             border-color: #cbd5e1;
+            background: #ffffff;
         }
 
         table.atis-table {
             width: 100%;
             border-collapse: collapse;
-            font-family: 'B612 Mono', monospace;
-            font-size: 10px;
+            font-family: 'JetBrains Mono', 'B612 Mono', monospace;
+            font-size: 10.5px;
             text-align: left;
             white-space: nowrap;
         }
 
         table.atis-table th {
-            background: #14161c;
-            color: #94a3b8;
-            padding: 7px 10px;
+            background: #11141c;
+            color: #8e8e93;
+            padding: 9px 12px;
             font-weight: 700;
-            letter-spacing: 0.5px;
-            border-bottom: 1px solid #282d38;
+            letter-spacing: 0.6px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
             cursor: pointer;
             user-select: none;
             position: sticky;
             top: 0;
             z-index: 2;
             font-family: 'Inter', -apple-system, sans-serif;
+            font-size: 9.5px;
         }
 
         table.atis-table th:hover {
-            color: #4ade80;
-            background: #1c1f27;
+            color: #0a84ff;
+            background: #181c26;
         }
 
         [data-theme="light-clean"] table.atis-table th {
@@ -3139,7 +3152,7 @@
         }
 
         table.atis-table td {
-            padding: 7px 10px;
+            padding: 8px 12px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.04);
             color: #cbd5e1;
         }
@@ -3155,7 +3168,7 @@
         }
 
         table.atis-table tbody tr:hover {
-            background: rgba(34, 197, 94, 0.08);
+            background: rgba(255, 255, 255, 0.035);
         }
 
         [data-theme="light-clean"] table.atis-table tbody tr:hover {
@@ -3163,8 +3176,8 @@
         }
 
         table.atis-table tbody tr.active-row {
-            background: rgba(34, 197, 94, 0.12) !important;
-            border-left: 3px solid #22c55e;
+            background: rgba(0, 122, 255, 0.14) !important;
+            border-left: 3.5px solid #007aff;
         }
 
         [data-theme="light-clean"] table.atis-table tbody tr.active-row {
@@ -3174,13 +3187,13 @@
 
         .atis-tag-callsign {
             display: inline-block;
-            padding: 2px 7px;
-            border-radius: 4px;
+            padding: 2.5px 7px;
+            border-radius: 6px;
             font-weight: 800;
             font-size: 10px;
-            background: rgba(34, 197, 94, 0.15);
-            color: #4ade80;
-            border: 1px solid rgba(34, 197, 94, 0.3);
+            background: rgba(0, 122, 255, 0.16);
+            color: #64d2ff;
+            border: 1px solid rgba(0, 122, 255, 0.35);
             min-width: 24px;
             text-align: center;
             font-family: 'JetBrains Mono', 'B612 Mono', monospace;
@@ -3188,14 +3201,15 @@
 
         .tag-fc-name {
             display: inline-block;
-            padding: 1px 6px;
-            border-radius: 3px;
-            font-size: 8.5px;
+            padding: 2px 7px;
+            border-radius: 6px;
+            font-size: 9px;
             font-weight: 700;
-            background: rgba(56, 189, 248, 0.12);
-            color: #38bdf8;
-            border: 1px solid rgba(56, 189, 248, 0.3);
+            background: rgba(100, 210, 255, 0.12);
+            color: #64d2ff;
+            border: 1px solid rgba(100, 210, 255, 0.28);
             white-space: nowrap;
+            font-family: 'Inter', -apple-system, sans-serif;
         }
 
         [data-theme="light-clean"] .tag-fc-name {
@@ -3232,11 +3246,11 @@
         }
 
         .fc-tab-btn {
-            background: #1c2027;
-            border: 1px solid #282d38;
-            color: #94a3b8;
-            padding: 3px 9px;
-            border-radius: 4px;
+            background: #181c26;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: #8e8e93;
+            padding: 4px 10px;
+            border-radius: 6px;
             font-size: 9.5px;
             font-family: 'Inter', -apple-system, sans-serif;
             font-weight: 600;
@@ -3246,17 +3260,17 @@
         }
 
         .fc-tab-btn:hover {
-            color: #4ade80;
-            border-color: #22c55e;
-            background: rgba(34, 197, 94, 0.08);
+            color: #ffffff;
+            border-color: rgba(0, 122, 255, 0.5);
+            background: #222634;
         }
 
         .fc-tab-btn.active {
-            background: rgba(34, 197, 94, 0.18);
-            color: #4ade80;
-            border-color: #22c55e;
+            background: rgba(0, 122, 255, 0.2) !important;
+            color: #64d2ff !important;
+            border-color: #007aff !important;
             font-weight: 700;
-            box-shadow: 0 0 10px rgba(34, 197, 94, 0.22);
+            box-shadow: 0 0 10px rgba(0, 122, 255, 0.3) !important;
         }
 
         [data-theme="light-clean"] .fc-tab-btn {
@@ -3296,17 +3310,16 @@
             display: inline-flex;
             align-items: center;
             gap: 4px;
-            font-family: 'B612 Mono', monospace;
-            font-size: 9px;
+            font-family: 'Inter', -apple-system, sans-serif;
             font-weight: 700;
-            color: #38bdf8;
-            background: rgba(56, 189, 248, 0.12);
-            border: 1px solid rgba(56, 189, 248, 0.35);
-            padding: 2px 7px;
-            border-radius: 4px;
+            font-size: 10.5px;
+            color: #f2f2f7;
+            background: #1c202b;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            padding: 2.5px 8px;
+            border-radius: 6px;
             cursor: pointer;
-            transition: all 0.15s ease;
-            white-space: nowrap;
+            transition: all 0.12s ease;
         }
 
         .tag-bird-name:hover {
@@ -3348,9 +3361,10 @@
         }
 
         .tag-specs-weight {
-            color: #4ade80;
-            background: rgba(34, 197, 94, 0.12);
-            border: 1px solid rgba(34, 197, 94, 0.35);
+            background: rgba(48, 209, 88, 0.14);
+            color: #30d158;
+            border: 1px solid rgba(48, 209, 88, 0.32);
+            border-radius: 6px;
         }
 
         .tag-specs-weight:hover {
@@ -3360,9 +3374,10 @@
         }
 
         .tag-specs-battery {
-            color: #c084fc;
-            background: rgba(168, 85, 247, 0.12);
-            border: 1px solid rgba(168, 85, 247, 0.35);
+            background: rgba(191, 90, 242, 0.14);
+            color: #bf5af2;
+            border: 1px solid rgba(191, 90, 242, 0.32);
+            border-radius: 6px;
         }
 
         .tag-specs-battery:hover {
@@ -3411,8 +3426,11 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 6px 12px;
+            padding: 7px 14px;
             gap: 12px;
+            background: #181c26;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
         }
 
         .month-banner-left, .month-banner-right {
@@ -3423,42 +3441,42 @@
         }
 
         .month-badge-pill {
-            font-family: 'JetBrains Mono', monospace;
+            font-family: 'Inter', -apple-system, sans-serif;
             font-size: 10px;
             font-weight: 800;
-            color: #4ade80;
+            color: #0a84ff;
             letter-spacing: 0.8px;
-            background: rgba(34, 197, 94, 0.15);
-            padding: 2px 7px;
-            border-radius: 4px;
-            border: 1px solid rgba(34, 197, 94, 0.35);
+            background: rgba(0, 122, 255, 0.16);
+            padding: 2.5px 8px;
+            border-radius: 6px;
+            border: 1px solid rgba(0, 122, 255, 0.32);
         }
 
         [data-theme="light-clean"] .month-badge-pill {
-            font-family: 'JetBrains Mono', monospace;
+            font-family: 'Inter', -apple-system, sans-serif;
             font-size: 10px;
             font-weight: 800;
             color: #15803d;
             letter-spacing: 0.8px;
             background: #dcfce7;
-            padding: 2px 7px;
-            border-radius: 4px;
+            padding: 2.5px 8px;
+            border-radius: 6px;
             border: 1px solid #86efac;
         }
 
         .month-stat-chip {
-            font-family: 'B612 Mono', monospace;
-            font-size: 9px;
-            color: #94a3b8;
-            background: rgba(255, 255, 255, 0.04);
-            padding: 2px 6px;
-            border-radius: 3px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 9.5px;
+            color: #8e8e93;
+            background: #222634;
+            padding: 2.5px 8px;
+            border-radius: 6px;
             border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
         .month-stat-chip strong {
-            color: #f1f5f9;
-            font-weight: 700;
+            color: #ffffff;
+            font-weight: 800;
         }
 
         [data-theme="light-clean"] .month-stat-chip {
@@ -3485,8 +3503,8 @@
             font-size: 11px;
         }
         .tag-flt-time {
-            font-weight: 700;
-            color: #4ade80;
+            font-weight: 800;
+            color: #30d158;
             font-family: 'JetBrains Mono', 'B612 Mono', monospace;
             font-size: 11px;
         }
@@ -3527,10 +3545,10 @@
             font-weight: 600;
             font-size: 11px;
         }
-        .tag-temp-cool { color: #38bdf8; font-family: 'JetBrains Mono', monospace; font-weight: 700; }
-        .tag-temp-nom { color: #4ade80; font-family: 'JetBrains Mono', monospace; font-weight: 700; }
-        .tag-temp-warm { color: #fb923c; font-family: 'JetBrains Mono', monospace; font-weight: 700; }
-        .tag-temp-hot { color: #f87171; font-family: 'JetBrains Mono', monospace; font-weight: 700; }
+        .tag-temp-cool { color: #64d2ff; font-family: 'JetBrains Mono', monospace; font-weight: 800; }
+        .tag-temp-nom { color: #30d158; font-family: 'JetBrains Mono', monospace; font-weight: 800; }
+        .tag-temp-warm { color: #ff9f0a; font-family: 'JetBrains Mono', monospace; font-weight: 800; }
+        .tag-temp-hot { color: #ff453a; font-family: 'JetBrains Mono', monospace; font-weight: 800; }
 
         /* Light Mode High-Vibrancy Crisp Numbers & Letters */
         [data-theme="light-clean"] table.atis-table td {
@@ -3641,41 +3659,42 @@
         }
 
         .btn-table-load {
-            background: rgba(34, 197, 94, 0.15);
-            border: 1px solid #22c55e;
-            color: #4ade80;
-            padding: 2px 7px;
-            border-radius: 3px;
-            font-size: 9px;
-            font-family: 'B612 Mono', monospace;
+            background: #007aff;
+            border: none;
+            color: #ffffff;
+            padding: 3.5px 10px;
+            border-radius: 6px;
+            font-size: 9.5px;
+            font-family: 'Inter', sans-serif;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.12s ease;
+            box-shadow: 0 1px 4px rgba(0, 122, 255, 0.35);
         }
 
         .btn-table-load:hover {
-            background: rgba(34, 197, 94, 0.35);
-            color: #86efac;
+            background: #0a84ff;
+            box-shadow: 0 2px 8px rgba(0, 122, 255, 0.5);
         }
 
         [data-theme="light-clean"] .btn-table-load {
-            background: #dcfce7;
-            border-color: #16a34a;
-            color: #15803d;
+            background: #007aff;
+            border: none;
+            color: #ffffff;
         }
 
         [data-theme="light-clean"] .btn-table-load:hover {
-            background: #bbf7d0;
+            background: #0a84ff;
         }
 
         /* Debrief Action Button in Table */
         .btn-table-debrief {
-            background: rgba(34, 197, 94, 0.12);
-            border: 1px solid #16a34a;
-            color: #4ade80;
-            padding: 2px 7px;
-            border-radius: 3px;
-            font-size: 9px;
+            background: #242834;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            color: #f2f2f7;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 9.5px;
             font-family: 'Inter', sans-serif;
             font-weight: 700;
             cursor: pointer;
@@ -3683,19 +3702,18 @@
             margin-right: 4px;
         }
         .btn-table-debrief:hover {
-            background: rgba(34, 197, 94, 0.25);
-            border-color: #22c55e;
-            color: #86efac;
+            background: #2d3342;
+            border-color: #007aff;
+            color: #ffffff;
         }
         .btn-table-debrief.debriefed {
-            background: #22c55e;
-            border-color: #22c55e;
-            color: #0c0d10;
+            background: rgba(48, 209, 88, 0.2);
+            border-color: #30d158;
+            color: #30d158;
         }
         .btn-table-debrief.debriefed:hover {
-            background: #4ade80;
-            border-color: #4ade80;
-            color: #0c0d10;
+            background: rgba(48, 209, 88, 0.32);
+            color: #86efac;
         }
         [data-theme="light-clean"] .btn-table-debrief {
             background: #dcfce7;
@@ -4120,24 +4138,31 @@
         }
         /* Logbook Sidebar Controls */
         #sidebar-logbook-content {
-            background: var(--av-panel-bg);
+            background: #0a0c10 !important;
+        }
+        #sidebar-logbook-content .sidebar-section {
+            background: #151821 !important;
+            border: 1px solid rgba(255, 255, 255, 0.08) !important;
+            border-radius: 10px !important;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35) !important;
         }
         .sidebar-repo-card {
-            background: #1a1d24 !important;
-            border: 1px solid #282d38 !important;
-            border-radius: 5px;
-            padding: 8px;
+            background: #151821 !important;
+            border: 1px solid rgba(255, 255, 255, 0.08) !important;
+            border-radius: 10px !important;
+            padding: 10px !important;
             margin: 0;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35) !important;
         }
         .sidebar-search-box {
             width: 100% !important;
             box-sizing: border-box !important;
             font-size: 11px !important;
-            padding: 6px 10px !important;
-            border-radius: 4px !important;
-            background: #121418 !important;
-            border: 1px solid #282d38 !important;
-            color: #e2e8f0 !important;
+            padding: 6px 12px !important;
+            border-radius: 8px !important;
+            background: #11141c !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            color: #64d2ff !important;
             font-family: 'JetBrains Mono', 'B612 Mono', monospace !important;
         }
         .sidebar-search-box:focus {
@@ -4150,34 +4175,35 @@
             box-sizing: border-box !important;
             font-size: 9.5px !important;
             margin-bottom: 6px !important;
-            padding: 5px 6px !important;
-            background: #121418 !important;
-            border: 1px solid #282d38 !important;
-            color: #94a3b8 !important;
+            padding: 5px 8px !important;
+            background: #11141c !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            color: #8e8e93 !important;
+            border-radius: 6px !important;
             font-family: 'JetBrains Mono', 'B612 Mono', monospace !important;
             text-overflow: ellipsis;
         }
         .sidebar-export-btn {
             width: 100% !important;
             box-sizing: border-box !important;
-            padding: 6px 10px !important;
-            font-size: 10px !important;
+            padding: 7px 12px !important;
+            font-size: 10.5px !important;
             font-weight: 700 !important;
             display: flex !important;
             align-items: center !important;
             justify-content: center !important;
             gap: 6px !important;
-            background: rgba(34, 197, 94, 0.12) !important;
-            border: 1px solid #22c55e !important;
-            color: #4ade80 !important;
-            border-radius: 4px !important;
+            background: #007aff !important;
+            border: none !important;
+            color: #ffffff !important;
+            border-radius: 8px !important;
             cursor: pointer !important;
             transition: all 0.15s ease !important;
+            box-shadow: 0 2px 10px rgba(0, 122, 255, 0.35) !important;
         }
         .sidebar-export-btn:hover {
-            background: rgba(34, 197, 94, 0.22) !important;
-            color: #86efac !important;
-            box-shadow: 0 0 10px rgba(34, 197, 94, 0.2) !important;
+            background: #0a84ff !important;
+            box-shadow: 0 4px 14px rgba(0, 122, 255, 0.5) !important;
         }
         .sidebar-metric-grid {
             display: grid;
@@ -4186,10 +4212,10 @@
             font-family: 'JetBrains Mono', 'B612 Mono', monospace;
         }
         .sidebar-metric-box {
-            background: #1a1d24 !important;
-            border: 1px solid #282d38 !important;
-            border-radius: 4px;
-            padding: 6px 8px;
+            background: #181c26 !important;
+            border: 1px solid rgba(255, 255, 255, 0.08) !important;
+            border-radius: 8px !important;
+            padding: 7px 9px !important;
         }
         .sidebar-metric-box .metric-label {
             color: #64748b;
@@ -6788,9 +6814,9 @@
             const cardTexts = monthly.map(m => (m.cardStr.includes(' ') ? m.cardStr.split(' ')[1] : ''));
 
             const isDark = document.documentElement.getAttribute('data-theme') !== 'light-clean';
-            const bgColor = isDark ? '#1a1d24' : '#ffffff';
+            const bgColor = isDark ? '#151821' : '#ffffff';
             const gridColor = isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.06)';
-            const fontColor = isDark ? '#94a3b8' : '#475569';
+            const fontColor = isDark ? '#8e8e93' : '#475569';
 
             // Chart 1: Monthly Ambient Temperature Profile (°C)
             const traceMinTemp = {
@@ -11263,7 +11289,7 @@
 
     <!-- Modal: Assign Model Flying Weight & Battery Type -->
     <div id="modal-flight-specs" class="modal-overlay atis-no-print" style="display: none;" onclick="if(event.target===this) closeSpecsModal()" onkeydown="event.stopPropagation()" onkeyup="event.stopPropagation()">
-        <div class="modal-box" onkeydown="event.stopPropagation()" onkeyup="event.stopPropagation()" style="width: 480px; max-width: 92vw; padding: 20px; background: #0c0d10; border: 1px solid #38bdf8; border-radius: 6px; box-shadow: 0 15px 40px rgba(0, 0, 0, 0.95); font-family: 'B612', sans-serif;">
+        <div class="modal-box" onkeydown="event.stopPropagation()" onkeyup="event.stopPropagation()" style="width: 480px; max-width: 92vw; padding: 20px; background: #151821; border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 12px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7); box-shadow: 0 15px 40px rgba(0, 0, 0, 0.95); font-family: 'B612', sans-serif;">
             <div class="modal-title" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; border-bottom: 1px solid #1a1c22; padding-bottom: 8px;">
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <span style="display: inline-block; width: 8px; height: 8px; background: #22c55e; border-radius: 50%;"></span>
