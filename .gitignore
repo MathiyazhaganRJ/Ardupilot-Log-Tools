@@ -7,4 +7,6 @@ __pycache__/
 Thumbs.db
 verify_*.png
 tile_cache/
+uploads/
+*.pdf
 

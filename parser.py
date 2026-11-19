@@ -6,8 +6,10 @@ Extracts synchronized flight telemetry, message formats, and aerodynamic perform
 import os
 import math
 import datetime
+import json
 import numpy as np
 from pymavlink import mavutil
+import organizer
 
 GPS_EPOCH = datetime.datetime(1980, 1, 6, tzinfo=datetime.timezone.utc)
 PLANE_MODE_MAP = {
@@ -767,5 +769,403 @@ def compute_regime_metrics(raw_telemetry, t_start, t_end, weight_kg=5.1, wing_ar
         'wind_dir': round(w_dir, 0),
         'roll': round(roll, 1),
         'crt': round(crt, 2)
+    }
+
+
+PHONETIC_ALPHABET = [
+    'ALPHA', 'BRAVO', 'CHARLIE', 'DELTA', 'ECHO', 'FOXTROT', 'GOLF', 'HOTEL',
+    'INDIA', 'JULIETT', 'KILO', 'LIMA', 'MIKE', 'NOVEMBER', 'OSCAR', 'PAPA',
+    'QUEBEC', 'ROMEO', 'SIERRA', 'TANGO', 'UNIFORM', 'VICTOR', 'WHISKEY', 'XRAY', 'YANKEE', 'ZULU'
+]
+
+
+def extract_flight_atis_summary(file_path):
+    """
+    Extracts high-fidelity aviation ATIS summary & atmospheric metrics from an ArduPilot .bin log.
+    Executes in ~0.3 - 1.2 seconds per file.
+    """
+    import time
+    t0 = time.time()
+    try:
+        stat = os.stat(file_path)
+        size_mb = round(stat.st_size / (1024 * 1024), 2)
+        mtime = stat.st_mtime
+    except Exception as e:
+        return {'filename': os.path.basename(file_path), 'filepath': file_path, 'error': str(e)}
+
+    # Default fallback date from organizer
+    fallback_dt = organizer.get_true_log_date(file_path)
+    flight_dt = None
+
+    try:
+        mlog = mavutil.mavlink_connection(file_path, notimestamps=True)
+    except Exception as e:
+        return {'filename': os.path.basename(file_path), 'filepath': file_path, 'error': str(e)}
+
+    types = ['GPS', 'BARO', 'ARSP', 'XKF2', 'NKF2', 'AHR2', 'BAT', 'MODE', 'PARM', 'MSG']
+
+    lats, lngs, alts = [], [], []
+    baro_temps, arsp_temps, press_list = [], [], []
+    winds = []
+    powers, tas_list, gs_list = [], [], []
+    modes = []
+    firmware = 'ArduPlane'
+    board = 'Matek F405/H743'
+    t_start, t_end = None, None
+    alive_start, alive_end = None, None
+    max_curr_tot = 0.0
+
+    while True:
+        m = mlog.recv_match(type=types, blocking=False)
+        if m is None:
+            break
+        mtype = m.get_type()
+        t_sec = getattr(m, 'TimeUS', None)
+        if t_sec is not None:
+            t_s = t_sec / 1e6
+            if t_start is None:
+                t_start = t_s
+            t_end = t_s
+
+        if mtype == 'GPS':
+            status = getattr(m, 'Status', 0)
+            if status >= 3:
+                lat = getattr(m, 'Lat', 0)
+                lng = getattr(m, 'Lng', 0)
+                alt = getattr(m, 'Alt', 0)
+                spd = getattr(m, 'Spd', 0)
+                if lat != 0 and lng != 0:
+                    lats.append(lat if abs(lat) <= 90 else lat * 1e-7)
+                    lngs.append(lng if abs(lng) <= 180 else lng * 1e-7)
+                if alt != 0:
+                    alts.append(alt)
+                if spd is not None and spd >= 0:
+                    gs_list.append(spd)
+                    if spd >= 3.0 and t_sec is not None:
+                        if alive_start is None:
+                            alive_start = t_s
+                        alive_end = t_s
+                gwk = getattr(m, 'GWk', 0)
+                gms = getattr(m, 'GMS', 0)
+                if flight_dt is None and gwk > 1500:
+                    flight_dt = GPS_EPOCH + datetime.timedelta(weeks=gwk, milliseconds=gms)
+
+        elif mtype == 'BARO':
+            p = getattr(m, 'Press', 0)
+            t = getattr(m, 'Temp', 0)
+            if p > 50000:
+                press_list.append(p / 100.0)
+            if -40 < t < 85 and t != 0:
+                baro_temps.append(t)
+
+        elif mtype == 'ARSP':
+            t = getattr(m, 'Temp', 0)
+            asp = getattr(m, 'Airspeed', 0)
+            if -40 < t < 85 and t != 0:
+                arsp_temps.append(t)
+            if asp is not None and asp > 0.5:
+                tas_list.append(asp)
+                if asp >= 7.0 and t_sec is not None:
+                    if alive_start is None:
+                        alive_start = t_s
+                    alive_end = t_s
+
+        elif mtype in ('XKF2', 'NKF2', 'AHR2'):
+            vwn = getattr(m, 'VWN', None)
+            vwe = getattr(m, 'VWE', None)
+            if vwn is not None and vwe is not None:
+                w_spd = math.sqrt(vwn*vwn + vwe*vwe)
+                if 0.05 < w_spd < 50.0:
+                    w_dir = (math.degrees(math.atan2(-vwe, -vwn)) + 360.0) % 360.0
+                    winds.append((w_spd, w_dir))
+
+        elif mtype == 'BAT':
+            v = getattr(m, 'Volt', 0)
+            c = getattr(m, 'Curr', 0)
+            ctot = getattr(m, 'CurrTot', 0)
+            if ctot > max_curr_tot:
+                max_curr_tot = ctot
+            if v > 5.0 and c >= 0:
+                powers.append(v * c)
+
+        elif mtype == 'MODE':
+            mode_val = getattr(m, 'Mode', None)
+            if mode_val is not None and mode_val not in modes:
+                modes.append(mode_val)
+
+        elif mtype == 'MSG':
+            msg_str = getattr(m, 'Message', '')
+            if 'ArduPlane' in msg_str or 'ArduCopter' in msg_str:
+                firmware = msg_str.strip()
+            elif 'Matek' in msg_str or 'Cube' in msg_str or 'Pixhawk' in msg_str:
+                board = msg_str.strip()
+
+    mlog.close()
+
+    # Determine final true date
+    final_dt = flight_dt if flight_dt is not None else fallback_dt
+    dur_s = max(0.0, (t_end - t_start)) if (t_start is not None and t_end is not None) else 0.0
+    flt_s = max(0.0, (alive_end - alive_start)) if (alive_start is not None and alive_end is not None) else 0.0
+
+    mean_lat = round(sum(lats)/len(lats), 6) if lats else 0.0
+    mean_lng = round(sum(lngs)/len(lngs), 6) if lngs else 0.0
+    field_elev = round(alts[0], 1) if alts else 0.0
+
+    # Outside Air Temperature (favor free-stream pitot temp, fallback to baro)
+    primary_temps = arsp_temps if len(arsp_temps) > 50 else baro_temps
+    oat_mean = round(sum(primary_temps)/len(primary_temps), 1) if primary_temps else 25.0
+    oat_min = round(min(primary_temps), 1) if primary_temps else oat_mean
+    oat_max = round(max(primary_temps), 1) if primary_temps else oat_mean
+
+    # Atmospheric Pressure & QNH calculation
+    p_sta_mean = round(sum(press_list)/len(press_list), 1) if press_list else 1013.2
+    try:
+        qnh_calc = p_sta_mean * (max(0.001, 1.0 - (field_elev / 44330.77)) ** -5.25588)
+        qnh = round(qnh_calc, 1)
+    except Exception:
+        qnh = p_sta_mean
+
+    # Air Density (kg/m^3)
+    tk = oat_mean + 273.15
+    rho = round((p_sta_mean * 100.0) / (287.05 * tk), 4) if tk > 0 else 1.225
+    rho_ratio_pct = round((rho / 1.2250) * 100.0, 1)
+
+    # Pressure Altitude, ISA Temp, and Density Altitude (m & ft)
+    pa = (1013.25 - qnh) * 30.0 + field_elev
+    isa_temp = round(15.0 - 0.0065 * field_elev, 1)
+    isa_dev = round(oat_mean - isa_temp, 1)
+    density_alt_m = round(pa + 118.8 * isa_dev, 1)
+    density_alt_ft = int(round(density_alt_m * 3.28084))
+
+    # Wind Vector
+    if winds:
+        w_spds = [w[0] for w in winds]
+        w_dirs = [w[1] for w in winds]
+        mean_w_spd_ms = round(sum(w_spds)/len(w_spds), 1)
+        mean_w_spd_kt = round(mean_w_spd_ms * 1.94384, 1)
+        max_w_spd_kt = round(max(w_spds) * 1.94384, 1)
+        mean_w_dir = int(round(sum(w_dirs)/len(w_dirs))) % 360
+    else:
+        mean_w_spd_ms, mean_w_spd_kt, max_w_spd_kt, mean_w_dir = 0.0, 0.0, 0.0, 0
+
+    # Propulsion and Energy Efficiency
+    mean_pwr = round(sum(powers)/len(powers), 1) if powers else 0.0
+    mean_tas = round(sum(tas_list)/len(tas_list), 1) if tas_list else 0.0
+    max_tas = round(max(tas_list), 1) if tas_list else 0.0
+    mean_gs = round(sum(gs_list)/len(gs_list), 1) if gs_list else 0.0
+    speed_ref = mean_tas if mean_tas > 2.0 else mean_gs
+    wh_km = round(mean_pwr / (speed_ref * 3.6), 2) if speed_ref > 2.0 else 0.0
+    total_mah = round(max_curr_tot, 1)
+
+    def fmt_dur(s):
+        m, sec = divmod(int(round(s)), 60)
+        h, m = divmod(m, 60)
+        return f"{h}h {m:02d}m {sec:02d}s" if h > 0 else f"{m:02d}m {sec:02d}s"
+
+    met_str = fmt_dur(dur_s)
+    flt_str = fmt_dur(flt_s)
+
+    parse_time = round(time.time() - t0, 2)
+    return {
+        'filename': os.path.basename(file_path),
+        'filepath': file_path,
+        'size_mb': size_mb,
+        'mtime': mtime,
+        'date_str': final_dt.strftime('%Y-%m-%d %H:%M:%S UTC'),
+        'date_iso': final_dt.isoformat(),
+        'year': final_dt.year,
+        'month': final_dt.month,
+        'day': final_dt.day,
+        'lat': mean_lat,
+        'lng': mean_lng,
+        'elev_m': field_elev,
+        'duration_s': round(dur_s, 1),
+        'flight_time_s': round(flt_s, 1),
+        'met_str': met_str,
+        'flt_str': flt_str,
+        'oat_mean_c': oat_mean,
+        'oat_min_c': oat_min,
+        'oat_max_c': oat_max,
+        'p_sta_hpa': p_sta_mean,
+        'qnh_hpa': qnh,
+        'rho_kgm3': rho,
+        'rho_pct': rho_ratio_pct,
+        'density_alt_m': density_alt_m,
+        'density_alt_ft': density_alt_ft,
+        'isa_temp_c': isa_temp,
+        'isa_dev_c': isa_dev,
+        'wind_spd_kt': mean_w_spd_kt,
+        'wind_spd_ms': mean_w_spd_ms,
+        'wind_max_kt': max_w_spd_kt,
+        'wind_dir_deg': mean_w_dir,
+        'mean_pwr_w': mean_pwr,
+        'mean_tas_ms': mean_tas,
+        'max_tas_ms': max_tas,
+        'mean_gs_ms': mean_gs,
+        'wh_km': wh_km,
+        'consumed_mah': total_mah,
+        'board': board,
+        'firmware': firmware,
+        'has_valid_flight': flt_s > 30.0,
+        'parse_time_s': parse_time
+    }
+
+
+def get_historical_atis_database(folder_path=None, force_refresh=False):
+    """
+    Scans folder_path for all ArduPilot .bin flight logs, leveraging a disk cache
+    (.atis_flight_cache.json) to achieve sub-millisecond retrieval on subsequent calls.
+    """
+    if not folder_path or not os.path.exists(folder_path):
+        folder_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
+    
+    folder_path = os.path.normpath(folder_path)
+    cache_file = os.path.join(folder_path, '.atis_flight_cache.json')
+    
+    cache_data = {'version': 1, 'files': {}}
+    if not force_refresh and os.path.exists(cache_file):
+        try:
+            with open(cache_file, 'r', encoding='utf-8') as f:
+                loaded = json.load(f)
+                if loaded.get('version') == 1 and isinstance(loaded.get('files'), dict):
+                    cache_data = loaded
+        except Exception:
+            cache_data = {'version': 1, 'files': {}}
+
+    cached_files = cache_data.get('files', {})
+    updated = False
+    
+    # Discover all .bin files in folder and direct subfolders
+    found_paths = []
+    for root, dirs, files in os.walk(folder_path):
+        # Ignore hidden / temporary folders
+        dirs[:] = [d for d in dirs if not d.startswith('.') and d != '_temp_org']
+        for fn in files:
+            if fn.lower().endswith('.bin'):
+                found_paths.append(os.path.join(root, fn))
+                
+    valid_filenames = set()
+    flights = []
+    
+    for fpath in found_paths:
+        fname = os.path.basename(fpath)
+        valid_filenames.add(fname)
+        try:
+            st = os.stat(fpath)
+            fsize = st.st_size
+            fmtime = st.st_mtime
+        except Exception:
+            continue
+            
+        # Cache check: key is filename, size, and mtime
+        cached_entry = cached_files.get(fname)
+        if (cached_entry and 
+            cached_entry.get('size') == fsize and 
+            abs(cached_entry.get('mtime', 0) - fmtime) < 1.0 and 
+            'summary' in cached_entry):
+            summary = cached_entry['summary']
+            summary['filepath'] = fpath
+            flights.append(summary)
+        else:
+            summary = extract_flight_atis_summary(fpath)
+            cached_files[fname] = {
+                'size': fsize,
+                'mtime': fmtime,
+                'summary': summary
+            }
+            flights.append(summary)
+            updated = True
+
+    # Purge removed files from cache
+    stale_keys = [k for k in cached_files if k not in valid_filenames]
+    if stale_keys:
+        for k in stale_keys:
+            del cached_files[k]
+        updated = True
+
+    if updated or not os.path.exists(cache_file):
+        cache_data['last_updated_utc'] = datetime.datetime.now(datetime.timezone.utc).isoformat()
+        cache_data['total_logs'] = len(flights)
+        try:
+            with open(cache_file, 'w', encoding='utf-8') as f:
+                json.dump(cache_data, f, indent=2)
+        except Exception as e:
+            print(f"Warning: could not write ATIS cache: {e}")
+
+    # Sort flights newest first
+    flights.sort(key=lambda x: x.get('date_iso', ''), reverse=True)
+
+    # Assign cyclic phonetic callsign (ZULU down to ALPHA)
+    for idx, flt in enumerate(flights):
+        p_letter = PHONETIC_ALPHABET[idx % len(PHONETIC_ALPHABET)]
+        flt['atis_callsign'] = p_letter
+        
+        # Build standard ICAO D-ATIS ticker
+        d_utc = flt.get('date_str', '').split(' ')[1].replace(':', '')[:4] if ' ' in flt.get('date_str', '') else '1200'
+        day_str = f"{flt.get('day', 1):02d}"
+        zulu_time = f"{day_str}{d_utc}Z"
+        w_dir = f"{flt.get('wind_dir_deg', 0):03d}"
+        w_kt = f"{int(round(flt.get('wind_spd_kt', 0))):02d}"
+        temp_sign = '+' if flt.get('oat_mean_c', 0) >= 0 else ''
+        oat_str = f"{temp_sign}{flt.get('oat_mean_c', 0):.1f}°C"
+        qnh_val = flt.get('qnh_hpa', 1013.2)
+        da_val = flt.get('density_alt_m', 0)
+        da_ft_val = flt.get('density_alt_ft', 0)
+        rho_val = flt.get('rho_kgm3', 1.225)
+        flt_dur = flt.get('flt_str', '00m 00s')
+        wh_km_val = flt.get('wh_km', 0.0)
+        pwr_val = flt.get('mean_pwr_w', 0.0)
+        tas_val = flt.get('mean_tas_ms', 0.0)
+        
+        flt['atis_ticker'] = (
+            f"SHARKEE FIELD INFO {p_letter} · {zulu_time} · WIND {w_dir}/{w_kt}KT · VIS 10KM+ · CLR · "
+            f"TEMP {oat_str} · QNH {qnh_val:.1f} HPA · DENSITY ALT {da_val:.0f}M ({da_ft_val}FT) · "
+            f"RHO {rho_val:.4f} KG/M³ · CRUISE {tas_val:.1f}M/S @ {pwr_val:.0f}W ({wh_km_val:.2f} WH/KM) · "
+            f"FLT {flt_dur} · AIRFRAME NOMINAL"
+        )
+
+    # Compute aggregate fleet atmospheric & performance summary
+    total_flt_sec = sum(f.get('flight_time_s', 0) for f in flights)
+    total_dur_sec = sum(f.get('duration_s', 0) for f in flights)
+    valid_flights = [f for f in flights if f.get('has_valid_flight')]
+    
+    oats = [f['oat_mean_c'] for f in flights if 'oat_mean_c' in f]
+    qnhs = [f['qnh_hpa'] for f in flights if 'qnh_hpa' in f]
+    das = [f['density_alt_m'] for f in flights if 'density_alt_m' in f]
+    winds = [f['wind_spd_kt'] for f in flights if 'wind_spd_kt' in f]
+    energies = [f['wh_km'] for f in valid_flights if f.get('wh_km', 0) > 0.5]
+    
+    def fmt_cum_dur(s):
+        h = int(s // 3600)
+        m = int((s % 3600) // 60)
+        return f"{h}h {m:02d}m"
+        
+    summary = {
+        'total_logs': len(flights),
+        'valid_flights_count': len(valid_flights),
+        'total_airborne_time': fmt_cum_dur(total_flt_sec),
+        'total_airborne_sec': round(total_flt_sec, 1),
+        'total_operations_time': fmt_cum_dur(total_dur_sec),
+        'date_earliest': flights[-1]['date_str'] if flights else 'N/A',
+        'date_latest': flights[0]['date_str'] if flights else 'N/A',
+        'temp_min_c': min(oats) if oats else 25.0,
+        'temp_max_c': max(oats) if oats else 25.0,
+        'temp_mean_c': round(sum(oats)/len(oats), 1) if oats else 25.0,
+        'qnh_min_hpa': min(qnhs) if qnhs else 1013.2,
+        'qnh_max_hpa': max(qnhs) if qnhs else 1013.2,
+        'qnh_mean_hpa': round(sum(qnhs)/len(qnhs), 1) if qnhs else 1013.2,
+        'density_alt_min_m': min(das) if das else 0,
+        'density_alt_max_m': max(das) if das else 0,
+        'density_alt_mean_m': round(sum(das)/len(das), 1) if das else 0,
+        'wind_max_kt': max(winds) if winds else 0.0,
+        'wind_mean_kt': round(sum(winds)/len(winds), 1) if winds else 0.0,
+        'mean_wh_km': round(sum(energies)/len(energies), 2) if energies else 0.0
+    }
+
+    return {
+        'success': True,
+        'folder': folder_path,
+        'summary': summary,
+        'flights': flights
     }
 

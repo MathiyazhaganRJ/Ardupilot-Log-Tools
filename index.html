@@ -2639,6 +2639,725 @@
             color: #16a34a;
         }
 
+        /* ------------------------------------------------------------- */
+        /* ATIS & Historical Fleet Atmospheric Database Styles           */
+        /* ------------------------------------------------------------- */
+        .atis-container {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+            background: #06090e;
+            color: #e2e8f0;
+            padding: 14px 18px 24px 18px;
+            box-sizing: border-box;
+            gap: 14px;
+        }
+
+        [data-theme="light-clean"] .atis-container {
+            background: #f8fafc;
+            color: #0f172a;
+        }
+
+        .atis-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #0b111a;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 6px;
+            padding: 8px 12px;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        [data-theme="light-clean"] .atis-toolbar {
+            background: #ffffff;
+            border-color: #cbd5e1;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .atis-toolbar-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            flex: 1;
+        }
+
+        .atis-toolbar-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        .atis-bar-label {
+            font-size: 10px;
+            font-family: 'B612 Mono', monospace;
+            font-weight: 700;
+            letter-spacing: 0.6px;
+            color: #94a3b8;
+            white-space: nowrap;
+        }
+
+        [data-theme="light-clean"] .atis-bar-label {
+            color: #64748b;
+        }
+
+        .atis-path-input-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .atis-input-path {
+            background: #05080c;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 4px;
+            color: #38bdf8;
+            font-family: 'B612 Mono', monospace;
+            font-size: 11px;
+            padding: 4px 10px;
+            width: 280px;
+            max-width: 380px;
+            outline: none;
+            text-overflow: ellipsis;
+        }
+
+        [data-theme="light-clean"] .atis-input-path {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+            color: #0284c7;
+        }
+
+        .atis-btn {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #cbd5e1;
+            font-family: 'B612 Mono', monospace;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+        }
+
+        .atis-btn:hover {
+            background: rgba(255, 255, 255, 0.12);
+            color: #ffffff;
+            border-color: rgba(255, 255, 255, 0.25);
+        }
+
+        [data-theme="light-clean"] .atis-btn {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+            color: #334155;
+        }
+
+        [data-theme="light-clean"] .atis-btn:hover {
+            background: #e2e8f0;
+            color: #0f172a;
+        }
+
+        .atis-btn-primary {
+            background: rgba(34, 197, 94, 0.15);
+            border-color: #22c55e;
+            color: #4ade80;
+        }
+
+        .atis-btn-primary:hover {
+            background: rgba(34, 197, 94, 0.28);
+            color: #86efac;
+        }
+
+        [data-theme="light-clean"] .atis-btn-primary {
+            background: #dcfce7;
+            border-color: #16a34a;
+            color: #15803d;
+        }
+
+        .atis-btn-print {
+            background: rgba(56, 189, 248, 0.12);
+            border-color: #38bdf8;
+            color: #7dd3fc;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .atis-btn-print:hover {
+            background: rgba(56, 189, 248, 0.25);
+            color: #bae6fd;
+        }
+
+        [data-theme="light-clean"] .atis-btn-print {
+            background: #e0f2fe;
+            border-color: #0284c7;
+            color: #0369a1;
+        }
+
+        .atis-input-search {
+            background: #05080c;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 4px;
+            color: #e2e8f0;
+            font-family: 'Inter', sans-serif;
+            font-size: 11px;
+            padding: 4px 10px;
+            width: 180px;
+            outline: none;
+        }
+
+        [data-theme="light-clean"] .atis-input-search {
+            background: #ffffff;
+            border-color: #cbd5e1;
+            color: #0f172a;
+        }
+
+        .atis-stats-pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 4px;
+            padding: 4px 10px;
+            font-size: 10px;
+            font-family: 'B612 Mono', monospace;
+            color: #94a3b8;
+        }
+
+        [data-theme="light-clean"] .atis-stats-pill {
+            background: #f1f5f9;
+            border-color: #e2e8f0;
+            color: #64748b;
+        }
+
+        .pill-stat strong {
+            color: #22c55e;
+            font-weight: 700;
+        }
+
+        [data-theme="light-clean"] .pill-stat strong {
+            color: #16a34a;
+        }
+
+        .pill-sep {
+            color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* D-ATIS Terminal Card */
+        .atis-terminal-card {
+            background: #03060a;
+            border: 1px solid rgba(34, 197, 94, 0.35);
+            border-radius: 6px;
+            padding: 12px 16px;
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.06);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+
+        [data-theme="light-clean"] .atis-terminal-card {
+            background: #0f172a;
+            border-color: #22c55e;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+        }
+
+        .terminal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px dashed rgba(34, 197, 94, 0.25);
+            padding-bottom: 6px;
+        }
+
+        .terminal-title-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .terminal-beacon-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #22c55e;
+            box-shadow: 0 0 8px #22c55e;
+            animation: beaconPulse 1.8s infinite ease-in-out;
+        }
+
+        @keyframes beaconPulse {
+            0% { transform: scale(0.9); opacity: 0.6; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(0.9); opacity: 0.6; }
+        }
+
+        .terminal-title {
+            font-family: 'B612 Mono', monospace;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            color: #86efac;
+        }
+
+        .terminal-subtitle {
+            font-family: 'B612 Mono', monospace;
+            font-size: 9.5px;
+            color: #64748b;
+            letter-spacing: 0.5px;
+        }
+
+        .terminal-callsign-badge {
+            background: rgba(34, 197, 94, 0.2);
+            border: 1px solid #22c55e;
+            color: #4ade80;
+            font-family: 'B612 Mono', monospace;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 3px;
+            letter-spacing: 0.8px;
+        }
+
+        .terminal-body {
+            font-family: 'B612 Mono', 'JetBrains Mono', Consolas, monospace;
+            font-size: 11px;
+            line-height: 1.6;
+            color: #4ade80;
+            letter-spacing: 0.3px;
+            text-shadow: 0 0 6px rgba(74, 222, 128, 0.3);
+            white-space: pre-line;
+            word-break: break-word;
+        }
+
+        /* Charts Row */
+        .atis-charts-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        @media (max-width: 1024px) {
+            .atis-charts-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .atis-chart-card {
+            background: #0b111a;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 6px;
+            padding: 10px 14px 6px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        [data-theme="light-clean"] .atis-chart-card {
+            background: #ffffff;
+            border-color: #cbd5e1;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .chart-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chart-card-title {
+            font-family: 'B612 Mono', monospace;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.6px;
+            color: #cbd5e1;
+        }
+
+        [data-theme="light-clean"] .chart-card-title {
+            color: #1e293b;
+        }
+
+        .chart-card-sub {
+            font-size: 9.5px;
+            color: #64748b;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .atis-plotly-container {
+            width: 100%;
+            height: 200px;
+        }
+
+        /* Table Card */
+        .atis-table-card {
+            background: #0b111a;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 6px;
+            padding: 12px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        [data-theme="light-clean"] .atis-table-card {
+            background: #ffffff;
+            border-color: #cbd5e1;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .table-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table-card-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'B612 Mono', monospace;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.6px;
+            color: #cbd5e1;
+        }
+
+        [data-theme="light-clean"] .table-card-title {
+            color: #0f172a;
+        }
+
+        .table-badge {
+            background: rgba(56, 189, 248, 0.15);
+            border: 1px solid #38bdf8;
+            color: #7dd3fc;
+            font-size: 9.5px;
+            font-weight: 700;
+            padding: 1px 6px;
+            border-radius: 3px;
+        }
+
+        .table-card-legend {
+            display: flex;
+            gap: 8px;
+            font-size: 10px;
+            font-family: 'B612 Mono', monospace;
+        }
+
+        .legend-chip {
+            padding: 2px 7px;
+            border-radius: 3px;
+            font-size: 9.5px;
+        }
+
+        .legend-density-normal {
+            background: rgba(34, 197, 94, 0.15);
+            color: #4ade80;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .legend-density-hot {
+            background: rgba(249, 115, 22, 0.15);
+            color: #fb923c;
+            border: 1px solid rgba(249, 115, 22, 0.3);
+        }
+
+        .atis-table-wrapper {
+            overflow-x: auto;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        [data-theme="light-clean"] .atis-table-wrapper {
+            border-color: #cbd5e1;
+        }
+
+        table.atis-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: 'B612 Mono', monospace;
+            font-size: 10px;
+            text-align: left;
+            white-space: nowrap;
+        }
+
+        table.atis-table th {
+            background: #080d14;
+            color: #94a3b8;
+            padding: 7px 10px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            user-select: none;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+
+        table.atis-table th:hover {
+            color: #38bdf8;
+            background: #0e1622;
+        }
+
+        [data-theme="light-clean"] table.atis-table th {
+            background: #f1f5f9;
+            color: #475569;
+            border-color: #cbd5e1;
+        }
+
+        [data-theme="light-clean"] table.atis-table th:hover {
+            color: #0284c7;
+            background: #e2e8f0;
+        }
+
+        table.atis-table td {
+            padding: 7px 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            color: #cbd5e1;
+        }
+
+        [data-theme="light-clean"] table.atis-table td {
+            color: #1e293b;
+            border-color: #f1f5f9;
+        }
+
+        table.atis-table tbody tr {
+            cursor: pointer;
+            transition: background 0.12s ease;
+        }
+
+        table.atis-table tbody tr:hover {
+            background: rgba(56, 189, 248, 0.08);
+        }
+
+        [data-theme="light-clean"] table.atis-table tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        table.atis-table tbody tr.active-row {
+            background: rgba(34, 197, 94, 0.12) !important;
+            border-left: 3px solid #22c55e;
+        }
+
+        [data-theme="light-clean"] table.atis-table tbody tr.active-row {
+            background: #dcfce7 !important;
+            border-left: 3px solid #16a34a;
+        }
+
+        .atis-tag-callsign {
+            display: inline-block;
+            padding: 1px 5px;
+            border-radius: 3px;
+            font-weight: 700;
+            font-size: 9px;
+            background: rgba(34, 197, 94, 0.15);
+            color: #4ade80;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .atis-tag-logname {
+            font-weight: 600;
+            color: #f1f5f9;
+        }
+
+        [data-theme="light-clean"] .atis-tag-logname {
+            color: #0f172a;
+        }
+
+        .tag-flt-time {
+            font-weight: 700;
+            color: #22c55e;
+        }
+
+        [data-theme="light-clean"] .tag-flt-time {
+            color: #15803d;
+        }
+
+        .tag-temp-cool { color: #38bdf8; }
+        .tag-temp-nom { color: #4ade80; }
+        .tag-temp-warm { color: #fb923c; }
+        .tag-temp-hot { color: #f87171; }
+
+        .btn-table-load {
+            background: rgba(34, 197, 94, 0.15);
+            border: 1px solid #22c55e;
+            color: #4ade80;
+            padding: 2px 7px;
+            border-radius: 3px;
+            font-size: 9px;
+            font-family: 'B612 Mono', monospace;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.12s ease;
+        }
+
+        .btn-table-load:hover {
+            background: rgba(34, 197, 94, 0.35);
+            color: #86efac;
+        }
+
+        [data-theme="light-clean"] .btn-table-load {
+            background: #dcfce7;
+            border-color: #16a34a;
+            color: #15803d;
+        }
+
+        [data-theme="light-clean"] .btn-table-load:hover {
+            background: #bbf7d0;
+        }
+
+        /* ------------------------------------------------------------- */
+        /* A4 Print Specification (@media print)                         */
+        /* ------------------------------------------------------------- */
+        @media print {
+            @page {
+                size: A4 landscape;
+                margin: 8mm 6mm 8mm 6mm;
+            }
+
+            body * {
+                visibility: hidden !important;
+            }
+
+            #atis-pane,
+            #atis-pane * {
+                visibility: visible !important;
+            }
+
+            #atis-pane {
+                position: absolute !important;
+                left: 0 !important;
+                top: 0 !important;
+                width: 100% !important;
+                height: auto !important;
+                background: #ffffff !important;
+                color: #000000 !important;
+                overflow: visible !important;
+                display: flex !important;
+                flex-direction: column !important;
+                padding: 0 !important;
+                gap: 8px !important;
+                z-index: 99999 !important;
+            }
+
+            .atis-no-print {
+                display: none !important;
+            }
+
+            .atis-print-header {
+                display: block !important;
+            }
+
+            .atis-terminal-card {
+                background: #f8fafc !important;
+                color: #0f172a !important;
+                border: 1.5pt solid #0f172a !important;
+                box-shadow: none !important;
+                padding: 6px 10px !important;
+            }
+
+            .terminal-title {
+                color: #0f172a !important;
+                font-size: 9pt !important;
+            }
+
+            .terminal-callsign-badge {
+                border: 1pt solid #0f172a !important;
+                background: #e2e8f0 !important;
+                color: #0f172a !important;
+                font-size: 8.5pt !important;
+            }
+
+            .terminal-body {
+                color: #000000 !important;
+                text-shadow: none !important;
+                font-size: 8pt !important;
+                line-height: 1.35 !important;
+            }
+
+            .atis-table-card {
+                background: #ffffff !important;
+                border: none !important;
+                box-shadow: none !important;
+                padding: 0 !important;
+            }
+
+            .table-card-title {
+                color: #000000 !important;
+                font-size: 9.5pt !important;
+            }
+
+            .table-badge {
+                border: 0.5pt solid #000000 !important;
+                color: #000000 !important;
+                background: #f1f5f9 !important;
+            }
+
+            .atis-table-wrapper {
+                border: none !important;
+                overflow: visible !important;
+            }
+
+            table.atis-table {
+                width: 100% !important;
+                border-collapse: collapse !important;
+                font-size: 6.2pt !important;
+                color: #000000 !important;
+                table-layout: fixed !important;
+            }
+
+            table.atis-table th,
+            table.atis-table td {
+                border: 0.5pt solid #64748b !important;
+                padding: 2px 2.5px !important;
+                color: #000000 !important;
+                background: #ffffff !important;
+                white-space: nowrap !important;
+                overflow: hidden !important;
+                text-overflow: ellipsis !important;
+            }
+
+            /* Optimized column widths for A4 landscape print */
+            table.atis-table th:nth-child(1), table.atis-table td:nth-child(1) { width: 4.5%; } /* INFO */
+            table.atis-table th:nth-child(2), table.atis-table td:nth-child(2) { width: 14%; } /* LOG */
+            table.atis-table th:nth-child(3), table.atis-table td:nth-child(3) { width: 10.5%; } /* DATE */
+            table.atis-table th:nth-child(4), table.atis-table td:nth-child(4) { width: 13%; } /* COORD */
+            table.atis-table th:nth-child(5), table.atis-table td:nth-child(5) { width: 6.5%; } /* AIRBORNE */
+            table.atis-table th:nth-child(6), table.atis-table td:nth-child(6) { width: 6.5%; } /* TOTAL MET */
+            table.atis-table th:nth-child(7), table.atis-table td:nth-child(7) { width: 5.5%; } /* OAT */
+            table.atis-table th:nth-child(8), table.atis-table td:nth-child(8) { width: 6.5%; } /* QNH */
+            table.atis-table th:nth-child(9), table.atis-table td:nth-child(9) { width: 9%; } /* DENSITY */
+            table.atis-table th:nth-child(10), table.atis-table td:nth-child(10) { width: 9.5%; } /* DENSITY ALT */
+            table.atis-table th:nth-child(11), table.atis-table td:nth-child(11) { width: 6.5%; } /* WIND */
+            table.atis-table th:nth-child(12), table.atis-table td:nth-child(12) { width: 5.5%; } /* TAS */
+            table.atis-table th:nth-child(13), table.atis-table td:nth-child(13) { width: 4.5%; } /* POWER */
+            table.atis-table th:nth-child(14), table.atis-table td:nth-child(14) { width: 5.0%; } /* WH/KM */
+
+            table.atis-table th {
+                background: #e2e8f0 !important;
+                font-weight: 700 !important;
+            }
+
+            table.atis-table tbody tr {
+                page-break-inside: avoid !important;
+            }
+
+            table.atis-table tbody tr.active-row {
+                background: #f1f5f9 !important;
+                border-left: none !important;
+            }
+
+            .tag-temp-cool, .tag-temp-nom, .tag-temp-warm, .tag-temp-hot, .tag-flt-time {
+                color: #000000 !important;
+                font-weight: 600 !important;
+            }
+        }
+
     </style>
     <script>
         window.onSitlIframeLoaded = function(){};
@@ -2660,6 +3379,9 @@
                 updatePlot();
             } else if (typeof updatePlotlyChart === 'function') {
                 updatePlotlyChart();
+            }
+            if (typeof renderAtisCharts === 'function' && typeof atisGlobalData !== 'undefined' && atisGlobalData) {
+                renderAtisCharts();
             }
         }
 
@@ -2758,10 +3480,11 @@
         </div>
 
         <div class="header-right">
-            <!-- Avionic Rocker Switcher (3D Spatial vs 2D Tactical) -->
+            <!-- Avionic Rocker Switcher (3D Spatial vs 2D Tactical vs ATIS Fleet) -->
             <div class="aero-rocker-group view-mode-group">
                 <button class="aero-rocker-btn view-mode-btn active" id="btn-view-sitl" onclick="setViewMode('sitl')" title="3D Digital Twin Spatial Visualizer">3D SPATIAL TWIN</button>
                 <button class="aero-rocker-btn view-mode-btn" id="btn-view-map" onclick="setViewMode('map')" title="2D Tactical Satellite Map">2D TACTICAL MAP</button>
+                <button class="aero-rocker-btn view-mode-btn" id="btn-view-atis" onclick="setViewMode('atis')" title="Aviation ATIS & Historical Fleet Atmospheric Database">ATIS & FLEET</button>
             </div>
 
             <!-- Graph Toggle Button -->
@@ -2941,6 +3664,128 @@
                         <button class="btn" style="padding:2px 8px; font-size:10px;" onclick="fitFlightBounds()">Fit Track</button>
                     </div>
                     <div id="leaflet-map" style="width:100%; height:100%;"></div>
+                </div>
+
+                <!-- 3. Aviation ATIS & Historical Fleet Atmospheric Database View -->
+                <div id="atis-pane" class="atis-container" style="display: none; width: 100%; height: 100%; position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 10;">
+                    <!-- Print Only Header -->
+                    <div class="atis-print-header" style="display: none;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid #0f172a; padding-bottom: 8px;">
+                            <div>
+                                <h1 style="font-size: 15pt; font-weight: 700; margin: 0; font-family: 'B612', 'Latin Modern Roman', serif; text-transform: uppercase; letter-spacing: 0.5px;">Sharkee UAV Fleet Flight Operations & Environmental Regime Report</h1>
+                                <div style="font-size: 9pt; color: #475569; margin-top: 4px; font-family: 'B612 Mono', monospace;">Historical Telemetry, Atmospheric Density Altitude, and Propulsion Energetics</div>
+                            </div>
+                            <div style="text-align: right; font-size: 8.5pt; font-family: 'B612 Mono', monospace; color: #334155;">
+                                <div>ORGANIZATION: AERONAUTICAL FLIGHT RESEARCH</div>
+                                <div id="atis-print-meta-date">REPORT DATE: ---</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Interactive Top Operational Bar (Screen Only) -->
+                    <div class="atis-toolbar atis-no-print">
+                        <div class="atis-toolbar-left">
+                            <span class="atis-bar-label">LOGS REPOSITORY:</span>
+                            <div class="atis-path-input-group">
+                                <input type="text" id="atis-folder-input" class="atis-input-path" placeholder="Path to flight logs..." readonly />
+                                <button class="btn atis-btn" id="btn-browse-atis-folder" onclick="browseAtisFolder()" title="Select custom folder with Windows folder picker">BROWSE...</button>
+                                <button class="btn atis-btn atis-btn-primary" id="btn-rescan-atis" onclick="rescanAtisDatabase(true)" title="Scan and detect new logs incrementally">RESCAN LOGS</button>
+                            </div>
+                            <div class="atis-search-group">
+                                <input type="text" id="atis-search-input" class="atis-input-search" placeholder="Filter logs (date, name, DA)..." oninput="filterAtisTable(this.value)" />
+                            </div>
+                        </div>
+                        <div class="atis-toolbar-right">
+                            <button class="btn atis-btn atis-btn-print" id="btn-print-atis" onclick="printAtisReport()" title="Print or export A4 academic flight report">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 5px;">
+                                    <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                                    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                                    <rect x="6" y="14" width="12" height="8"></rect>
+                                </svg>
+                                EXPORT A4 REPORT
+                            </button>
+                            <div class="atis-stats-pill" id="atis-stats-pill">
+                                <span class="pill-stat">LOGS: <strong id="stat-log-count">--</strong></span>
+                                <span class="pill-sep">|</span>
+                                <span class="pill-stat">AIRBORNE: <strong id="stat-airborne-time">--</strong></span>
+                                <span class="pill-sep">|</span>
+                                <span class="pill-stat">AVG DA: <strong id="stat-avg-da">--</strong></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- D-ATIS Terminal Broadcast Card -->
+                    <div class="atis-terminal-card" id="atis-terminal-card">
+                        <div class="terminal-header">
+                            <div class="terminal-title-group">
+                                <span class="terminal-beacon-dot"></span>
+                                <span class="terminal-title">AUTOMATIC TERMINAL INFORMATION SERVICE (D-ATIS)</span>
+                                <span class="terminal-subtitle">AERONAUTICAL METEOROLOGICAL TELEMETRY</span>
+                            </div>
+                            <div class="terminal-callsign-badge" id="atis-callsign-badge">INFO ALPHA</div>
+                        </div>
+                        <div class="terminal-body" id="atis-terminal-text">
+                            INITIALIZING SHARKEE D-ATIS RECEIVER...
+                        </div>
+                    </div>
+
+                    <!-- Seasonal Atmospheric Trend Oscillographs (Plotly Charts) -->
+                    <div class="atis-charts-row atis-no-print">
+                        <div class="atis-chart-card">
+                            <div class="chart-card-header">
+                                <span class="chart-card-title">ANNUAL ATMOSPHERIC REGIME: DENSITY ALTITUDE & OAT</span>
+                                <span class="chart-card-sub">Seasonal Density Loss & Climb Gradient</span>
+                            </div>
+                            <div id="chart-atis-density-temp" class="atis-plotly-container"></div>
+                        </div>
+                        <div class="atis-chart-card">
+                            <div class="chart-card-header">
+                                <span class="chart-card-title">PREVAILING WIND VECTOR & CRUISE SPECIFIC ENERGY</span>
+                                <span class="chart-card-sub">Wh/km Aerodynamic Degradation Across Seasons</span>
+                            </div>
+                            <div id="chart-atis-wind-energy" class="atis-plotly-container"></div>
+                        </div>
+                    </div>
+
+                    <!-- High-Density Telemetry Matrix Table -->
+                    <div class="atis-table-card">
+                        <div class="table-card-header">
+                            <div class="table-card-title">
+                                <span>HISTORICAL FLIGHT TELEMETRY & ATMOSPHERIC DATABASE</span>
+                                <span class="table-badge" id="table-flight-counter">INDEXING...</span>
+                            </div>
+                            <div class="table-card-legend atis-no-print">
+                                <span class="legend-chip legend-density-normal">Nominal Air (ρ ≥ 1.18 kg/m³)</span>
+                                <span class="legend-chip legend-density-hot">Hot & High (ρ < 1.15 kg/m³)</span>
+                            </div>
+                        </div>
+                        <div class="atis-table-wrapper">
+                            <table class="atis-table" id="atis-table">
+                                <thead>
+                                    <tr>
+                                        <th onclick="sortAtisTable('callsign')">INFO</th>
+                                        <th onclick="sortAtisTable('filename')">FLIGHT LOG</th>
+                                        <th onclick="sortAtisTable('date_iso')">DATE / TIME (UTC)</th>
+                                        <th onclick="sortAtisTable('lat')">AIRFIELD / COORD</th>
+                                        <th onclick="sortAtisTable('flight_time_s')">AIRBORNE</th>
+                                        <th onclick="sortAtisTable('duration_s')">TOTAL MET</th>
+                                        <th onclick="sortAtisTable('oat_mean_c')">OAT (°C)</th>
+                                        <th onclick="sortAtisTable('qnh_hpa')">QNH (hPa)</th>
+                                        <th onclick="sortAtisTable('rho_kgm3')">AIR DENSITY</th>
+                                        <th onclick="sortAtisTable('density_alt_m')">DENSITY ALT</th>
+                                        <th onclick="sortAtisTable('wind_spd_kt')">WIND</th>
+                                        <th onclick="sortAtisTable('mean_tas_ms')">TAS</th>
+                                        <th onclick="sortAtisTable('mean_pwr_w')">POWER</th>
+                                        <th onclick="sortAtisTable('wh_km')">WH/KM</th>
+                                        <th class="atis-no-print">ACTION</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="atis-table-body">
+                                    <tr><td colspan="15" style="text-align:center; padding: 20px; color:#64748b;">Loading historical flights database...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -3415,23 +4260,35 @@
             fitFlightBoundsToMap();
         }
 
-        // View Mode Switcher (SITL Visualizer vs 2D Satellite Map)
+        // Global ATIS Database State
+        let atisGlobalData = null;
+        let atisSortKey = 'date_iso';
+        let atisSortAsc = false;
+        let atisFilterQuery = '';
+        let activeAtisFlight = null;
+
+        // View Mode Switcher (SITL Visualizer vs 2D Satellite Map vs ATIS Fleet Database)
         function setViewMode(mode) {
             const sitlPane = document.getElementById('sitl-pane');
             const mapPane = document.getElementById('map-pane');
+            const atisPane = document.getElementById('atis-pane');
             const btnSitl = document.getElementById('btn-view-sitl');
             const btnMap = document.getElementById('btn-view-map');
+            const btnAtis = document.getElementById('btn-view-atis');
 
             if (btnSitl) btnSitl.classList.remove('active');
             if (btnMap) btnMap.classList.remove('active');
+            if (btnAtis) btnAtis.classList.remove('active');
 
             if (mode === 'sitl') {
                 if (btnSitl) btnSitl.classList.add('active');
                 if (sitlPane) sitlPane.style.display = 'block';
                 if (mapPane) mapPane.style.display = 'none';
+                if (atisPane) atisPane.style.display = 'none';
             } else if (mode === 'map') {
                 if (btnMap) btnMap.classList.add('active');
                 if (sitlPane) sitlPane.style.display = 'none';
+                if (atisPane) atisPane.style.display = 'none';
                 if (mapPane) {
                     mapPane.style.display = 'block';
                     mapPane.style.width = '100%';
@@ -3443,6 +4300,395 @@
                         }
                     }, 80);
                 }
+            } else if (mode === 'atis') {
+                if (btnAtis) btnAtis.classList.add('active');
+                if (sitlPane) sitlPane.style.display = 'none';
+                if (mapPane) mapPane.style.display = 'none';
+                if (atisPane) {
+                    atisPane.style.display = 'flex';
+                    if (!atisGlobalData) {
+                        loadHistoricalAtisData();
+                    } else {
+                        setTimeout(() => {
+                            Plotly.Plots.resize('chart-atis-density-temp');
+                            Plotly.Plots.resize('chart-atis-wind-energy');
+                        }, 100);
+                    }
+                }
+            }
+        }
+
+        async function loadHistoricalAtisData(force = false) {
+            const savedFolder = localStorage.getItem('sharkee_atis_folder') || '';
+            const folderInput = document.getElementById('atis-folder-input');
+            const terminalText = document.getElementById('atis-terminal-text');
+            const tableBody = document.getElementById('atis-table-body');
+            
+            if (tableBody && !atisGlobalData) {
+                tableBody.innerHTML = '<tr><td colspan="15" style="text-align:center; padding: 25px; color:#38bdf8; font-family:\'B612 Mono\', monospace;">SCANNING REPOSITORY & COMPUTING ATIS ATMOSPHERIC TELEMETRY...</td></tr>';
+            }
+            if (terminalText && !atisGlobalData) {
+                terminalText.textContent = "QUERYING ATIS FLEET METEOROLOGICAL TELEMETRY & ATMOSPHERIC DATABASE...";
+            }
+
+            try {
+                let url = '/api/historical_atis';
+                const params = [];
+                if (savedFolder) params.push(`folder=${encodeURIComponent(savedFolder)}`);
+                if (force) params.push('force=1');
+                if (params.length > 0) url += '?' + params.join('&');
+
+                const res = await fetch(url);
+                if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+                const data = await res.json();
+                if (!data.success) throw new Error(data.error || 'Failed to fetch ATIS data');
+
+                atisGlobalData = data;
+                if (folderInput) {
+                    folderInput.value = data.folder || '';
+                }
+                localStorage.setItem('sharkee_atis_folder', data.folder || '');
+
+                // Update summary badges
+                const statCount = document.getElementById('stat-log-count');
+                const statAirborne = document.getElementById('stat-airborne-time');
+                const statAvgDa = document.getElementById('stat-avg-da');
+                const counterBadge = document.getElementById('table-flight-counter');
+                const printMetaDate = document.getElementById('atis-print-meta-date');
+
+                if (statCount) statCount.textContent = data.summary.total_logs;
+                if (statAirborne) statAirborne.textContent = data.summary.total_airborne_time;
+                if (statAvgDa) statAvgDa.textContent = `${data.summary.density_alt_mean_m}m`;
+                if (counterBadge) counterBadge.textContent = `${data.summary.total_logs} FLIGHTS INDEXED`;
+                if (printMetaDate) {
+                    const now = new Date();
+                    printMetaDate.textContent = `GENERATED: ${now.toISOString().replace('T', ' ').substr(0, 19)} UTC | REPO: ${data.folder}`;
+                }
+
+                // Default active flight to the newest one
+                if (data.flights && data.flights.length > 0) {
+                    setActiveAtisFlight(data.flights[0], false);
+                }
+
+                renderAtisTable();
+                renderAtisCharts();
+
+            } catch (err) {
+                console.error("ATIS Load Error:", err);
+                if (tableBody) {
+                    tableBody.innerHTML = `<tr><td colspan="15" style="text-align:center; padding: 25px; color:#f87171;">Error loading ATIS telemetry database: ${err.message}</td></tr>`;
+                }
+                if (terminalText) {
+                    terminalText.textContent = `[ ATIS BROADCAST SYSTEM OFFLINE ] · ERROR: ${err.message}`;
+                }
+            }
+        }
+
+        function setActiveAtisFlight(flight, scrollTable = true) {
+            activeAtisFlight = flight;
+            const terminalText = document.getElementById('atis-terminal-text');
+            const callsignBadge = document.getElementById('atis-callsign-badge');
+
+            if (terminalText && flight) {
+                terminalText.textContent = flight.atis_ticker || "NO TELEMETRY RECORDED FOR THIS FLIGHT";
+            }
+            if (callsignBadge && flight) {
+                callsignBadge.textContent = `INFO ${flight.atis_callsign || 'ALPHA'}`;
+            }
+
+            // Update row highlighting
+            const rows = document.querySelectorAll('#atis-table-body tr');
+            rows.forEach(r => {
+                if (r.dataset.filename === flight.filename) {
+                    r.classList.add('active-row');
+                    if (scrollTable) {
+                        r.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }
+                } else {
+                    r.classList.remove('active-row');
+                }
+            });
+        }
+
+        function renderAtisTable() {
+            if (!atisGlobalData || !atisGlobalData.flights) return;
+            const tableBody = document.getElementById('atis-table-body');
+            if (!tableBody) return;
+
+            let list = [...atisGlobalData.flights];
+
+            // Filter
+            if (atisFilterQuery.trim() !== '') {
+                const q = atisFilterQuery.toLowerCase().trim();
+                list = list.filter(f => 
+                    (f.filename && f.filename.toLowerCase().includes(q)) ||
+                    (f.date_str && f.date_str.toLowerCase().includes(q)) ||
+                    (f.board && f.board.toLowerCase().includes(q)) ||
+                    (f.atis_callsign && f.atis_callsign.toLowerCase().includes(q)) ||
+                    (f.oat_mean_c && f.oat_mean_c.toString().includes(q)) ||
+                    (f.density_alt_m && f.density_alt_m.toString().includes(q))
+                );
+            }
+
+            // Sort
+            list.sort((a, b) => {
+                let vA = a[atisSortKey];
+                let vB = b[atisSortKey];
+                if (vA === undefined) vA = '';
+                if (vB === undefined) vB = '';
+                if (typeof vA === 'string') {
+                    return atisSortAsc ? vA.localeCompare(vB) : vB.localeCompare(vA);
+                }
+                return atisSortAsc ? (vA - vB) : (vB - vA);
+            });
+
+            if (list.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="15" style="text-align:center; padding: 25px; color:#94a3b8;">No matching flight logs found in database.</td></tr>';
+                return;
+            }
+
+            let html = '';
+            list.forEach(f => {
+                const isActive = activeAtisFlight && activeAtisFlight.filename === f.filename;
+                const tempVal = f.oat_mean_c !== undefined ? f.oat_mean_c : 25.0;
+                let tempClass = 'tag-temp-nom';
+                if (tempVal < 18.0) tempClass = 'tag-temp-cool';
+                else if (tempVal > 35.0) tempClass = 'tag-temp-hot';
+                else if (tempVal > 28.0) tempClass = 'tag-temp-warm';
+
+                const rhoVal = f.rho_kgm3 ? f.rho_kgm3.toFixed(4) : '1.2250';
+                const rhoPct = f.rho_pct ? `${f.rho_pct}%` : '100%';
+                const daStr = f.density_alt_m !== undefined ? `${f.density_alt_m.toFixed(0)}m / ${f.density_alt_ft || 0}ft` : '--';
+                const windStr = f.wind_spd_kt !== undefined ? `${String(f.wind_dir_deg || 0).padStart(3, '0')}° @ ${f.wind_spd_kt.toFixed(1)}kt` : '--';
+                const whStr = f.wh_km > 0.05 ? `${f.wh_km.toFixed(2)}` : '--';
+                const coordStr = (f.lat !== 0.0) ? `${f.lat.toFixed(4)}°, ${f.lng.toFixed(4)}° (${f.elev_m || 0}m)` : 'No GNSS Fix';
+                const cleanDate = f.date_str ? f.date_str.replace(' UTC', '') : 'N/A';
+
+                html += `
+                    <tr class="${isActive ? 'active-row' : ''}" data-filename="${f.filename}" onclick="onAtisRowClicked('${f.filename}')">
+                        <td><span class="atis-tag-callsign">${f.atis_callsign || 'ALPHA'}</span></td>
+                        <td><span class="atis-tag-logname" title="${f.filepath}">${f.filename}</span></td>
+                        <td>${cleanDate}</td>
+                        <td title="Home Elevation: ${f.elev_m}m MSL">${coordStr}</td>
+                        <td><span class="tag-flt-time">${f.flt_str || '00m 00s'}</span></td>
+                        <td>${f.met_str || '00m 00s'}</td>
+                        <td><span class="${tempClass}">${tempVal > 0 ? '+' : ''}${tempVal.toFixed(1)}°C</span></td>
+                        <td>${f.qnh_hpa ? f.qnh_hpa.toFixed(1) : '1013.2'}</td>
+                        <td>${rhoVal} <span style="font-size:8.5px; color:#64748b;">(${rhoPct})</span></td>
+                        <td><strong>${daStr}</strong></td>
+                        <td>${windStr}</td>
+                        <td>${f.mean_tas_ms ? f.mean_tas_ms.toFixed(1) + ' m/s' : '--'}</td>
+                        <td>${f.mean_pwr_w ? f.mean_pwr_w.toFixed(0) + ' W' : '--'}</td>
+                        <td><strong>${whStr}</strong></td>
+                        <td class="atis-no-print">
+                            <button class="btn-table-load" onclick="event.stopPropagation(); loadAtisFlight('${f.filepath.replace(/\\/g, '\\\\')}')">LOAD FLIGHT</button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            tableBody.innerHTML = html;
+        }
+
+        function onAtisRowClicked(filename) {
+            if (!atisGlobalData || !atisGlobalData.flights) return;
+            const target = atisGlobalData.flights.find(f => f.filename === filename);
+            if (target) {
+                setActiveAtisFlight(target, false);
+            }
+        }
+
+        function filterAtisTable(val) {
+            atisFilterQuery = val || '';
+            renderAtisTable();
+        }
+
+        function sortAtisTable(colKey) {
+            if (atisSortKey === colKey) {
+                atisSortAsc = !atisSortAsc;
+            } else {
+                atisSortKey = colKey;
+                atisSortAsc = true;
+            }
+            renderAtisTable();
+        }
+
+        function loadAtisFlight(filepath) {
+            loadLogByPath(filepath);
+        }
+
+        async function browseAtisFolder() {
+            try {
+                const currentFolder = localStorage.getItem('sharkee_atis_folder') || '';
+                const url = currentFolder ? `/api/select_folder?mode=source&current=${encodeURIComponent(currentFolder)}` : '/api/select_folder?mode=source';
+                const res = await fetch(url);
+                const data = await res.json();
+                if (data.success && data.path) {
+                    localStorage.setItem('sharkee_atis_folder', data.path);
+                    const folderInput = document.getElementById('atis-folder-input');
+                    if (folderInput) folderInput.value = data.path;
+                    loadHistoricalAtisData(true);
+                }
+            } catch (e) {
+                console.error("Browse Folder Error:", e);
+            }
+        }
+
+        function rescanAtisDatabase(force = true) {
+            loadHistoricalAtisData(force);
+        }
+
+        function printAtisReport() {
+            window.print();
+        }
+
+        function renderAtisCharts() {
+            if (!atisGlobalData || !atisGlobalData.flights || atisGlobalData.flights.length === 0) return;
+            if (typeof Plotly === 'undefined') return;
+
+            // Sort chronological ascending for line/trend plots
+            const chronological = [...atisGlobalData.flights].reverse();
+            const dates = chronological.map(f => f.date_str ? f.date_str.split(' ')[0] : f.filename);
+            const daValues = chronological.map(f => f.density_alt_m || 0);
+            const oatValues = chronological.map(f => f.oat_mean_c || 25);
+            const windValues = chronological.map(f => f.wind_spd_kt || 0);
+            const whValues = chronological.map(f => f.wh_km > 0.1 ? f.wh_km : null);
+            const names = chronological.map(f => f.filename);
+
+            const isDark = document.documentElement.getAttribute('data-theme') !== 'light-clean';
+            const bgColor = isDark ? '#0b111a' : '#ffffff';
+            const gridColor = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.08)';
+            const fontColor = isDark ? '#94a3b8' : '#475569';
+
+            // Chart 1: Density Altitude & OAT Across Year
+            const traceDa = {
+                x: dates,
+                y: daValues,
+                name: 'Density Alt (m)',
+                type: 'scatter',
+                mode: 'lines+markers',
+                line: { color: '#fb923c', width: 2 },
+                marker: { size: 6, color: '#f97316' },
+                customdata: names,
+                hovertemplate: '%{customdata}<br>Density Alt: %{y:.0f}m<extra></extra>'
+            };
+
+            const traceOat = {
+                x: dates,
+                y: oatValues,
+                name: 'OAT (°C)',
+                yaxis: 'y2',
+                type: 'scatter',
+                mode: 'lines+markers',
+                line: { color: '#38bdf8', width: 2, dash: 'dot' },
+                marker: { size: 5, color: '#0ea5e9' },
+                customdata: names,
+                hovertemplate: '%{customdata}<br>OAT: %{y:.1f}°C<extra></extra>'
+            };
+
+            const layout1 = {
+                paper_bgcolor: bgColor,
+                plot_bgcolor: bgColor,
+                font: { family: 'B612 Mono, monospace', size: 9, color: fontColor },
+                margin: { l: 45, r: 45, t: 15, b: 35 },
+                legend: { orientation: 'h', x: 0, y: 1.15, font: { size: 9 } },
+                xaxis: {
+                    showgrid: true,
+                    gridcolor: gridColor,
+                    tickfont: { size: 8.5 }
+                },
+                yaxis: {
+                    title: 'DA (m MSL)',
+                    titlefont: { size: 9, color: '#fb923c' },
+                    tickfont: { size: 8.5, color: '#fb923c' },
+                    showgrid: true,
+                    gridcolor: gridColor
+                },
+                yaxis2: {
+                    title: 'OAT (°C)',
+                    titlefont: { size: 9, color: '#38bdf8' },
+                    tickfont: { size: 8.5, color: '#38bdf8' },
+                    overlaying: 'y',
+                    side: 'right',
+                    showgrid: false
+                }
+            };
+
+            Plotly.newPlot('chart-atis-density-temp', [traceDa, traceOat], layout1, { responsive: true, displayModeBar: false });
+
+            // Chart 2: Prevailing Wind Speed & Cruise Wh/km
+            const traceWind = {
+                x: dates,
+                y: windValues,
+                name: 'Wind (kt)',
+                type: 'bar',
+                marker: { color: 'rgba(34, 197, 94, 0.45)', line: { color: '#22c55e', width: 1 } },
+                customdata: names,
+                hovertemplate: '%{customdata}<br>Wind Speed: %{y:.1f} kt<extra></extra>'
+            };
+
+            const traceEnergy = {
+                x: dates,
+                y: whValues,
+                name: 'Wh/km',
+                yaxis: 'y2',
+                type: 'scatter',
+                mode: 'lines+markers',
+                line: { color: '#c084fc', width: 2.2 },
+                marker: { size: 6, color: '#a855f7' },
+                customdata: names,
+                hovertemplate: '%{customdata}<br>Specific Energy: %{y:.2f} Wh/km<extra></extra>'
+            };
+
+            const layout2 = {
+                paper_bgcolor: bgColor,
+                plot_bgcolor: bgColor,
+                font: { family: 'B612 Mono, monospace', size: 9, color: fontColor },
+                margin: { l: 45, r: 45, t: 15, b: 35 },
+                legend: { orientation: 'h', x: 0, y: 1.15, font: { size: 9 } },
+                xaxis: {
+                    showgrid: true,
+                    gridcolor: gridColor,
+                    tickfont: { size: 8.5 }
+                },
+                yaxis: {
+                    title: 'Wind (kts)',
+                    titlefont: { size: 9, color: '#22c55e' },
+                    tickfont: { size: 8.5, color: '#22c55e' },
+                    showgrid: true,
+                    gridcolor: gridColor
+                },
+                yaxis2: {
+                    title: 'Energy (Wh/km)',
+                    titlefont: { size: 9, color: '#c084fc' },
+                    tickfont: { size: 8.5, color: '#c084fc' },
+                    overlaying: 'y',
+                    side: 'right',
+                    showgrid: false
+                }
+            };
+
+            Plotly.newPlot('chart-atis-wind-energy', [traceWind, traceEnergy], layout2, { responsive: true, displayModeBar: false });
+
+            // Hook click interactions on plots to highlight table row and update ATIS
+            const chart1 = document.getElementById('chart-atis-density-temp');
+            if (chart1 && chart1.on) {
+                chart1.on('plotly_click', function(data) {
+                    if (data && data.points && data.points[0]) {
+                        const fname = data.points[0].customdata;
+                        if (fname) onAtisRowClicked(fname);
+                    }
+                });
+            }
+
+            const chart2 = document.getElementById('chart-atis-wind-energy');
+            if (chart2 && chart2.on) {
+                chart2.on('plotly_click', function(data) {
+                    if (data && data.points && data.points[0]) {
+                        const fname = data.points[0].customdata;
+                        if (fname) onAtisRowClicked(fname);
+                    }
+                });
             }
         }
 
@@ -5466,6 +6712,14 @@
             } else if (e.code === 'ArrowRight') {
                 e.preventDefault();
                 stepReplayTime(2);
+            } else if (e.code === 'KeyA' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+                e.preventDefault();
+                const btnAtis = document.getElementById('btn-view-atis');
+                if (btnAtis && btnAtis.classList.contains('active')) {
+                    setViewMode('sitl');
+                } else {
+                    setViewMode('atis');
+                }
             }
         });
 

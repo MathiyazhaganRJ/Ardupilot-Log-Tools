@@ -334,6 +334,19 @@ class LogViewerHandler(SimpleHTTPRequestHandler):
                 self._send_json({'success': False, 'error': str(e)})
             return
 
+        # 6. API: Aviation ATIS & Historical Fleet Atmospheric Database
+        elif path == '/api/historical_atis':
+            target_folder = query.get('folder', [None])[0]
+            force_refresh = query.get('force', ['false'])[0].lower() in ('true', '1')
+            if not target_folder:
+                target_folder = os.path.join(BASE_DIR, 'uploads')
+            try:
+                data = parser.get_historical_atis_database(target_folder, force_refresh=force_refresh)
+                self._send_json(data)
+            except Exception as e:
+                self._send_json({'success': False, 'error': str(e)})
+            return
+
         super().do_GET()
 
     def do_POST(self):
