@@ -821,7 +821,7 @@ def extract_flight_atis_summary(file_path):
         sys.stderr = old_stderr
         return {'filename': os.path.basename(file_path), 'filepath': file_path, 'error': str(e)}
 
-    types = ['GPS', 'BARO', 'ARSP', 'XKF2', 'NKF2', 'MODE', 'MSG']
+    types = ['GPS', 'BARO', 'ARSP', 'XKF2', 'NKF2', 'MODE', 'MSG', 'ARM', 'EV']
 
     lats, lngs, alts = [], [], []
     takeoff_alts = []
@@ -832,6 +832,8 @@ def extract_flight_atis_summary(file_path):
     firmware = 'ArduPlane'
     fc_name = 'Unknown'
     saw_chibios = False
+    is_armed = False
+    cur_mode = 0
     t_start, t_end = None, None
     alive_start, alive_end = None, None
     m_count = 0
@@ -855,7 +857,23 @@ def extract_flight_atis_summary(file_path):
                 t_start = t_s
             t_end = t_s
 
-        if mtype == 'GPS':
+        if mtype == 'ARM':
+            st = getattr(m, 'ArmState', 0)
+            is_armed = (st == 1)
+        elif mtype == 'EV':
+            eid = getattr(m, 'Id', 0)
+            if eid == 10:
+                is_armed = True
+            elif eid == 11:
+                is_armed = False
+        elif mtype == 'MODE':
+            mode_val = getattr(m, 'Mode', None)
+            if mode_val is not None:
+                cur_mode = mode_val
+                if mode_val not in modes:
+                    modes.append(mode_val)
+
+        elif mtype == 'GPS':
             status = getattr(m, 'Status', 0)
             if status >= 3:
                 lat = getattr(m, 'Lat', 0)
@@ -867,14 +885,28 @@ def extract_flight_atis_summary(file_path):
                     lngs.append(lng if abs(lng) <= 180 else lng * 1e-7)
                 if alt != 0:
                     alts.append(alt)
-                    if len(takeoff_alts) < 25:
+                    if len(takeoff_alts) < 20:
                         takeoff_alts.append(alt)
                 if spd is not None and spd >= 0:
                     gs_list.append(spd)
-                    if spd >= 3.0 and t_sec is not None:
-                        if alive_start is None:
-                            alive_start = t_s
-                        alive_end = t_s
+
+                # Airborne detection: handles fixed-wing cruise, VTOL hover, climbs and high-altitude tests
+                ground_ref = sorted(takeoff_alts)[len(takeoff_alts) // 2] if takeoff_alts else None
+                alt_disp = abs(alt - ground_ref) if ground_ref is not None else 0.0
+
+                is_air = False
+                if spd is not None and spd >= 1.5:
+                    is_air = True
+                elif alt_disp >= 2.5:
+                    is_air = True
+                elif is_armed and (alt_disp >= 1.5 or (spd is not None and spd >= 1.0)):
+                    is_air = True
+
+                if is_air and t_sec is not None:
+                    if alive_start is None:
+                        alive_start = t_s
+                    alive_end = t_s
+
                 gwk = getattr(m, 'GWk', 0)
                 gms = getattr(m, 'GMS', 0)
                 if flight_dt is None and gwk > 1500:
@@ -893,7 +925,7 @@ def extract_flight_atis_summary(file_path):
             asp = getattr(m, 'Airspeed', 0)
             if -40 < t < 85 and t != 0:
                 arsp_temps.append(t)
-            if asp is not None and asp >= 7.0 and t_sec is not None:
+            if asp is not None and asp >= 5.0 and t_sec is not None:
                 if alive_start is None:
                     alive_start = t_s
                 alive_end = t_s
@@ -906,11 +938,6 @@ def extract_flight_atis_summary(file_path):
                 if 0.05 < w_spd < 50.0:
                     w_dir = (math.degrees(math.atan2(-vwe, -vwn)) + 360.0) % 360.0
                     winds.append((w_spd, w_dir))
-
-        elif mtype == 'MODE':
-            mode_val = getattr(m, 'Mode', None)
-            if mode_val is not None and mode_val not in modes:
-                modes.append(mode_val)
 
         elif mtype == 'MSG':
             msg_str = getattr(m, 'Message', '').strip()
@@ -937,6 +964,17 @@ def extract_flight_atis_summary(file_path):
     final_dt = flight_dt if flight_dt is not None else fallback_dt
     dur_s = max(0.0, (t_end - t_start)) if (t_start is not None and t_end is not None) else 0.0
     flt_s = max(0.0, (alive_end - alive_start)) if (alive_start is not None and alive_end is not None) else 0.0
+
+    delta_alt = (max(alts) - min(alts)) if alts else 0.0
+    max_spd = max(gs_list) if gs_list else 0.0
+
+    # True airborne determination: distinguishes flights (including VTOL hovers) from ground bench tests
+    is_truly_airborne = (delta_alt >= 2.5) or (max_spd >= 1.8)
+    if not is_truly_airborne:
+        flt_s = 0.0
+        has_valid_flight = False
+    else:
+        has_valid_flight = (flt_s >= 20.0) or (dur_s >= 35.0 and delta_alt >= 5.0)
 
     mean_lat = round(sum(lats)/len(lats), 6) if lats else 0.0
     mean_lng = round(sum(lngs)/len(lngs), 6) if lngs else 0.0
@@ -1043,7 +1081,7 @@ def extract_flight_atis_summary(file_path):
         'fc_name': fc_name,
         'board': fc_name,
         'firmware': firmware,
-        'has_valid_flight': flt_s > 30.0,
+        'has_valid_flight': has_valid_flight,
         'parse_time_s': parse_time
     }
     sys.stderr = old_stderr
@@ -1064,6 +1102,96 @@ def _atomic_write_json(file_path, data):
                 pass
 
 DEFAULT_LOGBOOK_DIR = r"C:\Users\KARSHAK_Tamal\Desktop\Logs"
+
+def get_bird_names_file(folder_path=None):
+    base_dir = folder_path or get_default_logs_dir()
+    return os.path.join(base_dir, '.bird_names.json')
+
+def get_bird_names_map(folder_path=None):
+    """Loads custom bird names mapping from .bird_names.json."""
+    bf = get_bird_names_file(folder_path)
+    if os.path.exists(bf):
+        try:
+            with open(bf, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                if isinstance(data, dict):
+                    return data
+        except Exception:
+            pass
+    return {
+        'by_path': {},
+        'by_fc': {
+            'CubeOrangePlus': 'Sharkee VTOL',
+            'MatekF405-TE': 'Sharkee Wing',
+            'MatekF405-Wing': 'Sharkee Fixed-Wing',
+            'SpeedyBeeF405WING': 'Speedy Wing'
+        },
+        'by_folder': {}
+    }
+
+def save_bird_names_map(bird_map, folder_path=None):
+    """Saves custom bird names mapping to .bird_names.json."""
+    bf = get_bird_names_file(folder_path)
+    _atomic_write_json(bf, bird_map)
+
+def resolve_bird_name(rel_path, fc_name, bird_map=None, folder_path=None):
+    """Resolves human-readable bird name from path, folder, FC name, or defaults."""
+    if bird_map is None:
+        bird_map = get_bird_names_map(folder_path)
+    norm_rel = rel_path.replace('/', '\\')
+    base_name = os.path.basename(rel_path)
+
+    by_path = bird_map.get('by_path', {})
+    if norm_rel in by_path:
+        return by_path[norm_rel]
+    if base_name in by_path:
+        return by_path[base_name]
+
+    by_folder = bird_map.get('by_folder', {})
+    for folder_key, bname in by_folder.items():
+        if folder_key in norm_rel or folder_key in base_name:
+            return bname
+
+    by_fc = bird_map.get('by_fc', {})
+    if fc_name in by_fc:
+        return by_fc[fc_name]
+
+    fc_defaults = {
+        'CubeOrangePlus': 'Sharkee VTOL',
+        'MatekF405-TE': 'Sharkee Wing',
+        'MatekF405-Wing': 'Sharkee Fixed-Wing',
+        'SpeedyBeeF405WING': 'Speedy Wing'
+    }
+    return fc_defaults.get(fc_name, f"Bird ({fc_name})")
+
+def set_bird_name_label(path, bird_name, scope='single', folder_path=None):
+    """
+    Assigns a custom bird name to a log, FC hardware, or folder, and persists to .bird_names.json.
+    scope: 'single' (this log only), 'fc' (all logs with this FC), 'folder' (all logs in folder)
+    """
+    bird_map = get_bird_names_map(folder_path)
+    if 'by_path' not in bird_map: bird_map['by_path'] = {}
+    if 'by_fc' not in bird_map: bird_map['by_fc'] = {}
+    if 'by_folder' not in bird_map: bird_map['by_folder'] = {}
+
+    clean_bird = bird_name.strip()
+    rel_path = path
+    if folder_path and os.path.isabs(path):
+        try:
+            rel_path = os.path.relpath(path, folder_path).replace('/', '\\')
+        except Exception:
+            rel_path = os.path.basename(path)
+
+    if scope == 'single':
+        bird_map['by_path'][rel_path] = clean_bird
+        bird_map['by_path'][os.path.basename(path)] = clean_bird
+    elif scope == 'fc':
+        bird_map['by_fc'][path] = clean_bird
+    elif scope == 'folder':
+        bird_map['by_folder'][path] = clean_bird
+
+    save_bird_names_map(bird_map, folder_path)
+    return bird_map
 
 def get_historical_flight_logbook(folder_path=None, force_refresh=False, max_logs=None):
     """
@@ -1186,17 +1314,19 @@ def get_historical_flight_logbook(folder_path=None, force_refresh=False, max_log
         _atomic_write_json(cache_file, cache_data)
 
     # Filter to retain ONLY valid airborne flights actually flown by the user:
-    # 1. Genuine airborne flight time (flight_time_s >= 30s or has_valid_flight)
+    # 1. Genuine airborne flight time (flight_time_s >= 20s or has_valid_flight)
     # 2. Modern operational flight years (2020 <= year <= 2030, discarding 1980 / 2695 invalid GPS locks)
     # 3. Exclude hardware boards the user never flew (bench tests / external logs)
     EXCLUDED_FCS = {'CubeBlack', 'TBS_LUCID_H7_WING', 'CUAV-X7', 'CubeOrange', 'Unknown'}
+
+    bird_map = get_bird_names_map(folder_path)
 
     valid_flights = []
     for flt in flights:
         if 'error' in flt:
             continue
         flt_s = flt.get('flight_time_s', 0)
-        if flt_s < 30.0 and not flt.get('has_valid_flight'):
+        if flt_s < 20.0 and not flt.get('has_valid_flight'):
             continue
         y = flt.get('year', 0)
         if y < 2020 or y > 2030:
@@ -1204,6 +1334,10 @@ def get_historical_flight_logbook(folder_path=None, force_refresh=False, max_log
         fc = flt.get('fc_name', 'Unknown')
         if fc in EXCLUDED_FCS:
             continue
+
+        # Resolve persistent bird name
+        r_key = os.path.relpath(flt['filepath'], folder_path).replace('/', '\\')
+        flt['bird_name'] = resolve_bird_name(r_key, fc, bird_map, folder_path)
         valid_flights.append(flt)
 
     # Sort flights newest first
@@ -1229,11 +1363,12 @@ def get_historical_flight_logbook(folder_path=None, force_refresh=False, max_log
         rho_val = flt.get('rho_kgm3', 1.225)
         flt_dur = flt.get('flt_str', '00m 00s')
         fc_val = flt.get('fc_name', 'MatekF405-TE')
+        bird_val = flt.get('bird_name', 'Sharkee VTOL')
         elev_val = flt.get('elev_str', f"{flt.get('elev_m', 0):.0f}m AMSL")
         
         flt['logbook_ticker'] = (
             f"SHARKEE FLIGHT LOG & METEOROLOGICAL DISPATCH · ENTRY {p_letter} · {zulu_time} · "
-            f"FC: {fc_val} · FIELD ELEV {elev_val} · "
+            f"BIRD: {bird_val} · FC: {fc_val} · FIELD ELEV {elev_val} · "
             f"WIND {w_dir}/{w_kt}KT · VIS 10KM+ · CLR · "
             f"TEMP {oat_str} · QNH {qnh_val:.1f} HPA · DENSITY ALT {da_val:.0f}M ({da_ft_val}FT) · "
             f"RHO {rho_val:.4f} KG/M³ · AIRBORNE FLT {flt_dur} · METEOROLOGICAL CONDITIONS NOMINAL"
@@ -1308,12 +1443,16 @@ def get_historical_flight_logbook(folder_path=None, force_refresh=False, max_log
     winds = [f['wind_spd_kt'] for f in valid_flights if 'wind_spd_kt' in f]
     elevs = [f['elev_m'] for f in valid_flights if 'elev_m' in f and f['elev_m'] > 0]
     
-    # FC Model distribution across valid flights
+    # FC Model & Bird Name distribution across valid flights
     fc_breakdown = {}
+    bird_breakdown = {}
     for f in valid_flights:
         fc_k = f.get('fc_name', 'Unknown')
         fc_breakdown[fc_k] = fc_breakdown.get(fc_k, 0) + 1
-        
+        bn_k = f.get('bird_name', 'Sharkee VTOL')
+        bird_breakdown[bn_k] = bird_breakdown.get(bn_k, 0) + 1
+
+    bird_list = sorted(bird_breakdown.keys(), key=lambda k: bird_breakdown[k], reverse=True)
     valid_dates = [f['date_str'] for f in valid_flights if f.get('date_str')]
         
     summary = {
@@ -1337,7 +1476,9 @@ def get_historical_flight_logbook(folder_path=None, force_refresh=False, max_log
         'density_alt_mean_m': round(sum(das)/len(das), 1) if das else 0,
         'wind_max_kt': max(winds) if winds else 0.0,
         'wind_mean_kt': round(sum(winds)/len(winds), 1) if winds else 0.0,
-        'fc_breakdown': fc_breakdown
+        'fc_breakdown': fc_breakdown,
+        'bird_breakdown': bird_breakdown,
+        'bird_list': bird_list
     }
 
     return {

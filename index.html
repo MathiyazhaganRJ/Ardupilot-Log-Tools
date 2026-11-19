@@ -3252,8 +3252,57 @@
 
         .year-filter-tabs-bar {
             margin-top: -2px;
+            margin-bottom: 2px;
+            border-top: none;
+        }
+
+        .bird-filter-tabs-bar {
+            margin-top: -2px;
             margin-bottom: 8px;
             border-top: none;
+        }
+
+        .tag-bird-name {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-family: 'B612 Mono', monospace;
+            font-size: 9px;
+            font-weight: 700;
+            color: #38bdf8;
+            background: rgba(56, 189, 248, 0.12);
+            border: 1px solid rgba(56, 189, 248, 0.35);
+            padding: 2px 7px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+        }
+
+        .tag-bird-name:hover {
+            background: rgba(56, 189, 248, 0.25);
+            border-color: #38bdf8;
+            box-shadow: 0 0 6px rgba(56, 189, 248, 0.3);
+        }
+
+        .tag-bird-name .bird-edit-icon {
+            opacity: 0.6;
+            transition: opacity 0.15s ease;
+        }
+
+        .tag-bird-name:hover .bird-edit-icon {
+            opacity: 1;
+        }
+
+        [data-theme="light-clean"] .tag-bird-name {
+            color: #0369a1;
+            background: #e0f2fe;
+            border-color: #7dd3fc;
+        }
+
+        [data-theme="light-clean"] .tag-bird-name:hover {
+            background: #bae6fd;
+            border-color: #0284c7;
         }
 
         .atis-month-group-row td {
@@ -3928,11 +3977,18 @@
                             <button class="fc-tab-btn active" onclick="setYearFilter('ALL')">ALL YEARS</button>
                         </div>
 
+                        <!-- Bird Name Filter Tabs Bar (Screen Only) -->
+                        <div class="fc-filter-tabs-bar bird-filter-tabs-bar atis-no-print" id="bird-filter-tabs-bar">
+                            <span style="font-size: 9px; font-weight: 700; color: #64748b; letter-spacing: 0.5px; margin-right: 4px;">BIRD FILTER:</span>
+                            <button class="fc-tab-btn active" onclick="setBirdFilter('ALL')">ALL BIRDS</button>
+                        </div>
+
                         <div class="atis-table-wrapper">
                             <table class="atis-table" id="atis-table">
                                 <thead>
                                     <tr>
                                         <th onclick="sortAtisTable('callsign')">REF</th>
+                                        <th onclick="sortAtisTable('bird_name')">BIRD NAME</th>
                                         <th onclick="sortAtisTable('date_iso')">DATE / TIME (UTC)</th>
                                         <th onclick="sortAtisTable('fc_name')">FC NAME</th>
                                         <th onclick="sortAtisTable('lat')">AIRFIELD / COORD</th>
@@ -3948,7 +4004,7 @@
                                     </tr>
                                 </thead>
                                 <tbody id="atis-table-body">
-                                    <tr><td colspan="13" style="text-align:center; padding: 20px; color:#64748b;">Loading historical flight logbook & meteorology database...</td></tr>
+                                    <tr><td colspan="14" style="text-align:center; padding: 20px; color:#64748b;">Loading historical flight logbook & meteorology database...</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -4488,6 +4544,14 @@
         let activeFcFilter = 'ALL';
         let activeYearFilter = 'ALL';
         let activeMonthFilter = 'ALL';
+        let activeBirdFilter = 'ALL';
+        let modalCurrentLogPath = '';
+        let modalCurrentFc = '';
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
 
         function computeMonthlyAggregates(flightsList) {
             const map = {};
@@ -4595,6 +4659,9 @@
             if (activeFcFilter && activeFcFilter !== 'ALL') {
                 source = source.filter(f => (f.fc_name || 'MatekF405-TE') === activeFcFilter);
             }
+            if (activeBirdFilter && activeBirdFilter !== 'ALL') {
+                source = source.filter(f => (f.bird_name || 'Sharkee VTOL') === activeBirdFilter);
+            }
 
             const counts = { 'ALL': source.length };
             source.forEach(f => {
@@ -4622,10 +4689,42 @@
             container.innerHTML = html;
         }
 
+        function renderBirdFilterTabs(flights) {
+            const container = document.getElementById('bird-filter-tabs-bar');
+            if (!container || !flights) return;
+
+            let source = flights;
+            if (activeFcFilter && activeFcFilter !== 'ALL') {
+                source = source.filter(f => (f.fc_name || 'MatekF405-TE') === activeFcFilter);
+            }
+            if (activeYearFilter && activeYearFilter !== 'ALL') {
+                source = source.filter(f => String(f.year) === String(activeYearFilter));
+            }
+
+            const counts = { 'ALL': source.length };
+            source.forEach(f => {
+                const b = f.bird_name || 'Sharkee VTOL';
+                counts[b] = (counts[b] || 0) + 1;
+            });
+
+            let html = `<span style="font-size: 9px; font-weight: 700; color: #64748b; letter-spacing: 0.5px; margin-right: 4px;">BIRD FILTER:</span>`;
+            const birds = Object.keys(counts).filter(k => k !== 'ALL').sort((a,b) => counts[b] - counts[a]);
+            const allKeys = ['ALL', ...birds];
+
+            allKeys.forEach(k => {
+                const isActive = (activeBirdFilter === k);
+                const label = k === 'ALL' ? `ALL BIRDS (${counts[k]})` : `${k} (${counts[k]})`;
+                html += `<button class="fc-tab-btn ${isActive ? 'active' : ''}" onclick="setBirdFilter('${k.replace(/'/g, "\\'")}')">${label}</button>`;
+            });
+
+            container.innerHTML = html;
+        }
+
         function setFcFilter(fcName) {
             activeFcFilter = fcName;
             renderFcFilterTabs(atisGlobalData ? atisGlobalData.flights : []);
             renderYearFilterTabs(atisGlobalData ? atisGlobalData.flights : []);
+            renderBirdFilterTabs(atisGlobalData ? atisGlobalData.flights : []);
             renderAtisTable();
             renderAtisCharts();
         }
@@ -4634,6 +4733,14 @@
             activeYearFilter = yr;
             activeMonthFilter = 'ALL';
             renderYearFilterTabs(atisGlobalData ? atisGlobalData.flights : []);
+            renderBirdFilterTabs(atisGlobalData ? atisGlobalData.flights : []);
+            renderAtisTable();
+            renderAtisCharts();
+        }
+
+        function setBirdFilter(birdName) {
+            activeBirdFilter = birdName;
+            renderBirdFilterTabs(atisGlobalData ? atisGlobalData.flights : []);
             renderAtisTable();
             renderAtisCharts();
         }
@@ -4644,6 +4751,7 @@
                 activeYearFilter = ym.split('-')[0];
             }
             renderYearFilterTabs(atisGlobalData ? atisGlobalData.flights : []);
+            renderBirdFilterTabs(atisGlobalData ? atisGlobalData.flights : []);
             renderAtisTable();
             renderAtisCharts();
             if (ym !== 'ALL') {
@@ -4711,6 +4819,7 @@
                 // Render Filter Tabs
                 renderFcFilterTabs(data.flights || []);
                 renderYearFilterTabs(data.flights || []);
+                renderBirdFilterTabs(data.flights || []);
 
                 // Default active flight to the newest one
                 if (data.flights && data.flights.length > 0) {
@@ -4723,7 +4832,7 @@
             } catch (err) {
                 console.error("Flight Logbook Load Error:", err);
                 if (tableBody) {
-                    tableBody.innerHTML = `<tr><td colspan="13" style="text-align:center; padding: 25px; color:#f87171;">Error loading flight logbook & meteorology database: ${err.message}</td></tr>`;
+                    tableBody.innerHTML = `<tr><td colspan="14" style="text-align:center; padding: 25px; color:#f87171;">Error loading flight logbook & meteorology database: ${err.message}</td></tr>`;
                 }
                 if (terminalText) {
                     terminalText.textContent = `[ FLIGHT LOGBOOK DISPATCH OFFLINE ] · ERROR: ${err.message}`;
@@ -4782,11 +4891,17 @@
                 });
             }
 
+            // Bird Name Filter
+            if (activeBirdFilter && activeBirdFilter !== 'ALL') {
+                list = list.filter(f => (f.bird_name || 'Sharkee VTOL') === activeBirdFilter);
+            }
+
             // Search Query Filter
             if (atisFilterQuery.trim() !== '') {
                 const q = atisFilterQuery.toLowerCase().trim();
                 list = list.filter(f => 
                     (f.filename && f.filename.toLowerCase().includes(q)) ||
+                    (f.bird_name && f.bird_name.toLowerCase().includes(q)) ||
                     (f.date_str && f.date_str.toLowerCase().includes(q)) ||
                     (f.fc_name && f.fc_name.toLowerCase().includes(q)) ||
                     (f.board && f.board.toLowerCase().includes(q)) ||
@@ -4797,7 +4912,7 @@
             }
 
             if (list.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="13" style="text-align:center; padding: 25px; color:#94a3b8;">No matching flight logs found in database.</td></tr>';
+                tableBody.innerHTML = '<tr><td colspan="14" style="text-align:center; padding: 25px; color:#94a3b8;">No matching flight logs found in database.</td></tr>';
                 return;
             }
 
@@ -4862,7 +4977,7 @@
                 // Month Group Header Banner Row
                 html += `
                     <tr class="atis-month-group-row" id="month-group-${ym}">
-                        <td colspan="13">
+                        <td colspan="14">
                             <div class="month-group-banner">
                                 <div class="month-banner-left">
                                     <span class="month-badge-pill">${monthTitle}</span>
@@ -4900,10 +5015,17 @@
                     const elevStr = (typeof f.elev_m === 'number') ? `${f.elev_m.toFixed(0)}m / ${(f.elev_ft || Math.round(f.elev_m * 3.28084))}ft` : '--';
                     const qnhStr = (typeof f.qnh_hpa === 'number') ? f.qnh_hpa.toFixed(1) : '1013.2';
                     const fcDisp = f.fc_name || 'MatekF405-TE';
+                    const birdDisp = f.bird_name || 'Sharkee VTOL';
 
                     html += `
                         <tr class="${isActive ? 'active-row' : ''}" data-filename="${f.filename}" onclick="onAtisRowClicked('${f.filename}')">
                             <td><span class="atis-tag-callsign" title="${f.filename}">${f.atis_callsign || 'ALPHA'}</span></td>
+                            <td>
+                                <span class="tag-bird-name" onclick="event.stopPropagation(); openBirdNameModal('${f.filepath.replace(/\\/g, '\\\\')}', '${escapeHtml(birdDisp)}', '${escapeHtml(fcDisp)}', '${escapeHtml(f.filename)}')" title="Click to rename bird or assign airframe label">
+                                    ${escapeHtml(birdDisp)}
+                                    <svg class="bird-edit-icon" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 3px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                </span>
+                            </td>
                             <td><span class="tag-date-time" title="${f.filename}">${cleanDate}</span></td>
                             <td><span class="tag-fc-name">${fcDisp}</span></td>
                             <td title="Home Elevation: ${f.elev_m || 0}m AMSL">${coordStr}</td>
@@ -4978,6 +5100,82 @@
             window.print();
         }
 
+        function openBirdNameModal(filepath, currentBird, fcName, filename) {
+            modalCurrentLogPath = filepath;
+            modalCurrentFc = fcName;
+            const modal = document.getElementById('modal-bird-name');
+            const input = document.getElementById('modal-bird-input');
+            const lblLog = document.getElementById('modal-bird-logname');
+            const lblFc = document.getElementById('modal-bird-fcname');
+            
+            if (modal) modal.style.display = 'flex';
+            if (input) {
+                input.value = currentBird || '';
+                setTimeout(() => { input.focus(); input.select(); }, 50);
+            }
+            if (lblLog) lblLog.textContent = filename || (filepath ? filepath.split('\\').pop() : '--');
+            if (lblFc) lblFc.textContent = fcName || 'MatekF405-TE';
+        }
+
+        function closeBirdNameModal() {
+            const modal = document.getElementById('modal-bird-name');
+            if (modal) modal.style.display = 'none';
+        }
+
+        async function saveBirdNameFromModal() {
+            const input = document.getElementById('modal-bird-input');
+            if (!input) return;
+            const newName = input.value.trim();
+            if (!newName) {
+                alert('Please enter a bird name or airframe label.');
+                return;
+            }
+
+            const radios = document.getElementsByName('bird-scope');
+            let scope = 'single';
+            for (const r of radios) {
+                if (r.checked) scope = r.value;
+            }
+
+            const targetKey = (scope === 'fc') ? modalCurrentFc : modalCurrentLogPath;
+            const currentFolder = localStorage.getItem('sharkee_atis_folder') || '';
+
+            try {
+                const res = await fetch('/api/set_bird_name', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        path: targetKey,
+                        bird_name: newName,
+                        scope: scope,
+                        folder: currentFolder
+                    })
+                });
+                const data = await res.json();
+                if (!data.success) {
+                    throw new Error(data.error || 'Failed to update bird name');
+                }
+
+                // Update in-memory flights immediately
+                if (atisGlobalData && atisGlobalData.flights) {
+                    atisGlobalData.flights.forEach(f => {
+                        if (scope === 'single' && (f.filepath === modalCurrentLogPath || f.filename === modalCurrentLogPath.split('\\').pop())) {
+                            f.bird_name = newName;
+                        } else if (scope === 'fc' && f.fc_name === modalCurrentFc) {
+                            f.bird_name = newName;
+                        }
+                    });
+                    renderBirdFilterTabs(atisGlobalData.flights);
+                    renderAtisTable();
+                    renderAtisCharts();
+                }
+
+                closeBirdNameModal();
+            } catch (err) {
+                alert('Error saving bird name: ' + err.message);
+            }
+        }
+
         function renderAtisCharts() {
             if (!atisGlobalData || !atisGlobalData.flights || atisGlobalData.flights.length === 0) return;
             if (typeof Plotly === 'undefined') return;
@@ -4988,6 +5186,9 @@
             }
             if (activeYearFilter && activeYearFilter !== 'ALL') {
                 filteredFlights = filteredFlights.filter(f => String(f.year) === String(activeYearFilter));
+            }
+            if (activeBirdFilter && activeBirdFilter !== 'ALL') {
+                filteredFlights = filteredFlights.filter(f => (f.bird_name || 'Sharkee VTOL') === activeBirdFilter);
             }
             if (filteredFlights.length === 0) return;
 
@@ -9339,6 +9540,43 @@
                     <button type="button" class="uav-pill-action-btn" onclick="closeOrganizerModal()" style="padding: 7px 16px; font-size: 11px;">Close</button>
                     <button type="button" id="org-start-btn" onclick="startLogOrganization()" style="padding: 7px 20px; font-size: 11.5px; background: #22c55e; color: #000000; font-weight: 700; border: none; border-radius: 4px; cursor: pointer; letter-spacing: 0.5px;">START ORGANIZING</button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Rename Bird / Airframe -->
+    <div id="modal-bird-name" class="modal-overlay atis-no-print" onclick="if(event.target===this) closeBirdNameModal()">
+        <div class="modal-box" style="width: 450px; max-width: 92vw; padding: 20px; background: #0c0d10; border: 1px solid #38bdf8; border-radius: 6px; box-shadow: 0 15px 40px rgba(0, 0, 0, 0.95);">
+            <div class="modal-title" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; border-bottom: 1px solid #1a1c22; padding-bottom: 8px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="display: inline-block; width: 8px; height: 8px; background: #38bdf8; border-radius: 50%;"></span>
+                    <span style="font-size: 12.5px; font-weight: 700; letter-spacing: 0.6px; color: #ffffff;">ASSIGN BIRD NAME / AIRFRAME</span>
+                </div>
+                <button type="button" class="avionics-close-dot" onclick="closeBirdNameModal()" title="Close">&times;</button>
+            </div>
+            <div style="font-size: 11px; color: #94a3b8; margin-bottom: 12px; font-family: 'B612', sans-serif;">
+                Assign a custom aircraft nickname or airframe label to organize your flight operations:
+            </div>
+            <div style="margin-bottom: 14px;">
+                <label style="display: block; font-size: 10px; font-family: 'B612 Mono', monospace; color: #38bdf8; margin-bottom: 5px; font-weight: 700;">BIRD / AIRFRAME NAME:</label>
+                <input type="text" id="modal-bird-input" class="modal-input" placeholder="e.g. Sharkee VTOL Alpha" style="margin-bottom: 0; height: 36px;" onkeydown="if(event.key==='Enter') saveBirdNameFromModal()" />
+            </div>
+            <div style="margin-bottom: 18px; background: #090a0c; border: 1px solid #24262c; border-radius: 4px; padding: 10px 12px;">
+                <label style="display: block; font-size: 9.5px; font-family: 'B612 Mono', monospace; color: #64748b; margin-bottom: 6px; font-weight: 700;">APPLY SCOPE:</label>
+                <div style="display: flex; flex-direction: column; gap: 7px; font-size: 11px; color: #cbd5e1;">
+                    <label style="display: flex; align-items: center; gap: 7px; cursor: pointer;">
+                        <input type="radio" name="bird-scope" value="single" checked style="accent-color: #38bdf8;" />
+                        <span>Apply to this flight log only (<span id="modal-bird-logname" style="font-family:'B612 Mono', monospace; color:#38bdf8;">--</span>)</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 7px; cursor: pointer;">
+                        <input type="radio" name="bird-scope" value="fc" style="accent-color: #38bdf8;" />
+                        <span>Apply to ALL flight logs with FC: <strong id="modal-bird-fcname" style="color:#f59e0b;">--</strong></span>
+                    </label>
+                </div>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 8px;">
+                <button type="button" class="uav-pill-action-btn" onclick="closeBirdNameModal()" style="padding: 7px 16px; font-size: 11px;">CANCEL</button>
+                <button type="button" onclick="saveBirdNameFromModal()" style="padding: 7px 20px; font-size: 11.5px; background: #0284c7; border: 1px solid #38bdf8; color: #ffffff; font-weight: 700; border-radius: 4px; cursor: pointer; letter-spacing: 0.5px;">SAVE BIRD NAME</button>
             </div>
         </div>
     </div>

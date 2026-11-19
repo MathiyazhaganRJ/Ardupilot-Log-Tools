@@ -350,6 +350,22 @@ class LogViewerHandler(SimpleHTTPRequestHandler):
                 self._send_json({'success': False, 'error': str(e)})
             return
 
+        # 7. API: Set / Rename Bird Name Label
+        elif path == '/api/set_bird_name':
+            target_path = query.get('path', [None])[0]
+            bird_name = query.get('bird_name', [None])[0]
+            scope = query.get('scope', ['single'])[0]
+            folder = query.get('folder', [None])[0]
+            if not target_path or not bird_name:
+                self._send_json({'success': False, 'error': 'Missing path or bird_name parameter'})
+                return
+            try:
+                parser.set_bird_name_label(target_path, bird_name, scope=scope, folder_path=folder)
+                self._send_json({'success': True, 'bird_name': bird_name, 'scope': scope, 'path': target_path})
+            except Exception as e:
+                self._send_json({'success': False, 'error': str(e)})
+            return
+
         super().do_GET()
 
     def do_POST(self):
@@ -387,6 +403,24 @@ class LogViewerHandler(SimpleHTTPRequestHandler):
                     self._send_json({'success': True, 'metrics': metrics})
                 else:
                     self._send_json({'success': False, 'error': 'No data in interval'})
+            except Exception as e:
+                self._send_json({'success': False, 'error': str(e)})
+            return
+
+        elif path == '/api/set_bird_name':
+            length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(length)
+            try:
+                req = json.loads(body.decode('utf-8'))
+                target_path = req.get('path')
+                bird_name = req.get('bird_name')
+                scope = req.get('scope', 'single')
+                folder = req.get('folder', None)
+                if not target_path or not bird_name:
+                    self._send_json({'success': False, 'error': 'Missing path or bird_name parameter'})
+                    return
+                parser.set_bird_name_label(target_path, bird_name, scope=scope, folder_path=folder)
+                self._send_json({'success': True, 'bird_name': bird_name, 'scope': scope, 'path': target_path})
             except Exception as e:
                 self._send_json({'success': False, 'error': str(e)})
             return
