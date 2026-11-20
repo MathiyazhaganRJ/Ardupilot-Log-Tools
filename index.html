@@ -6428,8 +6428,8 @@
 
         async function loadHistoricalAtisData(force = false) {
             let savedFolder = localStorage.getItem('sharkee_atis_folder') || '';
-            if (!savedFolder || savedFolder.includes('uploads')) {
-                savedFolder = 'C:\\Users\\KARSHAK_Tamal\\Desktop\\Logs';
+            if (savedFolder && savedFolder.includes('uploads')) {
+                savedFolder = '';
             }
             const folderInput = document.getElementById('atis-folder-input');
             const terminalText = document.getElementById('atis-terminal-text');

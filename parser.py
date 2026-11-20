@@ -147,7 +147,7 @@ def get_default_logs_dir(base_dir=None):
     for d in candidate_dirs:
         if d and os.path.exists(d):
             return os.path.normpath(d)
-    return os.path.normpath(r"C:\Users\KARSHAK_Tamal\Desktop\Logs")
+    return os.path.normpath(os.path.join(os.path.expanduser("~"), "Desktop", "Logs"))
 
 
 def discover_flight_logs(base_dir=None):
@@ -1102,7 +1102,9 @@ def _atomic_write_json(file_path, data):
             except Exception:
                 pass
 
-DEFAULT_LOGBOOK_DIR = r"C:\Users\KARSHAK_Tamal\Desktop\Logs"
+DEFAULT_LOGBOOK_DIR = os.environ.get("ARDUPILOT_LOGS_DIR", os.path.join(os.path.expanduser("~"), "Desktop", "Logs"))
+if os.path.exists(r"C:\Users\KARSHAK_Tamal\Desktop\Logs"):
+    DEFAULT_LOGBOOK_DIR = r"C:\Users\KARSHAK_Tamal\Desktop\Logs"
 
 def get_bird_names_file(folder_path=None):
     base_dir = folder_path or get_default_logs_dir()
@@ -1195,9 +1197,10 @@ def set_bird_name_label(path, bird_name, scope='single', folder_path=None):
     return bird_map
 
 def get_flight_notes_file(folder_path=None):
-    if not folder_path or not os.path.exists(folder_path):
-        folder_path = DEFAULT_LOGBOOK_DIR if os.path.exists(DEFAULT_LOGBOOK_DIR) else os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
-    return os.path.join(os.path.normpath(folder_path), '.flight_notes.json')
+    base_dir = folder_path or get_default_logs_dir()
+    if not os.path.exists(base_dir):
+        base_dir = get_default_logs_dir()
+    return os.path.join(os.path.normpath(base_dir), '.flight_notes.json')
 
 def get_flight_notes_map(folder_path=None):
     """Loads flight notes mapping from .flight_notes.json."""
@@ -1359,9 +1362,8 @@ def get_historical_flight_logbook(folder_path=None, force_refresh=False, max_log
     Tracks flight logs, cumulative flying hours, FC hardware, and meteorological atmospheric conditions.
     """
     if not folder_path or not os.path.exists(folder_path):
-        if os.path.exists(DEFAULT_LOGBOOK_DIR):
-            folder_path = DEFAULT_LOGBOOK_DIR
-        else:
+        folder_path = get_default_logs_dir()
+        if not os.path.exists(folder_path):
             folder_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
     
     folder_path = os.path.normpath(folder_path)

@@ -341,8 +341,9 @@ class LogViewerHandler(SimpleHTTPRequestHandler):
             max_logs_param = query.get('max_logs', [None])[0]
             max_logs = int(max_logs_param) if max_logs_param and max_logs_param.isdigit() else None
             if not target_folder:
-                default_dir = r"C:\Users\KARSHAK_Tamal\Desktop\Logs"
-                target_folder = default_dir if os.path.exists(default_dir) else os.path.join(BASE_DIR, 'uploads')
+                target_folder = parser.get_default_logs_dir()
+                if not os.path.exists(target_folder):
+                    target_folder = os.path.join(BASE_DIR, 'uploads')
             try:
                 data = parser.get_historical_flight_logbook(target_folder, force_refresh=force_refresh, max_logs=max_logs)
                 self._send_json(data)
@@ -564,7 +565,7 @@ class LogViewerHandler(SimpleHTTPRequestHandler):
                     return
                 query = urllib.parse.parse_qs(parsed.query)
                 filename = query.get('filename', [None])[0] or self.headers.get('X-File-Name', 'flight_log.bin')
-                dest_dir = query.get('dest', [None])[0] or self.headers.get('X-Dest-Folder', r'C:\Users\KARSHAK_Tamal\Desktop\Logs')
+                dest_dir = query.get('dest', [None])[0] or self.headers.get('X-Dest-Folder', parser.get_default_logs_dir())
                 structure = query.get('structure', ['year_month_date'])[0]
                 filename = os.path.basename(filename)
                 if not filename.lower().endswith('.bin'):
