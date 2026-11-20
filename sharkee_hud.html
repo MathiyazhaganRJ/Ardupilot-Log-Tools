@@ -21,25 +21,25 @@
             --font-mono: 'JetBrains Mono', "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
 
             --bg-color: #f5f5f7;
-            --panel-bg: rgba(255, 255, 255, 0.75);
-            --text-primary: #1d1d1f;
-            --text-secondary: #475569;
-            --border-color: rgba(0, 0, 0, 0.1);
-            --shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
-            --accent: #0071e3;
-            --accent-cyan: #0077b6;
-            --accent-green: #34c759;
-            --accent-yellow: #ff9500;
-            --accent-red: #ff3b30;
-            --wind-color: #0077b6; /* High-contrast aviation cyan-blue for light mode */
-            --wind-arrow-color: #0099cc; /* High-contrast wind arrow on dial */
-            --motor-bg: #e5e5ea;
-            --btn-bg: rgba(0, 0, 0, 0.05);
-            --btn-hover: rgba(0, 0, 0, 0.1);
-            --danger: #ff3b30;
-            --success: #34c759;
+            --panel-bg: rgba(255, 255, 255, 0.94);
+            --text-primary: #0f172a;
+            --text-secondary: #334155;
+            --border-color: rgba(0, 0, 0, 0.14);
+            --shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
+            --accent: #0284c7;
+            --accent-cyan: #0284c7;
+            --accent-green: #16a34a;
+            --accent-yellow: #d97706;
+            --accent-red: #dc2626;
+            --wind-color: #0284c7; /* High-contrast aviation cyan-blue for light mode */
+            --wind-arrow-color: #0284c7; /* High-contrast wind arrow on dial */
+            --motor-bg: #e2e8f0;
+            --btn-bg: rgba(15, 23, 42, 0.07);
+            --btn-hover: rgba(15, 23, 42, 0.14);
+            --danger: #dc2626;
+            --success: #16a34a;
             --option-bg: #ffffff;
-            --option-text: #000000;
+            --option-text: #0f172a;
         }
 
         body.dark-mode {
@@ -519,9 +519,9 @@
         }
         .panel-brand-title {
             font-family: var(--font-sans);
-            font-weight: 700;
+            font-weight: 800;
             font-size: 13px;
-            letter-spacing: 0.3px;
+            letter-spacing: 0.5px;
             white-space: nowrap;
             color: var(--text-primary);
         }
@@ -578,16 +578,17 @@
             color: var(--text-secondary);
             font-family: var(--font-sans);
             font-size: 11px;
-            font-weight: 500;
+            font-weight: 600;
             letter-spacing: 0.1px;
             white-space: nowrap;
             flex-shrink: 0;
         }
 
         .data-val {
+            color: var(--text-primary);
             font-family: var(--font-mono);
             font-size: 11.5px;
-            font-weight: 600;
+            font-weight: 700;
             letter-spacing: 0;
             font-variant-numeric: tabular-nums;
             font-feature-settings: 'tnum';
@@ -597,7 +598,7 @@
 
         .section-title {
             font-family: var(--font-sans);
-            font-weight: 700;
+            font-weight: 800;
             font-size: 11px;
             color: var(--text-secondary);
             text-transform: uppercase;
@@ -3485,8 +3486,8 @@
     <div id="ui-panel" style="display: none;">
         <div class="header">
             <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-                <span class="panel-brand-title" style="font-size: 13px; font-weight: 700; letter-spacing: 0.5px; color: var(--text-primary); text-transform: uppercase;">Flight Telemetry</span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                <span class="panel-brand-title" style="font-size: 13px; font-weight: 800; letter-spacing: 0.5px; color: var(--text-primary); text-transform: uppercase;">Flight Telemetry</span>
             </div>
             <div style="display: flex; gap: 6px; align-items: center; flex-shrink: 0;">
                 <span id="btn-messages-hdr" style="display:none;"><span id="hdr-msg-dot"></span></span>
@@ -13742,11 +13743,20 @@
             }
         });
 
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
+        function handleHudResize() {
+            if (typeof camera !== 'undefined' && camera && typeof renderer !== 'undefined' && renderer) {
+                const w = window.innerWidth || document.documentElement.clientWidth || 300;
+                const h = window.innerHeight || document.documentElement.clientHeight || 150;
+                camera.aspect = w / h;
+                camera.updateProjectionMatrix();
+                renderer.setSize(w, h);
+            }
+        }
+        window.addEventListener('resize', handleHudResize);
+        window.handleHudResize = handleHudResize;
+        if (typeof ResizeObserver !== 'undefined' && document.body) {
+            new ResizeObserver(() => handleHudResize()).observe(document.body);
+        }
     
         // =========================================================
         // FULL RECTANGULAR GARMIN EIS ENGINE & POWER CONTROLLER

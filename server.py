@@ -7,6 +7,7 @@ import os
 import sys
 import time
 import json
+import gzip
 import math
 import io
 import socket
@@ -746,9 +747,15 @@ class LogViewerHandler(SimpleHTTPRequestHandler):
             payload = json.dumps(sanitize(data), allow_nan=False).encode('utf-8')
         self.send_response(200)
         self.send_header('Content-Type', 'application/json')
-        self.send_header('Content-Length', str(len(payload)))
         self.send_header('Access-Control-Allow-Origin', '*')
         self.send_header('Cache-Control', 'no-cache, no-store, must-revalidate')
+
+        accept_encoding = self.headers.get('Accept-Encoding', '') if hasattr(self, 'headers') and self.headers else ''
+        if 'gzip' in accept_encoding and len(payload) > 1024:
+            payload = gzip.compress(payload, compresslevel=4)
+            self.send_header('Content-Encoding', 'gzip')
+
+        self.send_header('Content-Length', str(len(payload)))
         self.end_headers()
         self.wfile.write(payload)
 
@@ -774,11 +781,25 @@ def release_port(port):
             pass
 
 
+def background_preload_first_log():
+    try:
+        logs = parser.discover_flight_logs()
+        if logs and logs[0]['path'] not in LOG_CACHE:
+            target = logs[0]['path']
+            print(f"[PRELOAD] Pre-parsing flight log: {logs[0]['filename']}...")
+            res = parser.parse_flight_telemetry(target)
+            LOG_CACHE[target] = res
+            print(f"[PRELOAD] Flight log pre-cached successfully.")
+    except Exception as e:
+        print(f"[PRELOAD] Background preload notice: {e}")
+
+
 def start_server():
     release_port(PORT)
     server = ThreadingHTTPServer(("", PORT), LogViewerHandler)
     server.daemon_threads = True
     print(f"Shark Hawk Digital Twin Server listening at: http://localhost:{PORT}")
+    threading.Thread(target=background_preload_first_log, daemon=True).start()
     return server
 
 
