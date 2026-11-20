@@ -23,7 +23,7 @@
             --bg-color: #f5f5f7;
             --panel-bg: rgba(255, 255, 255, 0.75);
             --text-primary: #1d1d1f;
-            --text-secondary: #86868b;
+            --text-secondary: #475569;
             --border-color: rgba(0, 0, 0, 0.1);
             --shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
             --accent: #0071e3;
@@ -3486,7 +3486,7 @@
         <div class="header">
             <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-                <span class="panel-brand-title" style="font-size: 13px; font-weight: 700; letter-spacing: 0.5px; color: #f1f5f9; text-transform: uppercase;">Flight Telemetry</span>
+                <span class="panel-brand-title" style="font-size: 13px; font-weight: 700; letter-spacing: 0.5px; color: var(--text-primary); text-transform: uppercase;">Flight Telemetry</span>
             </div>
             <div style="display: flex; gap: 6px; align-items: center; flex-shrink: 0;">
                 <span id="btn-messages-hdr" style="display:none;"><span id="hdr-msg-dot"></span></span>
@@ -3525,7 +3525,7 @@
         <div id="panel-view-telemetry">
             <div class="data-card">
                 <div class="data-row"><span class="data-label">Firmware</span><span id="firmware" class="data-val"
-                        style="color: #f0f6fc; font-family: var(--font-mono); font-weight: 700;">ArduPlane</span></div>
+                        style="color: var(--text-primary); font-family: var(--font-mono); font-weight: 700;">ArduPlane</span></div>
                 <div class="data-row"><span class="data-label">Flight Mode</span><span id="f_mode" class="data-val"
                         style="color: var(--accent);">UNKNOWN</span></div>
                 <div class="data-row"><span class="data-label">Altitude</span><span id="alt" class="data-val">0.0 m</span>
@@ -3624,11 +3624,11 @@
 
                 <!-- Footer Summary Row (High Visibility Used mAh and Watts) -->
                 <div style="display: flex; align-items: center; justify-content: space-between; padding: 2px 1px;">
-                    <span id="mp-card-sub-info" style="font-family: var(--font-sans); font-size: 11px; font-weight: 600; color: #f1f5f9; letter-spacing: 0.3px;">Used: 0 mAh | 0 W</span>
+                    <span id="mp-card-sub-info" style="font-family: var(--font-sans); font-size: 11px; font-weight: 600; color: var(--text-primary); letter-spacing: 0.3px;">Used: 0 mAh | 0 W</span>
                 </div>
             </div>
 
-            <div style="margin-top: 24px; text-align: center; font-size: 10px; color: var(--text-secondary); opacity: 0.6; font-family: var(--font-sans); font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase;">
+            <div style="margin-top: 24px; text-align: center; font-size: 10px; color: var(--text-secondary); opacity: 0.85; font-family: var(--font-sans); font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase;">
                 Designed by RJ
             </div>
 
@@ -3673,7 +3673,7 @@
 
                 <!-- Footer Summary Row (High Visibility Used mAh and Watts) -->
                 <div style="display: flex; align-items: center; justify-content: space-between; padding: 2px 1px;">
-                    <span id="mp-view-sub-info" style="font-family: var(--font-sans); font-size: 11px; font-weight: 600; color: #f1f5f9; letter-spacing: 0.3px;">Used: 0 mAh | 0 W</span>
+                    <span id="mp-view-sub-info" style="font-family: var(--font-sans); font-size: 11px; font-weight: 600; color: var(--text-primary); letter-spacing: 0.3px;">Used: 0 mAh | 0 W</span>
                 </div>
             </div>
 
@@ -3760,7 +3760,7 @@
                 </div>
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <span style="font-size: 9.5px; color: var(--text-secondary); font-weight: 600;">SWATH WIDTH</span>
-                    <select id="sel-coverage-width" style="background: var(--btn-bg); color: #00e5ff; border: 1px solid var(--border-color); border-radius: 4px; padding: 3px 6px; font-size: 10.5px; font-weight: 700; outline: none; cursor: pointer;">
+                    <select id="sel-coverage-width" style="background: var(--btn-bg); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 4px; padding: 3px 6px; font-size: 10.5px; font-weight: 700; outline: none; cursor: pointer;">
                         <option value="500">0.5 km (±250m)</option>
                         <option value="1000" selected>1.0 km (±500m) - Standard</option>
                         <option value="2000">2.0 km (±1.0km) - Wide</option>
@@ -5084,6 +5084,7 @@
                 localStorage.setItem('app_theme', 'light');
             }
             if (typeof updateSceneTheme === 'function') updateSceneTheme();
+            if (typeof updateMissionPlannerBatteryUI === 'function') updateMissionPlannerBatteryUI();
         };
 
         themeToggle.onclick = () => {
@@ -5541,7 +5542,7 @@
             const elCardBadge = document.getElementById('mp-card-cell-badge');
             if (elCardBadge) elCardBadge.textContent = `${cellCount}S PACK`;
 
-            const formattedSubInfo = `<span style="color: #94a3b8; font-weight: 500;">Used:</span> <span style="font-family: var(--font-mono); color: #ffffff; font-weight: 700;">${Math.round(consumedMah)} mAh</span> <span style="color: #475569; margin: 0 4px;">|</span> <span style="font-family: var(--font-mono); color: #38bdf8; font-weight: 700;">${Math.round(watts)} W</span>`;
+            const formattedSubInfo = `<span style="color: var(--text-secondary); font-weight: 500;">Used:</span> <span style="font-family: var(--font-mono); color: var(--text-primary); font-weight: 700;">${Math.round(consumedMah)} mAh</span> <span style="color: var(--text-secondary); opacity: 0.6; margin: 0 4px;">|</span> <span style="font-family: var(--font-mono); color: var(--accent-cyan); font-weight: 700;">${Math.round(watts)} W</span>`;
 
             const elCardSub = document.getElementById('mp-card-sub-info');
             if (elCardSub) elCardSub.innerHTML = formattedSubInfo;
@@ -10025,7 +10026,7 @@
                     leftWrap.style.cssText = 'display: flex; align-items: center; gap: 6px; min-width: 0; flex: 1;';
 
                     const chBadge = document.createElement('span');
-                    chBadge.style.cssText = "font-family: var(--font-mono); font-size: 9px; font-weight: 800; color: #8a9bb2; flex-shrink: 0; width: 28px;";
+                    chBadge.style.cssText = "font-family: var(--font-mono); font-size: 9px; font-weight: 800; color: var(--text-secondary); flex-shrink: 0; width: 28px;";
                     chBadge.textContent = `C${ch}`;
 
                     const fnName = document.createElement('span');
@@ -10040,14 +10041,14 @@
                     rightWrap.style.cssText = 'display: flex; align-items: center; gap: 6px; flex-shrink: 0;';
 
                     const miniBarBg = document.createElement('div');
-                    miniBarBg.style.cssText = 'width: 44px; height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden; position: relative;';
+                    miniBarBg.style.cssText = 'width: 44px; height: 6px; background: var(--btn-hover); border-radius: 3px; overflow: hidden; position: relative;';
 
                     const miniBarFill = document.createElement('div');
                     miniBarFill.style.cssText = 'height: 100%; width: 0%; background: #30d158; border-radius: 3px; transition: width 0.08s ease;';
                     miniBarBg.appendChild(miniBarFill);
 
                     const pwmVal = document.createElement('span');
-                    pwmVal.style.cssText = "font-family: var(--font-mono); font-size: 9.5px; font-weight: 700; color: #cbd5e1; width: 44px; text-align: right;";
+                    pwmVal.style.cssText = "font-family: var(--font-mono); font-size: 9.5px; font-weight: 700; color: var(--text-primary); width: 44px; text-align: right;";
                     pwmVal.textContent = '1000 µs';
 
                     rightWrap.appendChild(miniBarBg);
@@ -12635,7 +12636,7 @@
             const fwEl = document.getElementById('firmware');
             if (!fwEl || !firmwareStr || firmwareStr.startsWith('Type ') || firmwareStr === '---') return;
             fwEl.innerText = firmwareStr;
-            fwEl.style.color = '#f0f6fc'; // High-contrast Aviation White
+            fwEl.style.color = 'var(--text-primary)';
             fwEl.style.fontFamily = "'JetBrains Mono', monospace";
             fwEl.style.fontWeight = "700";
         }
