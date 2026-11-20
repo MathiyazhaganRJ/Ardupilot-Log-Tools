@@ -3438,7 +3438,7 @@
                 <circle cx="12" cy="12" r="3"></circle>
             </svg>
         </button>
-        <button class="toolbar-btn" id="btn-toggle-actuators" title="Toggle Actuator & Servo Outputs (16-CH Matrix) [Hotkey 'O']" onclick="toggleActuatorsPanel()">
+        <button class="toolbar-btn" id="btn-toggle-actuators" title="Toggle Actuator &amp; Servo Outputs (Assigned Channels) [Hotkey 'O']" onclick="toggleActuatorsPanel()">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <rect x="3" y="4" width="18" height="16" rx="2"></rect>
                 <line x1="12" y1="4" x2="12" y2="20"></line>
@@ -4825,41 +4825,36 @@
         </div>
     </div>
 
-    <!-- 16-Channel Actuator & Servo Outputs Matrix (ArduPilot Canonical Mapping) -->
+    <!-- Assigned Actuator & Servo Outputs Matrix (ArduPilot Canonical Mapping) -->
     <div id="actuators-panel-container" class="actuators-matrix-panel"
-        style="position: absolute; bottom: 20px; left: 345px; width: min(760px, calc(100vw - 370px)); height: 265px; box-sizing: border-box; overflow: hidden; background: #0f1013; border-radius: 12px; border: 1.5px solid #24262c; padding: 8px 12px; display: none; flex-direction: column; justify-content: space-between; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.75), inset 0 1px 1px rgba(255, 255, 255, 0.05); z-index: 1000; pointer-events: auto; font-family: 'B612', 'B612 Mono', 'JetBrains Mono', monospace; user-select: none;">
+        style="position: absolute; bottom: 20px; left: 345px; width: fit-content; min-width: 360px; max-width: min(780px, calc(100vw - 370px)); height: 265px; box-sizing: border-box; overflow: hidden; background: #0f1013; border-radius: 12px; border: 1.5px solid #24262c; padding: 8px 12px; display: none; flex-direction: column; justify-content: space-between; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.75), inset 0 1px 1px rgba(255, 255, 255, 0.05); z-index: 1000; pointer-events: auto; font-family: 'B612', 'B612 Mono', 'JetBrains Mono', monospace; user-select: none;">
         
-        <!-- Top Header & Filter Bar -->
+        <!-- Top Header Bar -->
         <div class="actuators-header" style="display: flex; justify-content: space-between; align-items: center; padding: 0 2px 6px 2px; flex-shrink: 0; border-bottom: 1px solid #1e2026; cursor: grab;">
             <div style="display: flex; align-items: center; gap: 8px; white-space: nowrap;">
-                <span style="width: 7px; height: 7px; border-radius: 50%; background: #94a3b8; box-shadow: 0 0 6px rgba(148, 163, 184, 0.4);"></span>
-                <span style="font-family: 'B612', sans-serif; font-size: 10px; font-weight: 800; letter-spacing: 1.5px; color: #8a9bb2; text-transform: uppercase;">ACTUATOR & SERVO OUTPUTS</span>
-                <span id="actuators-status-badge" style="background: #18191d; border: 1px solid #24262c; color: #94a3b8; font-size: 9px; font-weight: 700; padding: 1px 6px; border-radius: 3px; letter-spacing: 0.5px;">16 CHANNELS</span>
+                <span style="width: 7px; height: 7px; border-radius: 50%; background: #30d158; box-shadow: 0 0 6px rgba(48, 209, 88, 0.5);"></span>
+                <span style="font-family: 'B612', sans-serif; font-size: 10.5px; font-weight: 800; letter-spacing: 1.5px; color: #8a9bb2; text-transform: uppercase;">ACTUATOR &amp; SERVO OUTPUTS</span>
+                <span id="actuators-status-badge" style="background: rgba(48, 209, 88, 0.12); border: 1px solid rgba(48, 209, 88, 0.25); color: #30d158; font-size: 9px; font-weight: 700; padding: 1px 7px; border-radius: 3px; letter-spacing: 0.5px;">ASSIGNED ONLY</span>
             </div>
             
             <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
-                <!-- Filter Mode: ALL vs ASSIGNED ONLY -->
-                <div style="display: flex; background: #141519; border: 1px solid #24262c; border-radius: 4px; padding: 2px; gap: 2px;">
-                    <button id="btn-actuator-filter-all" class="actuator-filter-btn active" onclick="setActuatorFilter('all')" style="border: 1px solid #3e424c; background: #24262c; color: #f1f5f9; font-family: 'B612', sans-serif; font-size: 9px; font-weight: 700; padding: 2px 8px; border-radius: 3px; cursor: pointer;">ALL (16)</button>
-                    <button id="btn-actuator-filter-assigned" class="actuator-filter-btn" onclick="setActuatorFilter('assigned')" style="border: 1px solid transparent; background: transparent; color: #64748b; font-family: 'B612', sans-serif; font-size: 9px; font-weight: 700; padding: 2px 8px; border-radius: 3px; cursor: pointer;">ASSIGNED ONLY</button>
-                </div>
                 <!-- Close Button -->
                 <button class="avionics-close-dot" onclick="toggleActuatorsPanel(false)" title="Close Actuators Panel (Hotkey 'O')">&times;</button>
             </div>
         </div>
 
-        <!-- 16-Channel Grid Container (Scrollable horizontally if needed) -->
-        <div id="actuators-matrix-grid" style="display: flex; gap: 6px; flex: 1; align-items: stretch; justify-content: space-between; padding-top: 8px; overflow-x: auto; min-height: 0;">
-            <!-- Dynamically populated 16 channel columns -->
+        <!-- Assigned Channels Grid Container -->
+        <div id="actuators-matrix-grid" style="display: flex; gap: 8px; flex: 1; align-items: stretch; justify-content: flex-start; padding-top: 8px; overflow-x: auto; min-height: 0;">
+            <!-- Dynamically populated assigned channel columns -->
         </div>
 
         <!-- Bottom Legend Bar -->
         <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 6px; border-top: 1px solid #1e2026; flex-shrink: 0; font-size: 8.5px; color: #64748b;">
             <div style="display: flex; gap: 10px; align-items: center;">
-                <span style="font-family: 'B612', sans-serif; font-size: 8.5px; font-weight: 700; color: #8a9bb2; letter-spacing: 0.5px; text-transform: uppercase;">SERVO OUTPUT CHANNELS 1 — 16</span>
+                <span style="font-family: 'B612', sans-serif; font-size: 8.5px; font-weight: 700; color: #8a9bb2; letter-spacing: 0.5px; text-transform: uppercase;">ASSIGNED SERVO OUTPUT CHANNELS</span>
             </div>
             <div id="actuators-active-summary" style="font-family: 'B612 Mono', monospace; color: #94a3b8; font-weight: 700;">
-                ACTIVE: -- / 16
+                ACTIVE: -- ASSIGNED
             </div>
         </div>
     </div>
@@ -9902,7 +9897,7 @@
         // 16-CHANNEL ACTUATOR & SERVO OUTPUTS MATRIX ARCHITECTURE
         // ============================================================
         let currentVehicleParameters = {};
-        let actuatorFilterMode = 'all'; // 'all' or 'assigned'
+        let actuatorFilterMode = 'assigned'; // Only keep assigned outputs
         let actuatorsPanelVisible = false;
 
         const ARDUPILOT_SERVO_FUNCTIONS = {
@@ -9932,7 +9927,22 @@
             if (p[key] !== undefined) code = parseInt(p[key], 10);
             else if (p[altKey] !== undefined) code = parseInt(p[altKey], 10);
 
+            // If parameters haven't loaded yet, provide canonical QuadPlane / VTOL assigned mapping
             if (code === undefined || isNaN(code)) {
+                if (Object.keys(p).length === 0) {
+                    const defaultVtolMap = {
+                        1: { code: 4, name: 'Aileron', category: 'AERO', color: '#00d2ff', isAssigned: true },
+                        2: { code: 19, name: 'Elevator', category: 'AERO', color: '#00d2ff', isAssigned: true },
+                        3: { code: 70, name: 'Cruise Throttle', category: 'PROP', color: '#ff9f0a', isAssigned: true },
+                        4: { code: 21, name: 'Rudder', category: 'AERO', color: '#00d2ff', isAssigned: true },
+                        5: { code: 33, name: 'Motor 1 (FR)', category: 'PROP', color: '#ff9f0a', isAssigned: true },
+                        6: { code: 34, name: 'Motor 2 (BL)', category: 'PROP', color: '#ff9f0a', isAssigned: true },
+                        7: { code: 35, name: 'Motor 3 (FL)', category: 'PROP', color: '#ff9f0a', isAssigned: true },
+                        8: { code: 36, name: 'Motor 4 (BR)', category: 'PROP', color: '#ff9f0a', isAssigned: true },
+                        9: { code: 41, name: 'Tilt Servo', category: 'TILT', color: '#bf5af2', isAssigned: true }
+                    };
+                    if (defaultVtolMap[chNum]) return defaultVtolMap[chNum];
+                }
                 return { code: -1, name: 'Unassigned', category: 'OFF', color: '#64748b', isAssigned: false };
             }
             if (code === 0) {
@@ -9971,7 +9981,7 @@
                     const col = document.createElement('div');
                     col.className = 'actuator-matrix-col';
                     col.dataset.ch = ch;
-                    col.style.cssText = 'flex: 1; min-width: 40px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; background: #141519; border: 1px solid #24262c; border-radius: 6px; padding: 6px 3px 5px 3px; transition: all 0.15s ease; box-sizing: border-box;';
+                    col.style.cssText = 'flex: 1; min-width: 52px; max-width: 82px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; background: #141519; border: 1px solid #24262c; border-radius: 6px; padding: 6px 4px 5px 4px; transition: all 0.15s ease; box-sizing: border-box;';
 
                     const pwmEl = document.createElement('div');
                     pwmEl.className = 'actuator-pwm-val';
@@ -10099,7 +10109,7 @@
             for (let ch = 1; ch <= 16; ch++) {
                 const info = getServoFunctionInfo(ch);
                 if (info.isAssigned) activeCount++;
-                const isVisible = (actuatorFilterMode === 'all') || info.isAssigned;
+                const isVisible = (actuatorFilterMode === 'all') ? true : info.isAssigned;
 
                 if (actuatorMatrixCols[ch - 1]) {
                     const c = actuatorMatrixCols[ch - 1];
@@ -10129,13 +10139,13 @@
             }
 
             const activeSummary = document.getElementById('actuators-active-summary');
-            if (activeSummary) activeSummary.textContent = `ACTIVE: ${activeCount} / 16`;
+            if (activeSummary) activeSummary.textContent = `ACTIVE: ${activeCount} ASSIGNED`;
 
             const telemCount = document.getElementById('telemetry-actuators-active-count');
             if (telemCount) telemCount.textContent = `${activeCount} ACTIVE`;
 
             const statusBadge = document.getElementById('actuators-status-badge');
-            if (statusBadge) statusBadge.textContent = `${activeCount} ACTIVE / 16 CH`;
+            if (statusBadge) statusBadge.textContent = `${activeCount} ASSIGNED`;
         }
 
         function setActuatorFilter(mode) {
