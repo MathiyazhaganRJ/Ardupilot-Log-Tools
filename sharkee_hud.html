@@ -151,54 +151,57 @@
             background: var(--btn-bg);
             border-radius: 9px;
             padding: 3px;
-            gap: 3px;
+            gap: 4px;
             margin-bottom: 10px;
             border: 1px solid var(--border-color);
         }
 
         .panel-nav-tab {
             flex: 1;
-            padding: 7px 4px;
+            height: 32px;
+            padding: 0;
             border: none;
             border-radius: 6px;
             background: transparent;
             color: var(--text-secondary);
-            font-family: 'B612', sans-serif;
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: 0.6px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 5px;
+            position: relative;
             transition: all 0.15s ease;
-            white-space: nowrap;
         }
 
         .panel-nav-tab:hover {
             color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.05);
         }
 
         .panel-nav-tab.active {
             background: var(--panel-bg);
             color: var(--accent);
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
         }
 
         .tab-badge {
+            position: absolute;
+            top: 3px;
+            right: 12px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             background: #ff3b30;
             color: #ffffff;
-            font-size: 8.5px;
+            font-size: 8px;
             font-weight: 800;
-            padding: 1px 4.5px;
-            border-radius: 9px;
+            padding: 1px 4px;
+            min-width: 14px;
+            height: 14px;
+            border-radius: 7px;
+            font-family: 'B612 Mono', monospace;
+            box-sizing: border-box;
             line-height: 1;
-            margin-left: 2px;
-            box-shadow: 0 1px 3px rgba(255, 59, 48, 0.4);
+            box-shadow: 0 1px 3px rgba(255, 59, 48, 0.5);
             animation: pulseBadge 1.8s infinite;
         }
 
@@ -3477,20 +3480,9 @@
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
                 <span class="panel-brand-title" style="font-size: 13px; font-weight: 700; letter-spacing: 0.5px; color: #f1f5f9; text-transform: uppercase;">Flight Telemetry</span>
             </div>
-            <div style="display: flex; gap: 4px; align-items: center; flex-shrink: 0;">
-                <button id="btn-messages-hdr" class="icon-btn" title="Toggle Autopilot Messages Log (Hotkey 'M')" style="width: 26px; height: 26px; font-size: 12px; position: relative;">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                    </svg>
-                    <span id="hdr-msg-dot" class="toolbar-dot-badge" style="display:none;"></span>
-                </button>
-                <button id="btn-offline-map-hdr" class="icon-btn" title="Offline Map & Airspace Presets" style="width: 26px; height: 26px; font-size: 12px;">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon>
-                        <line x1="8" y1="2" x2="8" y2="18"></line>
-                        <line x1="16" y1="6" x2="16" y2="22"></line>
-                    </svg>
-                </button>
+            <div style="display: flex; gap: 6px; align-items: center; flex-shrink: 0;">
+                <span id="btn-messages-hdr" style="display:none;"><span id="hdr-msg-dot"></span></span>
+                <span id="btn-offline-map-hdr" style="display:none;"></span>
                 <button id="theme-toggle" class="icon-btn" title="Toggle Theme" style="width: 26px; height: 26px; font-size: 12px;">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
@@ -3506,22 +3498,18 @@
         </div>
 
         <div class="panel-nav-tabs">
-            <button id="tab-telemetry" class="panel-nav-tab active">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-                <span>TELEMETRY</span>
+            <button id="tab-telemetry" class="panel-nav-tab active" title="Flight Telemetry Readouts">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
             </button>
             <button id="tab-actuators" class="panel-nav-tab" title="Actuator & Servo Outputs Matrix (Hotkey 'O')">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="4" width="18" height="16" rx="2"></rect><line x1="12" y1="4" x2="12" y2="20"></line><line x1="7" y1="9" x2="7" y2="15"></line><line x1="17" y1="9" x2="17" y2="15"></line></svg>
-                <span>OUTPUTS</span>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="4" width="18" height="16" rx="2"></rect><line x1="12" y1="4" x2="12" y2="20"></line><line x1="7" y1="9" x2="7" y2="15"></line><line x1="17" y1="9" x2="17" y2="15"></line></svg>
             </button>
-            <button id="tab-airspace" class="panel-nav-tab">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>
-                <span>AIRSPACE</span>
+            <button id="tab-airspace" class="panel-nav-tab" title="Airspace & Offline Maps">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>
             </button>
-            <button id="tab-messages" class="panel-nav-tab" title="Autopilot Messages Log (Hotkey 'M')">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-                <span>MESSAGES</span>
-                <span id="tab-msg-count" class="tab-badge" style="display:none; margin-left: 2px;">0</span>
+            <button id="tab-messages" class="panel-nav-tab" title="Autopilot Messages Log (Hotkey 'M')" style="position: relative;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                <span id="tab-msg-count" class="tab-badge" style="display:none;">0</span>
             </button>
         </div>
 
