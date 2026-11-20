@@ -14531,10 +14531,44 @@
                 lineColors[i * 3 + 2] = col.b;
             }
 
-            // 1. High-Visibility Flight Mode Color-Coded Path Line (Clean vector flight track)
+            // Generate silky-smooth continuous 3D aerodynamic flight corridor curve
+            let curvePoints = rawPoints;
+            let curveColors = lineColors;
+            if (rawPoints.length >= 4) {
+                try {
+                    const spline = new THREE.CatmullRomCurve3(rawPoints, false, 'centripetal', 0.5);
+                    const sampleCount = Math.min(8000, Math.max(rawPoints.length * 2, 800));
+                    curvePoints = spline.getPoints(sampleCount);
+
+                    curveColors = new Float32Array(curvePoints.length * 3);
+                    const sN = curvePoints.length;
+                    for (let j = 0; j < sN; j++) {
+                        const tFraction = j / (sN - 1);
+                        const origIdx = Math.min(rawPoints.length - 1, Math.floor(tFraction * (rawPoints.length - 1)));
+                        const m = pointModes[origIdx] || 'MANUAL';
+                        const c = MODE_THREE_COLORS[m] || defaultModeColor;
+                        curveColors[j * 3] = c.r;
+                        curveColors[j * 3 + 1] = c.g;
+                        curveColors[j * 3 + 2] = c.b;
+                    }
+                } catch (e) {
+                    curvePoints = rawPoints;
+                    curveColors = lineColors;
+                }
+            }
+
+            const cN = curvePoints.length;
+            const smoothVerts = new Float32Array(cN * 3);
+            for (let i = 0; i < cN; i++) {
+                smoothVerts[i * 3] = curvePoints[i].x;
+                smoothVerts[i * 3 + 1] = curvePoints[i].y;
+                smoothVerts[i * 3 + 2] = curvePoints[i].z;
+            }
+
+            // 1. High-Visibility Flight Mode Color-Coded Path Line (Smooth aerodynamic continuous curve)
             const lineGeo = new THREE.BufferGeometry();
-            lineGeo.setAttribute('position', new THREE.BufferAttribute(lineVertices, 3));
-            lineGeo.setAttribute('color', new THREE.BufferAttribute(lineColors, 3));
+            lineGeo.setAttribute('position', new THREE.BufferAttribute(smoothVerts, 3));
+            lineGeo.setAttribute('color', new THREE.BufferAttribute(curveColors, 3));
             const lineMat = new THREE.LineBasicMaterial({
                 vertexColors: true,
                 linewidth: 2,
@@ -14592,6 +14626,7 @@
 
         function applyFlightLogTelemetry(pt, isJump = false) {
             if (!pt) return;
+            window.isLogReplayActive = true;
             vehicleConnected = true;
             initialGpsCalibrated = true;
             ekfHomeInitialized = true;
@@ -14622,9 +14657,11 @@
                 rawTargetPos.set(pos.x, pos.y, pos.z);
                 targetPos.copy(rawTargetPos);
 
-                // Deterministic synchronization: Snap directly on every telemetry sample (zero spatial deviation)
-                vtolGroup.position.copy(rawTargetPos);
-                firstPos = true;
+                // On scrub / jump or initial spawn, snap immediately; during continuous replay, animate() smoothly lerps at 60fps
+                if (isJump || !firstPos) {
+                    vtolGroup.position.copy(rawTargetPos);
+                    firstPos = true;
+                }
 
                 currentPlaneAltRel = (typeof pt.rel_alt === 'number') ? pt.rel_alt : (pt.alt - (homeAlt || 0));
                 const rawMsl = (typeof pt.alt === 'number') ? pt.alt : ((homeAlt || 0) + currentPlaneAltRel);
@@ -14656,8 +14693,10 @@
             rawTargetRot.set(pitchRad, -yawRad, -rollRad);
             const qRaw = new THREE.Quaternion().setFromEuler(rawTargetRot);
             targetRot.copy(rawTargetRot);
-            vtolGroup.setRotationFromQuaternion(qRaw);
-            vtolGroup.updateMatrixWorld(true);
+            if (isJump || !firstPos) {
+                vtolGroup.setRotationFromQuaternion(qRaw);
+                vtolGroup.updateMatrixWorld(true);
+            }
 
             // 3. Synchronize Flight Log Wind Telemetry (Speed, Direction, Vectors)
             if (typeof pt.wind_spd === 'number' && typeof pt.wind_dir === 'number') {

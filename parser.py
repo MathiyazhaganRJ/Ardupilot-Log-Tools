@@ -177,9 +177,12 @@ def discover_flight_logs(base_dir=None):
     logs = []
     if valid_dir and os.path.exists(valid_dir):
         for root, dirs, files in os.walk(valid_dir):
+            dirs[:] = [d for d in dirs if not d.startswith('.') and d != '_temp_org' and d != '_quarantined_firmware_and_non_logs']
             for f in files:
                 if f.lower().endswith(('.bin', '.log')):
                     full_p = os.path.join(root, f)
+                    if not organizer.is_valid_flight_log(full_p):
+                        continue
                     try:
                         mtime = os.path.getmtime(full_p)
                         size_mb = os.path.getsize(full_p) / (1024 * 1024)
@@ -233,7 +236,7 @@ def get_log_formats(file_path):
     return logged_formats
 
 
-def parse_flight_telemetry(file_path, target_samples=4000):
+def parse_flight_telemetry(file_path, target_samples=8000):
     """
     Parses ArduPilot .bin log into a synchronized timeline of flight telemetry.
     Returns:
@@ -243,6 +246,10 @@ def parse_flight_telemetry(file_path, target_samples=4000):
       - mode_segments: list of flight mode intervals
       - speed_steps: list of detected airspeed test steps in AUTO mode
     """
+    if not organizer.is_valid_flight_log(file_path):
+        fname = os.path.basename(file_path)
+        raise ValueError(f"'{fname}' is not an ArduPilot DataFlash flight log (detected firmware binary or corrupted/non-log data).")
+
     mlog = mavutil.mavlink_connection(file_path)
 
     fmts = {}
@@ -1421,10 +1428,12 @@ def get_historical_flight_logbook(folder_path=None, force_refresh=False, max_log
     # Discover all .bin files in folder and direct subfolders
     found_paths = []
     for root, dirs, files in os.walk(folder_path):
-        dirs[:] = [d for d in dirs if not d.startswith('.') and d != '_temp_org']
+        dirs[:] = [d for d in dirs if not d.startswith('.') and d != '_temp_org' and d != '_quarantined_firmware_and_non_logs']
         for fn in files:
             if fn.lower().endswith('.bin'):
-                found_paths.append(os.path.join(root, fn))
+                fp = os.path.join(root, fn)
+                if organizer.is_valid_flight_log(fp):
+                    found_paths.append(fp)
                 
     # Sort files by modification time descending (newest flights first)
     found_paths.sort(key=lambda p: os.path.getmtime(p) if os.path.exists(p) else 0, reverse=True)

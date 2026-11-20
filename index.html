@@ -6048,7 +6048,7 @@
                             color: color,
                             weight: 4,
                             opacity: 0.95,
-                            smoothFactor: 1
+                            smoothFactor: 0
                         }).addTo(mapInstance);
                         poly.bindTooltip(`Mode: ${seg.mode}`, { sticky: true });
                         trackLayers.push(poly);
@@ -8242,6 +8242,11 @@
         function applyParsedFlightData(data) {
             if (!data || !data.success) {
                 alert("Error parsing log: " + (data ? data.error : "Unknown error"));
+                return;
+            }
+
+            if (!data.telemetry || data.telemetry.length === 0) {
+                alert("Notice: This file contains no valid flight telemetry or GPS trajectory coordinates.");
                 return;
             }
 

@@ -14,6 +14,31 @@ import subprocess
 import threading
 import time
 
+def is_valid_flight_log(filepath):
+    """
+    Validates whether a file is an authentic ArduPilot DataFlash flight log.
+    Rejects firmware binaries (e.g. AP_Periph.bin, arduplane.bin, bootloader.bin),
+    scope/multimeter data dumps, EEPROM dumps, and non-log binary files.
+    """
+    try:
+        if not os.path.isfile(filepath):
+            return False
+        sz = os.path.getsize(filepath)
+        if sz < 1024:
+            return False
+        with open(filepath, 'rb') as f:
+            chunk = f.read(4096)
+        # DataFlash binary logs must have packet sync header 0xA3 0x95 in lead-in
+        idx = chunk.find(b'\xa3\x95')
+        if idx != -1 and idx < 256:
+            return True
+        # Plaintext DataFlash logs (.log) start with FMT or PARM definitions
+        if chunk.startswith(b'FMT,') or chunk.startswith(b'PARM,') or (b'\nFMT,' in chunk[:1024]):
+            return True
+        return False
+    except Exception:
+        return False
+
 def extract_binary_gps_date(filepath, max_scan_bytes=262144):
     """
     Ultra-fast (5-15ms) binary reader for DataFlash GPS packets.
@@ -180,7 +205,7 @@ def scan_source_logs(source_folder):
                 for file in files:
                     if file.lower().endswith(valid_exts):
                         full_path = os.path.join(root, file)
-                        if full_path in seen_paths:
+                        if full_path in seen_paths or not is_valid_flight_log(full_path):
                             continue
                         seen_paths.add(full_path)
                         try:
@@ -247,7 +272,7 @@ def organize_flight_logs(source_folder, dest_folder, structure="year_month_date"
             for file in files:
                 if file.lower().endswith(valid_exts):
                     p = os.path.join(root, file)
-                    if p not in seen_paths:
+                    if p not in seen_paths and is_valid_flight_log(p):
                         seen_paths.add(p)
                         all_files.append(p)
 
