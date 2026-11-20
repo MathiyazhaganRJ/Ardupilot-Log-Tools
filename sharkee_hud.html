@@ -3583,43 +3583,44 @@
                 </div>
             </div>
 
-            <!-- Mission Planner Style Battery & Power Quick Card -->
-            <div id="mp-battery-card" class="data-card" style="margin-top: 10px; cursor: pointer; padding: 10px 12px; border: 1px solid rgba(34, 197, 94, 0.35); background: rgba(34, 197, 94, 0.05); border-radius: 8px; transition: all 0.15s ease;" onclick="switchPanelTab('battery')" title="Open Mission Planner Battery & Power Details">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                    <div style="display: flex; align-items: center; gap: 6px;">
-                        <span style="width: 7px; height: 7px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 6px #22c55e;"></span>
-                        <span style="font-size: 11px; font-weight: 700; color: #f1f5f9; letter-spacing: 0.5px; text-transform: uppercase;">BATTERY & POWER</span>
-                    </div>
-                    <span id="mp-card-cell-badge" style="font-family: 'B612 Mono', monospace; font-size: 9.5px; font-weight: 700; color: #22c55e; background: rgba(34, 197, 94, 0.15); padding: 1px 7px; border-radius: 4px; border: 1px solid rgba(34, 197, 94, 0.3);">6S PACK</span>
+            <!-- Battery Card matching exact layout of Motor Mapping & Data Cards -->
+            <div id="mp-battery-card" class="data-card" style="margin-top: 10px; cursor: pointer;" onclick="switchPanelTab('battery')" title="Open Battery & Power Details">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <h3 style="margin: 0; font-family: 'B612', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-secondary);">BATTERY</h3>
+                    <span id="mp-card-cell-badge" class="data-val" style="font-size: 11px; color: var(--text-secondary);">6S</span>
                 </div>
-                
-                <div style="display: flex; align-items: center; gap: 12px; background: rgba(0, 0, 0, 0.28); padding: 7px 10px; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.05);">
-                    <!-- Vertical Battery Icon (4 Segments matching Mission Planner HUD) -->
+
+                <div style="display: flex; align-items: center; gap: 14px; padding: 2px 0 8px 0;">
+                    <!-- Vertical Battery Symbol -->
                     <div style="display: flex; flex-direction: column; align-items: center; flex-shrink: 0; width: 22px;">
-                        <div style="width: 8px; height: 2px; background: #cbd5e1; border-radius: 1px 1px 0 0; margin-bottom: 1px;"></div>
-                        <div style="width: 22px; height: 38px; border: 2px solid #cbd5e1; border-radius: 3px; padding: 2px; display: flex; flex-direction: column; justify-content: space-between; background: rgba(0,0,0,0.5); box-sizing: border-box;">
+                        <div style="width: 8px; height: 2px; background: #e2e8f0; border-radius: 1px 1px 0 0; margin-bottom: 1px;"></div>
+                        <div style="width: 22px; height: 40px; border: 2px solid #e2e8f0; border-radius: 3px; padding: 2px; display: flex; flex-direction: column; justify-content: space-between; background: rgba(0, 0, 0, 0.4); box-sizing: border-box;">
                             <div id="mp-card-bar-4" style="height: 6px; width: 100%; background: #00ff00; border-radius: 1px; transition: background 0.2s;"></div>
                             <div id="mp-card-bar-3" style="height: 6px; width: 100%; background: #00ff00; border-radius: 1px; transition: background 0.2s;"></div>
                             <div id="mp-card-bar-2" style="height: 6px; width: 100%; background: #00ff00; border-radius: 1px; transition: background 0.2s;"></div>
                             <div id="mp-card-bar-1" style="height: 6px; width: 100%; background: #00ff00; border-radius: 1px; transition: background 0.2s;"></div>
                         </div>
                     </div>
-                    
+
                     <!-- Mission Planner HUD Text Lines -->
-                    <div style="display: flex; flex-direction: column; justify-content: center; gap: 2px; overflow: hidden; flex: 1;">
+                    <div style="display: flex; flex-direction: column; justify-content: center; gap: 3px; overflow: hidden; flex: 1;">
                         <div style="display: flex; align-items: baseline; gap: 6px;">
-                            <span id="mp-card-fc-vcc" style="font-family: 'B612 Mono', monospace; font-size: 13.5px; font-weight: 700; color: #f8fafc; letter-spacing: 0.3px;">5.44v</span>
-                            <span style="font-size: 8.5px; color: #94a3b8; font-family: 'B612', sans-serif;">FC VCC</span>
+                            <span id="mp-card-fc-vcc" style="font-family: 'B612', 'Segoe UI', sans-serif; font-size: 15px; font-weight: 700; color: var(--text-primary); letter-spacing: 0.2px;">5.44v</span>
+                            <span style="font-size: 9px; color: var(--text-secondary); font-family: 'B612', sans-serif; font-weight: 600;">FC VCC</span>
                         </div>
                         <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                            <span id="mp-card-batt-line" style="font-family: 'B612 Mono', monospace; font-size: 13.5px; font-weight: 700; color: #ffffff; letter-spacing: 0.3px;">21.75v 20.2 A 94%</span>
+                            <span id="mp-card-batt-line" style="font-family: 'B612', 'Segoe UI', sans-serif; font-size: 15px; font-weight: 700; color: var(--text-primary); letter-spacing: 0.3px;">21.75v 20.2 A 94%</span>
                         </div>
                     </div>
                 </div>
 
-                <div style="font-size: 9px; color: var(--text-secondary); margin-top: 6px; display: flex; justify-content: space-between; align-items: center;">
-                    <span id="mp-card-sub-info">Used: 1710 mAh | 179 W</span>
-                    <span style="color: #22c55e; font-weight: 700;">DETAILS &rarr;</span>
+                <div class="data-row" style="margin-top: 6px; margin-bottom: 4px; padding-top: 6px; border-top: 1px solid var(--border-color);">
+                    <span class="data-label">Consumed</span>
+                    <span id="mp-card-consumed" class="data-val" style="color: var(--accent);">0 mAh</span>
+                </div>
+                <div class="data-row" style="margin-bottom: 0;">
+                    <span class="data-label">Power</span>
+                    <span id="mp-card-power" class="data-val">0 W</span>
                 </div>
             </div>
 
@@ -3637,76 +3638,54 @@
         <!-- Tab 2: Dedicated Mission Planner Battery & Power System (Sidebar View) -->
         <div id="panel-view-battery" style="display: none;">
             <!-- Mission Planner Hero HUD Box -->
-            <div class="data-card" style="padding: 12px; margin-bottom: 10px; background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.08);">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <div style="display: flex; align-items: center; gap: 6px;">
-                        <span style="width: 7px; height: 7px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 6px #22c55e;"></span>
-                        <span style="font-size: 11px; font-weight: 700; color: #f1f5f9; letter-spacing: 0.5px; text-transform: uppercase;">MISSION PLANNER HUD</span>
-                    </div>
-                    <span id="mp-view-status-badge" style="font-family: 'B612 Mono', monospace; font-size: 9px; font-weight: 700; color: #22c55e; background: rgba(34, 197, 94, 0.12); border: 1px solid rgba(34, 197, 94, 0.3); padding: 1px 6px; border-radius: 4px;">POWER NORMAL</span>
+            <div class="data-card" style="margin-bottom: 10px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <h3 style="margin: 0; font-family: 'B612', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-secondary);">MISSION PLANNER HUD</h3>
+                    <span id="mp-view-status-badge" class="data-val" style="font-size: 10px; color: var(--text-secondary);">NORMAL</span>
                 </div>
 
-                <!-- Authentic Mission Planner Visual Indicator -->
-                <div style="display: flex; align-items: center; gap: 14px; background: rgba(0, 0, 0, 0.35); padding: 12px; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.06);">
+                <div style="display: flex; align-items: center; gap: 14px; padding: 2px 0 6px 0;">
                     <!-- Vertical Battery Symbol -->
-                    <div style="display: flex; flex-direction: column; align-items: center; width: 28px; flex-shrink: 0;">
-                        <div style="width: 10px; height: 3px; background: #cbd5e1; border-top-left-radius: 2px; border-top-right-radius: 2px;"></div>
-                        <div style="width: 26px; height: 46px; border: 2px solid #cbd5e1; border-radius: 4px; padding: 2px; display: flex; flex-direction: column; justify-content: space-between; background: rgba(0,0,0,0.4); box-sizing: border-box;">
-                            <div id="mp-view-bar-4" style="height: 8px; width: 100%; background: #00ff00; border-radius: 1px; transition: background 0.2s;"></div>
-                            <div id="mp-view-bar-3" style="height: 8px; width: 100%; background: #00ff00; border-radius: 1px; transition: background 0.2s;"></div>
-                            <div id="mp-view-bar-2" style="height: 8px; width: 100%; background: #00ff00; border-radius: 1px; transition: background 0.2s;"></div>
-                            <div id="mp-view-bar-1" style="height: 8px; width: 100%; background: #00ff00; border-radius: 1px; transition: background 0.2s;"></div>
+                    <div style="display: flex; flex-direction: column; align-items: center; width: 24px; flex-shrink: 0;">
+                        <div style="width: 9px; height: 3px; background: #e2e8f0; border-radius: 1px 1px 0 0; margin-bottom: 1px;"></div>
+                        <div style="width: 24px; height: 42px; border: 2px solid #e2e8f0; border-radius: 3px; padding: 2px; display: flex; flex-direction: column; justify-content: space-between; background: rgba(0, 0, 0, 0.4); box-sizing: border-box;">
+                            <div id="mp-view-bar-4" style="height: 7px; width: 100%; background: #00ff00; border-radius: 1px; transition: background 0.2s;"></div>
+                            <div id="mp-view-bar-3" style="height: 7px; width: 100%; background: #00ff00; border-radius: 1px; transition: background 0.2s;"></div>
+                            <div id="mp-view-bar-2" style="height: 7px; width: 100%; background: #00ff00; border-radius: 1px; transition: background 0.2s;"></div>
+                            <div id="mp-view-bar-1" style="height: 7px; width: 100%; background: #00ff00; border-radius: 1px; transition: background 0.2s;"></div>
                         </div>
                     </div>
                     <!-- Right HUD Readouts -->
-                    <div style="display: flex; flex-direction: column; justify-content: center; gap: 4px; font-family: 'B612 Mono', monospace; flex: 1;">
+                    <div style="display: flex; flex-direction: column; justify-content: center; gap: 3px; font-family: 'B612', 'Segoe UI', sans-serif; flex: 1;">
                         <div style="display: flex; align-items: baseline; gap: 6px;">
-                            <span id="mp-view-fc-vcc" style="font-size: 15px; font-weight: 700; color: #f8fafc; letter-spacing: 0.5px;">5.44v</span>
-                            <span style="font-size: 9px; color: #94a3b8; font-family: 'B612', sans-serif; text-transform: uppercase;">FC VCC (BEC)</span>
+                            <span id="mp-view-fc-vcc" style="font-size: 15px; font-weight: 700; color: var(--text-primary); letter-spacing: 0.2px;">5.44v</span>
+                            <span style="font-size: 9px; color: var(--text-secondary); font-weight: 600;">FC VCC</span>
                         </div>
                         <div style="display: flex; align-items: baseline; gap: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                            <span id="mp-view-batt-line" style="font-size: 15px; font-weight: 700; color: #ffffff; letter-spacing: 0.5px;">21.75v 20.2 A 94%</span>
+                            <span id="mp-view-batt-line" style="font-size: 15px; font-weight: 700; color: var(--text-primary); letter-spacing: 0.3px;">21.75v 20.2 A 94%</span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Electrical Metrics Grid -->
-            <div class="data-card" style="padding: 10px; margin-bottom: 10px;">
-                <div style="font-size: 10px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 8px;">
-                    ELECTRICAL PARAMETERS
-                </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                    <div class="stat-box" style="padding: 6px 8px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 6px;">
-                        <div style="font-size: 9px; color: var(--text-secondary);">PACK VOLTAGE</div>
-                        <div id="mp-stat-pack-volts" style="font-size: 14px; font-weight: 700; color: #38bdf8; font-family: 'B612 Mono', monospace;">21.75 V</div>
-                        <div id="mp-stat-cell-config" style="font-size: 8.5px; color: #94a3b8;">6S (3.63 V/cell)</div>
-                    </div>
-                    <div class="stat-box" style="padding: 6px 8px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 6px;">
-                        <div style="font-size: 9px; color: var(--text-secondary);">CURRENT DRAW</div>
-                        <div id="mp-stat-pack-amps" style="font-size: 14px; font-weight: 700; color: #4ade80; font-family: 'B612 Mono', monospace;">20.2 A</div>
-                        <div id="mp-stat-power-watts" style="font-size: 8.5px; color: #94a3b8;">439.4 W</div>
-                    </div>
-                    <div class="stat-box" style="padding: 6px 8px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 6px;">
-                        <div style="font-size: 9px; color: var(--text-secondary);">CONSUMED CAPACITY</div>
-                        <div id="mp-stat-consumed-mah" style="font-size: 14px; font-weight: 700; color: #facc15; font-family: 'B612 Mono', monospace;">1710 mAh</div>
-                        <div id="mp-stat-capacity-total" style="font-size: 8.5px; color: #94a3b8;">Pack: 6000 mAh</div>
-                    </div>
-                    <div class="stat-box" style="padding: 6px 8px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 6px;">
-                        <div style="font-size: 9px; color: var(--text-secondary);">REMAINING / TIME</div>
-                        <div id="mp-stat-remaining-pct" style="font-size: 14px; font-weight: 700; color: #22c55e; font-family: 'B612 Mono', monospace;">94%</div>
-                        <div id="mp-stat-endurance-est" style="font-size: 8.5px; color: #94a3b8;">Est. 18 min</div>
-                    </div>
-                </div>
+            <!-- Electrical Metrics Grid as standard data-rows -->
+            <div class="data-card" style="margin-bottom: 10px;">
+                <h3 style="margin: 0 0 10px 0; font-family: 'B612', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-secondary);">ELECTRICAL PARAMETERS</h3>
+                <div class="data-row"><span class="data-label">Pack Voltage</span><span id="mp-stat-pack-volts" class="data-val">21.75 V</span></div>
+                <div class="data-row"><span class="data-label">Cell Config</span><span id="mp-stat-cell-config" class="data-val">6S (3.63 V/cell)</span></div>
+                <div class="data-row"><span class="data-label">Current Draw</span><span id="mp-stat-pack-amps" class="data-val">20.2 A</span></div>
+                <div class="data-row"><span class="data-label">Instant Power</span><span id="mp-stat-power-watts" class="data-val">439 W</span></div>
+                <div class="data-row"><span class="data-label">Consumed</span><span id="mp-stat-consumed-mah" class="data-val">1710 mAh</span></div>
+                <div class="data-row"><span class="data-label">Pack Capacity</span><span id="mp-stat-capacity-total" class="data-val">6000 mAh</span></div>
+                <div class="data-row"><span class="data-label">Remaining</span><span id="mp-stat-remaining-pct" class="data-val" style="color: var(--accent);">94%</span></div>
+                <div class="data-row" style="margin-bottom: 0;"><span class="data-label">Endurance</span><span id="mp-stat-endurance-est" class="data-val">Est. 18 min</span></div>
             </div>
 
             <!-- Per-Cell Balance Breakdown Matrix -->
-            <div class="data-card" style="padding: 10px; margin-bottom: 10px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <span style="font-size: 10px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.6px;">
-                        PER-CELL BALANCE MATRIX
-                    </span>
-                    <span id="mp-cell-delta-badge" style="font-size: 9px; font-family: 'B612 Mono', monospace; color: #22c55e; background: rgba(34,197,94,0.1); padding: 1px 5px; border-radius: 3px; border: 1px solid rgba(34,197,94,0.25);">Δ 0.02 V</span>
+            <div class="data-card" style="margin-bottom: 10px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h3 style="margin: 0; font-family: 'B612', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-secondary);">CELL BALANCE</h3>
+                    <span id="mp-cell-delta-badge" class="data-val" style="font-size: 10px; color: var(--text-secondary);">Δ 0.02 V</span>
                 </div>
                 <div id="mp-cell-bars-container" style="display: flex; flex-direction: column; gap: 6px;">
                     <!-- Dynamically rendered per-cell bars (C1 - C6) -->
@@ -3715,11 +3694,11 @@
 
             <!-- Controls: Capacity Config & EIS Sync -->
             <div style="display: flex; gap: 8px;">
-                <button class="btn-refresh" style="flex: 1; justify-content: center; padding: 7px 8px; font-weight: 700; font-size: 10.5px;" onclick="configureBatteryCapacityPrompt()">
+                <button class="btn-refresh" style="flex: 1; justify-content: center; padding: 7px 8px; font-weight: 700; font-size: 11px;" onclick="configureBatteryCapacityPrompt()">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
                     SET PACK MAH
                 </button>
-                <button class="btn-refresh" style="flex: 1; justify-content: center; padding: 7px 8px; font-weight: 700; font-size: 10.5px;" onclick="toggleEisWidget(true)">
+                <button class="btn-refresh" style="flex: 1; justify-content: center; padding: 7px 8px; font-weight: 700; font-size: 11px;" onclick="toggleEisWidget(true)">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
                     OPEN EIS HUD
                 </button>
@@ -5562,10 +5541,13 @@
             if (elCardLine) elCardLine.textContent = hudLineText;
 
             const elCardBadge = document.getElementById('mp-card-cell-badge');
-            if (elCardBadge) elCardBadge.textContent = `${cellCount}S PACK`;
+            if (elCardBadge) elCardBadge.textContent = `${cellCount}S`;
 
-            const elCardSub = document.getElementById('mp-card-sub-info');
-            if (elCardSub) elCardSub.textContent = `Used: ${Math.round(consumedMah)} mAh | ${Math.round(watts)} W`;
+            const elCardConsumed = document.getElementById('mp-card-consumed');
+            if (elCardConsumed) elCardConsumed.textContent = `${Math.round(consumedMah)} mAh`;
+
+            const elCardPower = document.getElementById('mp-card-power');
+            if (elCardPower) elCardPower.textContent = `${Math.round(watts)} W`;
 
             // Update Tab 2 (Dedicated Battery View)
             const elViewVcc = document.getElementById('mp-view-fc-vcc');
