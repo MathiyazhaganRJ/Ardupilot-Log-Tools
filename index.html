@@ -1379,6 +1379,104 @@
             height: calc(100% - 26px);
         }
 
+        /* ========================================================= */
+        /* PRECISION TIMELINE RANGESLIDER & GUTTER SEPARATION       */
+        /* ========================================================= */
+
+        /* Elevated rangeslider container frame with separation shadow */
+        #main-plot .rangeslider-container {
+            filter: drop-shadow(0 -3px 8px rgba(0, 0, 0, 0.45));
+        }
+        [data-theme="light-clean"] #main-plot .rangeslider-container {
+            filter: drop-shadow(0 -2px 6px rgba(0, 0, 0, 0.12));
+        }
+
+        /* Rangeslider background tray (bezel) */
+        #main-plot .rangeslider-bg {
+            fill: #0b0c10 !important;
+            stroke: #262c36 !important;
+            stroke-width: 1.5px !important;
+            rx: 6px !important;
+        }
+        [data-theme="light-clean"] #main-plot .rangeslider-bg {
+            fill: #f1f5f9 !important;
+            stroke: #cbd5e1 !important;
+            stroke-width: 1.5px !important;
+            rx: 6px !important;
+        }
+
+        /* Dimmed inactive regions outside selection */
+        #main-plot .rangeslider-mask-min,
+        #main-plot .rangeslider-mask-max {
+            fill: #020305 !important;
+            fill-opacity: 0.82 !important;
+        }
+        [data-theme="light-clean"] #main-plot .rangeslider-mask-min,
+        [data-theme="light-clean"] #main-plot .rangeslider-mask-max {
+            fill: #475569 !important;
+            fill-opacity: 0.40 !important;
+        }
+
+        /* Active selected window (slidebox) with crisp luminescent frame */
+        #main-plot .rangeslider-slidebox {
+            fill: rgba(56, 189, 248, 0.12) !important;
+            stroke: #38bdf8 !important;
+            stroke-width: 1.5px !important;
+            cursor: grab !important;
+        }
+        #main-plot .rangeslider-slidebox:active {
+            fill: rgba(56, 189, 248, 0.22) !important;
+            cursor: grabbing !important;
+        }
+        [data-theme="light-clean"] #main-plot .rangeslider-slidebox {
+            fill: rgba(2, 132, 199, 0.10) !important;
+            stroke: #0284c7 !important;
+            stroke-width: 1.5px !important;
+            cursor: grab !important;
+        }
+        [data-theme="light-clean"] #main-plot .rangeslider-slidebox:active {
+            fill: rgba(2, 132, 199, 0.20) !important;
+            cursor: grabbing !important;
+        }
+
+        /* High-contrast tactile grab handles (Left & Right) */
+        #main-plot .rangeslider-handle-min,
+        #main-plot .rangeslider-handle-max {
+            fill: #ffffff !important;
+            stroke: #38bdf8 !important;
+            stroke-width: 2.5px !important;
+            rx: 3px !important;
+            cursor: ew-resize !important;
+            filter: drop-shadow(0 0 5px rgba(56, 189, 248, 0.9)) !important;
+            transition: filter 0.15s ease, stroke 0.15s ease;
+        }
+        #main-plot .rangeslider-handle-min:hover,
+        #main-plot .rangeslider-handle-max:hover {
+            stroke: #7dd3fc !important;
+            filter: drop-shadow(0 0 8px rgba(56, 189, 248, 1)) !important;
+        }
+        [data-theme="light-clean"] #main-plot .rangeslider-handle-min,
+        [data-theme="light-clean"] #main-plot .rangeslider-handle-max {
+            fill: #ffffff !important;
+            stroke: #0284c7 !important;
+            stroke-width: 2.5px !important;
+            rx: 3px !important;
+            cursor: ew-resize !important;
+            filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.4)) !important;
+            transition: filter 0.15s ease, stroke 0.15s ease;
+        }
+        [data-theme="light-clean"] #main-plot .rangeslider-handle-min:hover,
+        [data-theme="light-clean"] #main-plot .rangeslider-handle-max:hover {
+            stroke: #0369a1 !important;
+            filter: drop-shadow(0 0 6px rgba(2, 132, 199, 0.8)) !important;
+        }
+
+        /* Grab Area Hover Cursor */
+        #main-plot .rangeslider-grabarea-min,
+        #main-plot .rangeslider-grabarea-max {
+            cursor: ew-resize !important;
+        }
+
         /* Precision Timeline Plot Laser Cursor */
         #plot-cursor-line {
             position: absolute;
@@ -9705,19 +9803,36 @@
                     }
                 });
             }
+            const isLightBg = document.documentElement.getAttribute('data-theme') === 'light-clean';
+
+            // Structural horizontal baseline divider separating main oscillograph plot from rangeslider
+            shapes.push({
+                type: 'line',
+                xref: 'paper',
+                yref: 'paper',
+                x0: 0,
+                x1: 1,
+                y0: 0,
+                y1: 0,
+                line: {
+                    color: isLightBg ? '#cbd5e1' : '#2d3340',
+                    width: 2
+                }
+            });
             basePlotShapes = shapes;
 
             const computedStyle = getComputedStyle(document.documentElement);
-            const isLightBg = document.documentElement.getAttribute('data-theme') === 'light-clean';
             const finalPlotBg = isLightBg ? '#ffffff' : (computedStyle.getPropertyValue('--av-plot-bg').trim() || '#0f1013');
             const axisTextColor = isLightBg ? '#334155' : '#94a3b8';
             const gridColor = isLightBg ? '#e2e8f0' : 'rgba(255, 255, 255, 0.04)';
             const zeroLineColor = isLightBg ? '#cbd5e1' : 'rgba(255, 255, 255, 0.08)';
+            const sliderBg = isLightBg ? '#f1f5f9' : '#0b0c10';
+            const sliderBorder = isLightBg ? '#cbd5e1' : '#262c36';
 
             const layout = {
                 paper_bgcolor: finalPlotBg,
                 plot_bgcolor: finalPlotBg,
-                margin: { l: 48, r: 48, t: 8, b: 32 },
+                margin: { l: 48, r: 48, t: 8, b: 36 },
                 font: { family: "'Inter', -apple-system, sans-serif", size: 10, color: axisTextColor },
                 hovermode: 'x unified',
                 hoverdistance: 30,
@@ -9730,12 +9845,17 @@
                     gridcolor: gridColor,
                     zerolinecolor: zeroLineColor,
                     tickfont: { family: "'B612 Mono', monospace", size: 9.5, color: axisTextColor },
+                    showline: true,
+                    linecolor: isLightBg ? '#cbd5e1' : '#2d3340',
+                    linewidth: 2,
+                    mirror: false,
                     fixedrange: false,
                     rangeslider: {
                         visible: true,
-                        thickness: 0.12,
-                        bgcolor: isLightBg ? '#ffffff' : 'rgba(0,0,0,0.3)',
-                        bordercolor: isLightBg ? '#cbd5e1' : '#334155'
+                        thickness: 0.15,
+                        bgcolor: sliderBg,
+                        bordercolor: sliderBorder,
+                        borderwidth: 1.5
                     }
                 },
                 yaxis: {
