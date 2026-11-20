@@ -7967,6 +7967,7 @@
 
             model.traverse(function (child) {
                 if (child.isMesh) {
+                    child.renderOrder = 9999;
                     child.geometry.computeVertexNormals(); // Fixes black model!
 
                     if (CONFIG.useOriginalLivery) {
@@ -14580,86 +14581,7 @@
                 smoothModes = nextModes;
             }
 
-            // 1. Aerodynamic 3D Volumetric Flight Ribbon Strip (Eliminates 1px WebGL aliasing)
-            const ribbonWidth = 0.85;
-            const rN = smoothPoints.length;
-            const ribbonVerts = new Float32Array(rN * 2 * 3);
-            const ribbonColors = new Float32Array(rN * 2 * 3);
-            const ribbonIndices = new Uint32Array((rN - 1) * 6);
-            const upVec = new THREE.Vector3(0, 1, 0);
-
-            let vIdx = 0;
-            let cIdx = 0;
-            let iIdx = 0;
-
-            for (let i = 0; i < rN; i++) {
-                const pt = smoothPoints[i];
-                const col = smoothColors[i];
-
-                let dir;
-                if (i === 0) {
-                    dir = new THREE.Vector3().subVectors(smoothPoints[1], smoothPoints[0]);
-                } else if (i === rN - 1) {
-                    dir = new THREE.Vector3().subVectors(smoothPoints[rN - 1], smoothPoints[rN - 2]);
-                } else {
-                    dir = new THREE.Vector3().subVectors(smoothPoints[i + 1], smoothPoints[i - 1]);
-                }
-
-                let norm = new THREE.Vector3().crossVectors(dir, upVec);
-                if (norm.lengthSq() > 1e-6) {
-                    norm.normalize();
-                } else {
-                    norm.set(1, 0, 0);
-                }
-
-                const halfW = ribbonWidth * 0.5;
-                ribbonVerts[vIdx++] = pt.x - norm.x * halfW;
-                ribbonVerts[vIdx++] = pt.y - norm.y * halfW;
-                ribbonVerts[vIdx++] = pt.z - norm.z * halfW;
-
-                ribbonVerts[vIdx++] = pt.x + norm.x * halfW;
-                ribbonVerts[vIdx++] = pt.y + norm.y * halfW;
-                ribbonVerts[vIdx++] = pt.z + norm.z * halfW;
-
-                ribbonColors[cIdx++] = col.r;
-                ribbonColors[cIdx++] = col.g;
-                ribbonColors[cIdx++] = col.b;
-
-                ribbonColors[cIdx++] = col.r;
-                ribbonColors[cIdx++] = col.g;
-                ribbonColors[cIdx++] = col.b;
-
-                if (i < rN - 1) {
-                    const base = i * 2;
-                    ribbonIndices[iIdx++] = base;
-                    ribbonIndices[iIdx++] = base + 1;
-                    ribbonIndices[iIdx++] = base + 2;
-
-                    ribbonIndices[iIdx++] = base + 2;
-                    ribbonIndices[iIdx++] = base + 1;
-                    ribbonIndices[iIdx++] = base + 3;
-                }
-            }
-
-            const ribbonGeo = new THREE.BufferGeometry();
-            ribbonGeo.setAttribute('position', new THREE.BufferAttribute(ribbonVerts, 3));
-            ribbonGeo.setAttribute('color', new THREE.BufferAttribute(ribbonColors, 3));
-            ribbonGeo.setIndex(new THREE.BufferAttribute(ribbonIndices, 1));
-
-            const ribbonMat = new THREE.MeshBasicMaterial({
-                vertexColors: true,
-                side: THREE.DoubleSide,
-                transparent: true,
-                opacity: 0.85,
-                depthWrite: false,
-                depthTest: false
-            });
-            const ribbonMesh = new THREE.Mesh(ribbonGeo, ribbonMat);
-            ribbonMesh.renderOrder = 8985;
-            ribbonMesh.frustumCulled = false;
-            window.logCorridorGroup.add(ribbonMesh);
-
-            // 2. High-Contrast Centerline Spine Vector (Silky-smooth C1 curve)
+            // High-Visibility Smooth Continuous Flight Trajectory Curve (Chaikin B-Spline)
             const sN = smoothPoints.length;
             const lineVerts = new Float32Array(sN * 3);
             const lineColArray = new Float32Array(sN * 3);
@@ -14680,8 +14602,8 @@
                 vertexColors: true,
                 linewidth: 2,
                 transparent: true,
-                opacity: 0.98,
-                depthTest: false,
+                opacity: 0.95,
+                depthTest: true,
                 depthWrite: false
             });
             const flightLine = new THREE.Line(lineGeo, lineMat);
