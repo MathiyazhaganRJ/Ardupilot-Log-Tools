@@ -3413,10 +3413,12 @@
                 <circle cx="12" cy="12" r="3"></circle>
             </svg>
         </button>
-        <button class="toolbar-btn" id="btn-toggle-coverage" title="Toggle 2D Survey Coverage Swath (1.0 km Corridor)">
+        <button class="toolbar-btn" id="btn-toggle-actuators" title="Toggle Actuator & Servo Outputs (16-CH Matrix) [Hotkey 'O']" onclick="toggleActuatorsPanel()">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="4" width="18" height="16" rx="2" stroke-dasharray="2 2"></rect>
+                <rect x="3" y="4" width="18" height="16" rx="2"></rect>
                 <line x1="12" y1="4" x2="12" y2="20"></line>
+                <line x1="7" y1="9" x2="7" y2="15"></line>
+                <line x1="17" y1="9" x2="17" y2="15"></line>
             </svg>
         </button>
         <button class="toolbar-btn" id="btn-toggle-graph" title="Toggle Atmosphere & Environmental Telemetry">
@@ -3485,6 +3487,10 @@
             <button id="tab-telemetry" class="panel-nav-tab active">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
                 <span>TELEMETRY</span>
+            </button>
+            <button id="tab-actuators" class="panel-nav-tab" title="Actuator & Servo Outputs Matrix (Hotkey 'O')">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="4" width="18" height="16" rx="2"></rect><line x1="12" y1="4" x2="12" y2="20"></line><line x1="7" y1="9" x2="7" y2="15"></line><line x1="17" y1="9" x2="17" y2="15"></line></svg>
+                <span>OUTPUTS</span>
             </button>
             <button id="tab-airspace" class="panel-nav-tab">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>
@@ -3567,8 +3573,20 @@
                 </div>
             </div>
 
-            <div class="section-title">Motors</div>
-            <div class="motor-bar-container" id="motor-bars"></div>
+            <!-- Quick Access Card to 16-Channel Actuators Matrix -->
+            <div class="data-card" style="margin-top: 10px; cursor: pointer; padding: 10px 12px; border: 1px solid rgba(56, 189, 248, 0.35); background: rgba(56, 189, 248, 0.06); border-radius: 8px; transition: all 0.15s ease;" onclick="toggleActuatorsPanel(true)" title="Open Full 16-Channel Actuators & Servo Matrix (Hotkey 'O')">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="width: 7px; height: 7px; border-radius: 50%; background: #38bdf8; box-shadow: 0 0 8px #38bdf8;"></span>
+                        <span style="font-size: 11px; font-weight: 700; color: #f1f5f9; letter-spacing: 0.5px;">ACTUATORS MATRIX</span>
+                    </div>
+                    <span id="telemetry-actuators-active-count" style="font-family: 'B612 Mono', monospace; font-size: 9.5px; font-weight: 700; color: #38bdf8; background: rgba(56, 189, 248, 0.15); padding: 1px 7px; border-radius: 4px; border: 1px solid rgba(56, 189, 248, 0.3);">16 CH</span>
+                </div>
+                <div style="font-size: 9px; color: var(--text-secondary); margin-top: 5px; display: flex; justify-content: space-between; align-items: center;">
+                    <span>View all servo/motor channels with function names</span>
+                    <span style="color: #38bdf8; font-weight: 700;">OPEN RACK &rarr;</span>
+                </div>
+            </div>
 
             <div style="margin-top: 24px; text-align: center; font-size: 10px; color: var(--text-secondary); opacity: 0.6; font-family: 'B612', sans-serif; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase;">
                 Designed by RJ
@@ -3579,6 +3597,29 @@
                 <button id="btn-follow" class="mode-btn btn-active" title="Orbit Vehicle">Orbit</button>
                 <button id="btn-free" class="mode-btn" title="Free Camera">Free</button>
             </div>
+        </div>
+
+        <!-- Tab 2: Dedicated Actuator & Servo Outputs Matrix (Sidebar View) -->
+        <div id="panel-view-actuators" style="display: none;">
+            <div class="data-card" style="padding: 10px; margin-bottom: 10px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <span style="width: 7px; height: 7px; border-radius: 50%; background: #38bdf8; box-shadow: 0 0 6px #38bdf8;"></span>
+                        <span style="font-size: 11px; font-weight: 700; color: #f1f5f9; letter-spacing: 0.5px; text-transform: uppercase;">16-CH ACTUATORS</span>
+                    </div>
+                    <div style="display: flex; background: var(--btn-bg); border-radius: 4px; padding: 2px; gap: 2px;">
+                        <button id="btn-sidebar-act-all" class="sidebar-act-filter active" onclick="setActuatorFilter('all')" style="border: none; background: var(--panel-bg); color: var(--accent); font-size: 8.5px; font-weight: 700; padding: 2px 7px; border-radius: 3px; cursor: pointer;">ALL (16)</button>
+                        <button id="btn-sidebar-act-assigned" class="sidebar-act-filter" onclick="setActuatorFilter('assigned')" style="border: none; background: transparent; color: var(--text-secondary); font-size: 8.5px; font-weight: 700; padding: 2px 7px; border-radius: 3px; cursor: pointer;">ASSIGNED</button>
+                    </div>
+                </div>
+                <div id="sidebar-actuators-list" style="display: flex; flex-direction: column; gap: 5px; max-height: calc(100vh - 300px); overflow-y: auto; padding-right: 2px;">
+                    <!-- Dynamically populated compact channel rows -->
+                </div>
+            </div>
+            <button class="btn-refresh" style="width: 100%; justify-content: center; padding: 8px; font-weight: 700; font-size: 11px;" onclick="toggleActuatorsPanel(true)">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+                OPEN FLOATING RACK
+            </button>
         </div>
 
         <!-- Tab 2: Airspace Range, Presets & Latest Satellite Imagery -->
@@ -4700,6 +4741,49 @@
         </div>
     </div>
 
+    <!-- 16-Channel Actuator & Servo Outputs Matrix (ArduPilot Canonical Mapping) -->
+    <div id="actuators-panel-container" class="actuators-matrix-panel"
+        style="position: absolute; bottom: 20px; left: 345px; width: min(760px, calc(100vw - 370px)); height: 265px; box-sizing: border-box; overflow: hidden; background: #000000; border-radius: 12px; border: 2px solid #1a2332; padding: 8px 12px; display: none; flex-direction: column; justify-content: space-between; box-shadow: 0 16px 45px rgba(0, 0, 0, 0.95), inset 0 1px 2px rgba(255, 255, 255, 0.08); z-index: 1000; pointer-events: auto; font-family: 'B612', 'B612 Mono', 'JetBrains Mono', monospace; user-select: none;">
+        
+        <!-- Top Header & Filter Bar -->
+        <div class="actuators-header" style="display: flex; justify-content: space-between; align-items: center; padding: 0 2px 6px 2px; flex-shrink: 0; border-bottom: 1px solid #141c28; cursor: grab;">
+            <div style="display: flex; align-items: center; gap: 8px; white-space: nowrap;">
+                <span style="width: 7px; height: 7px; border-radius: 50%; background: #38bdf8; box-shadow: 0 0 8px #38bdf8;"></span>
+                <span style="font-family: 'B612', sans-serif; font-size: 10px; font-weight: 800; letter-spacing: 1.5px; color: #8a9bb2; text-transform: uppercase;">ACTUATOR & SERVO OUTPUTS</span>
+                <span id="actuators-status-badge" style="background: rgba(56, 189, 248, 0.14); border: 1px solid rgba(56, 189, 248, 0.35); color: #38bdf8; font-size: 9px; font-weight: 700; padding: 1px 6px; border-radius: 3px; letter-spacing: 0.5px;">16 CHANNELS</span>
+            </div>
+            
+            <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+                <!-- Filter Mode: ALL vs ASSIGNED ONLY -->
+                <div style="display: flex; background: #0c1219; border: 1px solid #1f2b3c; border-radius: 4px; padding: 2px; gap: 2px;">
+                    <button id="btn-actuator-filter-all" class="actuator-filter-btn active" onclick="setActuatorFilter('all')" style="border: none; background: #1e293b; color: #38bdf8; font-family: 'B612', sans-serif; font-size: 9px; font-weight: 700; padding: 2px 8px; border-radius: 3px; cursor: pointer;">ALL (16)</button>
+                    <button id="btn-actuator-filter-assigned" class="actuator-filter-btn" onclick="setActuatorFilter('assigned')" style="border: none; background: transparent; color: #64748b; font-family: 'B612', sans-serif; font-size: 9px; font-weight: 700; padding: 2px 8px; border-radius: 3px; cursor: pointer;">ASSIGNED ONLY</button>
+                </div>
+                <!-- Close Button -->
+                <button class="avionics-close-dot" onclick="toggleActuatorsPanel(false)" title="Close Actuators Panel (Hotkey 'O')">&times;</button>
+            </div>
+        </div>
+
+        <!-- 16-Channel Grid Container (Scrollable horizontally if needed) -->
+        <div id="actuators-matrix-grid" style="display: flex; gap: 6px; flex: 1; align-items: stretch; justify-content: space-between; padding-top: 8px; overflow-x: auto; min-height: 0;">
+            <!-- Dynamically populated 16 channel columns -->
+        </div>
+
+        <!-- Bottom Legend Bar -->
+        <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 6px; border-top: 1px solid #141c28; flex-shrink: 0; font-size: 8.5px; color: #64748b;">
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <span style="display: flex; align-items: center; gap: 3px;"><span style="width: 6px; height: 6px; border-radius: 50%; background: #ff9f0a;"></span> PROP</span>
+                <span style="display: flex; align-items: center; gap: 3px;"><span style="width: 6px; height: 6px; border-radius: 50%; background: #bf5af2;"></span> TILT</span>
+                <span style="display: flex; align-items: center; gap: 3px;"><span style="width: 6px; height: 6px; border-radius: 50%; background: #00d2ff;"></span> AERO</span>
+                <span style="display: flex; align-items: center; gap: 3px;"><span style="width: 6px; height: 6px; border-radius: 50%; background: #30d158;"></span> RC</span>
+                <span style="display: flex; align-items: center; gap: 3px;"><span style="width: 6px; height: 6px; border-radius: 50%; background: #475569;"></span> OFF</span>
+            </div>
+            <div id="actuators-active-summary" style="font-family: 'B612 Mono', monospace; color: #94a3b8; font-weight: 700;">
+                ACTIVE: -- / 16
+            </div>
+        </div>
+    </div>
+
     <!-- Urgent Message Toast Ticker -->
     <div id="msg-toast-ticker" class="msg-toast-ticker" style="display: none;" onclick="openMessagesTabFromToast()">
         <span id="toast-severity-pill" class="msg-severity-pill pill-warn">WARN</span>
@@ -5187,12 +5271,14 @@
         window.toggleWeatherWidget = toggleWeatherWidget;
         if (btnToggleWeather) btnToggleWeather.onclick = () => toggleWeatherWidget();
 
-        // Panel View Tab Navigation (Telemetry vs Airspace vs Messages)
+        // Panel View Tab Navigation (Telemetry vs Actuators vs Airspace vs Messages)
         const tabTelemetry = document.getElementById('tab-telemetry');
+        const tabActuators = document.getElementById('tab-actuators');
         const tabAirspace = document.getElementById('tab-airspace');
         const tabMessages = document.getElementById('tab-messages');
         const tabMsgCount = document.getElementById('tab-msg-count');
         const viewTelemetry = document.getElementById('panel-view-telemetry');
+        const viewActuators = document.getElementById('panel-view-actuators');
         const viewAirspace = document.getElementById('panel-view-airspace');
         const viewMessages = document.getElementById('panel-view-messages');
         const btnOfflineMapHdr = document.getElementById('btn-offline-map-hdr');
@@ -5206,13 +5292,16 @@
             window.switchPanelTab = switchPanelTab;
             const isAirspace = tabName === 'airspace';
             const isMessages = tabName === 'messages';
-            const isTelemetry = !isAirspace && !isMessages;
+            const isActuators = tabName === 'actuators';
+            const isTelemetry = !isAirspace && !isMessages && !isActuators;
 
             if (tabTelemetry) tabTelemetry.classList.toggle('active', isTelemetry);
+            if (tabActuators) tabActuators.classList.toggle('active', isActuators);
             if (tabAirspace) tabAirspace.classList.toggle('active', isAirspace);
             if (tabMessages) tabMessages.classList.toggle('active', isMessages);
 
             if (viewTelemetry) viewTelemetry.style.display = isTelemetry ? 'block' : 'none';
+            if (viewActuators) viewActuators.style.display = isActuators ? 'block' : 'none';
             if (viewAirspace) viewAirspace.style.display = isAirspace ? 'block' : 'none';
             if (viewMessages) viewMessages.style.display = isMessages ? 'block' : 'none';
 
@@ -5249,6 +5338,11 @@
                 refreshCacheStatus();
                 updateMapEstimate();
                 populatePresetDropdown();
+            } else if (isActuators) {
+                updateActuatorLabelsFromParameters();
+                if (typeof latestServos !== 'undefined' && Array.isArray(latestServos)) {
+                    updateActuatorOutputsUI(latestServos);
+                }
             } else if (isTelemetry) {
                 if (typeof cameraMode !== 'undefined' && cameraMode === 'follow' && typeof controls !== 'undefined' && typeof vtolGroup !== 'undefined') {
                     controls.target.copy(vtolGroup.position);
@@ -5266,6 +5360,16 @@
             } else {
                 if (!isVisible) toggleUiPanel();
                 switchPanelTab('telemetry');
+            }
+        };
+        if (tabActuators) tabActuators.onclick = () => {
+            const isVisible = uiPanel && (uiPanel.style.display !== 'none' && window.getComputedStyle(uiPanel).display !== 'none');
+            const isActActive = tabActuators.classList.contains('active');
+            if (isVisible && isActActive) {
+                toggleUiPanel();
+            } else {
+                if (!isVisible) toggleUiPanel();
+                switchPanelTab('actuators');
             }
         };
         if (tabAirspace) tabAirspace.onclick = () => {
@@ -7038,6 +7142,10 @@
         }
         if (graphContainer) {
             makeDraggable(graphContainer, graphContainer.querySelector('div') || graphContainer);
+        }
+        const actuatorsPanelEl = document.getElementById('actuators-panel-container');
+        if (actuatorsPanelEl) {
+            makeDraggable(actuatorsPanelEl, actuatorsPanelEl.querySelector('.actuators-header') || actuatorsPanelEl);
         }
 
         // FMS CDU Navigation Panel Toggle
@@ -9446,6 +9554,8 @@
                 toggleLxnavWidget();
             } else if (e.key === 'e' || e.key === 'E') {
                 toggleEisWidget();
+            } else if (e.key === 'o' || e.key === 'O') {
+                toggleActuatorsPanel();
             } else if (e.key === '[' || e.key === '{') {
                 prevLxnavPage();
             } else if (e.key === ']' || e.key === '}') {
@@ -9462,19 +9572,336 @@
         let lastRenderTime = Date.now();
         let lastPeriodicMapUpdate = 0;
 
+        // ============================================================
+        // 16-CHANNEL ACTUATOR & SERVO OUTPUTS MATRIX ARCHITECTURE
+        // ============================================================
+        let currentVehicleParameters = {};
+        let actuatorFilterMode = 'all'; // 'all' or 'assigned'
+        let actuatorsPanelVisible = false;
+
+        const ARDUPILOT_SERVO_FUNCTIONS = {
+            0: 'Disabled', 1: 'RCPassThru', 2: 'Flap', 3: 'Flaperon', 4: 'Aileron',
+            6: 'mount_pan', 7: 'mount_tilt', 8: 'mount_roll', 9: 'camera_trigger', 10: 'camera_release',
+            12: 'mount2_pan', 13: 'mount2_tilt', 14: 'mount2_roll', 16: 'DiffSpoiler 1', 17: 'DiffSpoiler 2',
+            18: 'Elevon Left', 19: 'Elevator', 20: 'Elevon Right', 21: 'Rudder', 22: 'DiffSpoiler 1',
+            23: 'DiffSpoiler 2', 24: 'Flaperon Left', 25: 'Flaperon Right', 26: 'Ground Steering',
+            27: 'Parachute', 28: 'Gripper', 29: 'Landing Gear', 30: 'Engine Run/Stop', 31: 'HeliRSC',
+            32: 'HeliTailRSC', 33: 'Motor 1', 34: 'Motor 2', 35: 'Motor 3', 36: 'Motor 4',
+            37: 'Motor 5', 38: 'Motor 6', 39: 'Motor 7', 40: 'Motor 8', 41: 'Motor Tilt',
+            51: 'RCIN 1', 52: 'RCIN 2', 53: 'RCIN 3', 54: 'RCIN 4', 55: 'RCIN 5', 56: 'RCIN 6',
+            57: 'RCIN 7', 58: 'RCIN 8', 59: 'RCIN 9', 60: 'RCIN 10', 61: 'RCIN 11', 62: 'RCIN 12',
+            63: 'RCIN 13', 64: 'RCIN 14', 65: 'RCIN 15', 66: 'RCIN 16', 70: 'Throttle',
+            73: 'Throttle Left', 74: 'Throttle Right', 75: 'TiltMotor Left', 76: 'TiltMotor Right',
+            77: 'Elevon Left', 78: 'Elevon Right', 79: 'V-Tail Left', 80: 'V-Tail Right',
+            81: 'Motor 9', 82: 'Motor 10', 83: 'Motor 11', 84: 'Motor 12', 85: 'Motor 13',
+            86: 'Motor 14', 87: 'Motor 15', 88: 'Motor 16', 89: 'Airbrakes', 94: 'Scripting 1',
+            95: 'Scripting 2', 96: 'Scripting 3'
+        };
+
+        function getServoFunctionInfo(chNum) {
+            const p = currentVehicleParameters || {};
+            const key = `SERVO${chNum}_FUNCTION`;
+            const altKey = `RC${chNum}_FUNCTION`;
+            let code = undefined;
+            if (p[key] !== undefined) code = parseInt(p[key], 10);
+            else if (p[altKey] !== undefined) code = parseInt(p[altKey], 10);
+
+            if (code === undefined || isNaN(code)) {
+                return { code: -1, name: 'Unassigned', category: 'OFF', color: '#64748b', isAssigned: false };
+            }
+            if (code === 0) {
+                return { code: 0, name: 'Disabled', category: 'OFF', color: '#64748b', isAssigned: false };
+            }
+            const name = ARDUPILOT_SERVO_FUNCTIONS[code] || `Fn ${code}`;
+            let category = 'AUX', color = '#94a3b8';
+            if ((code >= 33 && code <= 40) || code === 70 || code === 73 || code === 74 || (code >= 81 && code <= 88)) {
+                category = 'PROP'; color = '#ff9f0a';
+            } else if (code === 41 || code === 75 || code === 76) {
+                category = 'TILT'; color = '#bf5af2';
+            } else if ([2, 3, 4, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 77, 78, 79, 80, 89].includes(code)) {
+                category = 'AERO'; color = '#00d2ff';
+            } else if (code === 1 || (code >= 51 && code <= 66)) {
+                category = 'RC'; color = '#30d158';
+            }
+            return { code, name, category, color, isAssigned: true };
+        }
+
+        const actuatorMatrixCols = [];
+        const actuatorSidebarRows = [];
+
+        function buildActuatorOutputsGrid() {
+            const grid = document.getElementById('actuators-matrix-grid');
+            const sidebarList = document.getElementById('sidebar-actuators-list');
+            if (grid) grid.innerHTML = '';
+            if (sidebarList) sidebarList.innerHTML = '';
+            actuatorMatrixCols.length = 0;
+            actuatorSidebarRows.length = 0;
+
+            for (let ch = 1; ch <= 16; ch++) {
+                const info = getServoFunctionInfo(ch);
+
+                // 1. Build Floating Matrix Column (Vertical Pillar)
+                if (grid) {
+                    const col = document.createElement('div');
+                    col.className = 'actuator-matrix-col';
+                    col.dataset.ch = ch;
+                    col.style.cssText = 'flex: 1; min-width: 38px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; background: #080d14; border: 1px solid #16202c; border-radius: 6px; padding: 5px 2px; transition: all 0.15s ease;';
+
+                    const pwmEl = document.createElement('div');
+                    pwmEl.className = 'actuator-pwm-val';
+                    pwmEl.style.cssText = "font-family: 'B612 Mono', monospace; font-size: 10px; font-weight: 700; color: #f1f5f9; text-align: center; margin-bottom: 2px;";
+                    pwmEl.textContent = '1000';
+
+                    const barBg = document.createElement('div');
+                    barBg.style.cssText = 'width: 14px; height: 110px; background: #161b22; border-radius: 7px; position: relative; overflow: hidden; border: 1px solid #21262d; display: flex; flex-direction: column-reverse; margin: 3px auto;';
+
+                    const barFill = document.createElement('div');
+                    barFill.style.cssText = 'width: 100%; height: 0%; background: #30d158; border-radius: 7px; transition: height 0.08s ease, background 0.12s ease;';
+                    barBg.appendChild(barFill);
+
+                    // Midline tick (1500us center)
+                    const midTick = document.createElement('div');
+                    midTick.style.cssText = 'position: absolute; top: 50%; left: 0; right: 0; height: 1px; background: rgba(255,255,255,0.22); pointer-events: none;';
+                    barBg.appendChild(midTick);
+
+                    const chLabel = document.createElement('div');
+                    chLabel.style.cssText = "font-family: 'B612 Mono', monospace; font-size: 8.5px; font-weight: 800; color: #8a9bb2; text-align: center; margin-top: 3px;";
+                    chLabel.textContent = `C${ch}`;
+
+                    const catTag = document.createElement('span');
+                    catTag.style.cssText = `font-family: 'B612', sans-serif; font-size: 7.5px; font-weight: 800; text-transform: uppercase; padding: 1px 3px; border-radius: 2px; color: ${info.color}; background: ${info.color}18; border: 1px solid ${info.color}40; margin: 2px 0;`;
+                    catTag.textContent = info.category;
+
+                    const fnLabel = document.createElement('div');
+                    fnLabel.style.cssText = "font-family: 'B612', sans-serif; font-size: 8.5px; font-weight: 700; color: #cbd5e1; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 44px; letter-spacing: -0.2px;";
+                    fnLabel.textContent = info.name;
+                    fnLabel.title = `CH ${ch}: ${info.name}`;
+
+                    col.appendChild(pwmEl);
+                    col.appendChild(barBg);
+                    col.appendChild(chLabel);
+                    col.appendChild(catTag);
+                    col.appendChild(fnLabel);
+                    grid.appendChild(col);
+
+                    actuatorMatrixCols.push({ colEl: col, pwmEl, fillEl: barFill, catEl: catTag, fnEl: fnLabel });
+                }
+
+                // 2. Build Sidebar Compact Channel Row
+                if (sidebarList) {
+                    const row = document.createElement('div');
+                    row.className = 'sidebar-actuator-row';
+                    row.dataset.ch = ch;
+                    row.style.cssText = 'display: flex; align-items: center; justify-content: space-between; background: var(--btn-bg); border: 1px solid var(--border-color); border-radius: 5px; padding: 4px 8px; font-size: 10px; transition: all 0.15s ease; gap: 6px;';
+
+                    const leftWrap = document.createElement('div');
+                    leftWrap.style.cssText = 'display: flex; align-items: center; gap: 6px; min-width: 0; flex: 1;';
+
+                    const chBadge = document.createElement('span');
+                    chBadge.style.cssText = "font-family: 'B612 Mono', monospace; font-size: 9px; font-weight: 800; color: #8a9bb2; flex-shrink: 0; width: 28px;";
+                    chBadge.textContent = `C${ch}`;
+
+                    const catBadge = document.createElement('span');
+                    catBadge.style.cssText = `font-family: 'B612', sans-serif; font-size: 7.5px; font-weight: 800; text-transform: uppercase; padding: 1px 3px; border-radius: 2px; color: ${info.color}; background: ${info.color}18; border: 1px solid ${info.color}40; flex-shrink: 0;`;
+                    catBadge.textContent = info.category;
+
+                    const fnName = document.createElement('span');
+                    fnName.style.cssText = "font-family: 'B612', sans-serif; font-size: 10px; font-weight: 700; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;";
+                    fnName.textContent = info.name;
+                    fnName.title = `CH ${ch}: ${info.name}`;
+
+                    leftWrap.appendChild(chBadge);
+                    leftWrap.appendChild(catBadge);
+                    leftWrap.appendChild(fnName);
+
+                    const rightWrap = document.createElement('div');
+                    rightWrap.style.cssText = 'display: flex; align-items: center; gap: 6px; flex-shrink: 0;';
+
+                    const miniBarBg = document.createElement('div');
+                    miniBarBg.style.cssText = 'width: 44px; height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden; position: relative;';
+
+                    const miniBarFill = document.createElement('div');
+                    miniBarFill.style.cssText = 'height: 100%; width: 0%; background: #30d158; border-radius: 3px; transition: width 0.08s ease;';
+                    miniBarBg.appendChild(miniBarFill);
+
+                    const pwmVal = document.createElement('span');
+                    pwmVal.style.cssText = "font-family: 'B612 Mono', monospace; font-size: 9.5px; font-weight: 700; color: #cbd5e1; width: 44px; text-align: right;";
+                    pwmVal.textContent = '1000 µs';
+
+                    rightWrap.appendChild(miniBarBg);
+                    rightWrap.appendChild(pwmVal);
+
+                    row.appendChild(leftWrap);
+                    row.appendChild(rightWrap);
+                    sidebarList.appendChild(row);
+
+                    actuatorSidebarRows.push({ rowEl: row, pwmEl: pwmVal, fillEl: miniBarFill, catEl: catBadge, fnEl: fnName });
+                }
+            }
+            updateActuatorLabelsFromParameters();
+        }
+
+        function updateActuatorOutputsUI(servos) {
+            if (!servos || !Array.isArray(servos)) return;
+            for (let i = 0; i < 16; i++) {
+                const pwm = Math.round(servos[i] !== undefined ? servos[i] : 1000);
+                const pct = Math.max(0, Math.min(100, ((pwm - 1000) / 1000.0) * 100));
+
+                let fillColor = '#30d158'; // Normal green
+                let textColor = '#f1f5f9';
+                if (pwm <= 1050) {
+                    fillColor = '#252e3d'; // Idle/Cutoff
+                    textColor = '#64748b';
+                } else if (pwm > 1950) {
+                    fillColor = '#ff453a'; // Max load red
+                    textColor = '#ff453a';
+                } else if (pwm > 1850) {
+                    fillColor = '#ff9f0a'; // High load amber
+                    textColor = '#ff9f0a';
+                }
+
+                // Update Floating Rack
+                if (actuatorMatrixCols[i]) {
+                    actuatorMatrixCols[i].pwmEl.textContent = pwm;
+                    actuatorMatrixCols[i].pwmEl.style.color = textColor;
+                    actuatorMatrixCols[i].fillEl.style.height = (pwm <= 1050) ? '0%' : (pct + '%');
+                    actuatorMatrixCols[i].fillEl.style.background = fillColor;
+                }
+
+                // Update Sidebar
+                if (actuatorSidebarRows[i]) {
+                    actuatorSidebarRows[i].pwmEl.textContent = `${pwm} µs`;
+                    actuatorSidebarRows[i].pwmEl.style.color = textColor;
+                    actuatorSidebarRows[i].fillEl.style.width = (pwm <= 1050) ? '0%' : (pct + '%');
+                    actuatorSidebarRows[i].fillEl.style.background = fillColor;
+                }
+            }
+        }
+
+        function updateActuatorLabelsFromParameters() {
+            let activeCount = 0;
+            for (let ch = 1; ch <= 16; ch++) {
+                const info = getServoFunctionInfo(ch);
+                if (info.isAssigned) activeCount++;
+                const isVisible = (actuatorFilterMode === 'all') || info.isAssigned;
+
+                if (actuatorMatrixCols[ch - 1]) {
+                    const c = actuatorMatrixCols[ch - 1];
+                    c.fnEl.textContent = info.name;
+                    c.fnEl.title = `CH ${ch}: ${info.name} (Code ${info.code})`;
+                    c.catEl.textContent = info.category;
+                    c.catEl.style.color = info.color;
+                    c.catEl.style.border = `1px solid ${info.color}40`;
+                    c.catEl.style.background = `${info.color}18`;
+                    c.colEl.style.display = isVisible ? 'flex' : 'none';
+                }
+
+                if (actuatorSidebarRows[ch - 1]) {
+                    const r = actuatorSidebarRows[ch - 1];
+                    r.fnEl.textContent = info.name;
+                    r.fnEl.title = `CH ${ch}: ${info.name} (Code ${info.code})`;
+                    r.catEl.textContent = info.category;
+                    r.catEl.style.color = info.color;
+                    r.catEl.style.border = `1px solid ${info.color}40`;
+                    r.catEl.style.background = `${info.color}18`;
+                    r.rowEl.style.display = isVisible ? 'flex' : 'none';
+                }
+            }
+
+            const activeSummary = document.getElementById('actuators-active-summary');
+            if (activeSummary) activeSummary.textContent = `ACTIVE: ${activeCount} / 16`;
+
+            const telemCount = document.getElementById('telemetry-actuators-active-count');
+            if (telemCount) telemCount.textContent = `${activeCount} ACTIVE`;
+
+            const statusBadge = document.getElementById('actuators-status-badge');
+            if (statusBadge) statusBadge.textContent = `${activeCount} ACTIVE / 16 CH`;
+        }
+
+        function setActuatorFilter(mode) {
+            actuatorFilterMode = mode;
+            const btnAll = document.getElementById('btn-actuator-filter-all');
+            const btnAssigned = document.getElementById('btn-actuator-filter-assigned');
+            if (btnAll) {
+                btnAll.classList.toggle('active', mode === 'all');
+                btnAll.style.background = mode === 'all' ? '#1e293b' : 'transparent';
+                btnAll.style.color = mode === 'all' ? '#38bdf8' : '#64748b';
+            }
+            if (btnAssigned) {
+                btnAssigned.classList.toggle('active', mode === 'assigned');
+                btnAssigned.style.background = mode === 'assigned' ? '#1e293b' : 'transparent';
+                btnAssigned.style.color = mode === 'assigned' ? '#38bdf8' : '#64748b';
+            }
+            const btnSbAll = document.getElementById('btn-sidebar-act-all');
+            const btnSbAssigned = document.getElementById('btn-sidebar-act-assigned');
+            if (btnSbAll) {
+                btnSbAll.style.background = mode === 'all' ? 'var(--panel-bg)' : 'transparent';
+                btnSbAll.style.color = mode === 'all' ? 'var(--accent)' : 'var(--text-secondary)';
+            }
+            if (btnSbAssigned) {
+                btnSbAssigned.style.background = mode === 'assigned' ? 'var(--panel-bg)' : 'transparent';
+                btnSbAssigned.style.color = mode === 'assigned' ? 'var(--accent)' : 'var(--text-secondary)';
+            }
+            updateActuatorLabelsFromParameters();
+        }
+        window.setActuatorFilter = setActuatorFilter;
+
+        function resetActuatorsDefaultPosition() {
+            const w = document.getElementById('actuators-panel-container');
+            if (!w) return;
+            delete w.dataset.userDragged;
+            w.style.top = '';
+            w.style.right = '';
+            w.style.bottom = '20px';
+            const uiPanel = document.getElementById('ui-panel');
+            const isPanelOpen = uiPanel && (uiPanel.style.display !== 'none' && window.getComputedStyle(uiPanel).display !== 'none') && !uiPanel.classList.contains('collapsed');
+            w.style.left = isPanelOpen ? '345px' : '20px';
+        }
+        window.resetActuatorsDefaultPosition = resetActuatorsDefaultPosition;
+
+        function toggleActuatorsPanel(forceState) {
+            const w = document.getElementById('actuators-panel-container');
+            const btn = document.getElementById('btn-toggle-actuators');
+            const isVisible = w && (w.style.display !== 'none' && window.getComputedStyle(w).display !== 'none');
+            const shouldOpen = (forceState !== undefined) ? forceState : !isVisible;
+            actuatorsPanelVisible = shouldOpen;
+            if (shouldOpen) {
+                resetActuatorsDefaultPosition();
+                if (typeof latestServos !== 'undefined' && Array.isArray(latestServos)) {
+                    updateActuatorOutputsUI(latestServos);
+                }
+            }
+            if (w) w.style.display = shouldOpen ? 'flex' : 'none';
+            if (btn) btn.classList.toggle('active', shouldOpen);
+            localStorage.setItem('actuators_panel_visible', shouldOpen ? '1' : '0');
+        }
+        window.toggleActuatorsPanel = toggleActuatorsPanel;
+
+        function loadFlightLogParameters(params) {
+            if (!params) return;
+            currentVehicleParameters = params;
+            updateActuatorLabelsFromParameters();
+        }
+        window.loadFlightLogParameters = loadFlightLogParameters;
+
+        // Initialize 16-channel Actuators Matrix UI
+        buildActuatorOutputsGrid();
+
         const motorBarsContainer = document.getElementById('motor-bars');
         const uiFills = [], uiPwms = [];
-        for (let i = 0; i < 8; i++) {
-            const wrapper = document.createElement('div');
-            wrapper.className = 'motor-bar-wrapper';
-            const pwmVal = document.createElement('div'); pwmVal.className = 'pwm-label'; pwmVal.innerText = '1000';
-            const bg = document.createElement('div'); bg.className = 'motor-bar-bg';
-            const fill = document.createElement('div'); fill.className = 'motor-bar-fill'; fill.style.height = '0%';
-            bg.appendChild(fill);
-            const lbl = document.createElement('div'); lbl.innerText = i + 1; lbl.className = 'motor-label';
-            wrapper.appendChild(pwmVal); wrapper.appendChild(bg); wrapper.appendChild(lbl);
-            motorBarsContainer.appendChild(wrapper);
-            uiFills.push(fill); uiPwms.push(pwmVal);
+        if (motorBarsContainer) {
+            for (let i = 0; i < 8; i++) {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'motor-bar-wrapper';
+                const pwmVal = document.createElement('div'); pwmVal.className = 'pwm-label'; pwmVal.innerText = '1000';
+                const bg = document.createElement('div'); bg.className = 'motor-bar-bg';
+                const fill = document.createElement('div'); fill.style.height = '0%';
+                bg.appendChild(fill);
+                const lbl = document.createElement('div'); lbl.innerText = i + 1; lbl.className = 'motor-label';
+                wrapper.appendChild(pwmVal); wrapper.appendChild(bg); wrapper.appendChild(lbl);
+                motorBarsContainer.appendChild(wrapper);
+                uiFills.push(fill); uiPwms.push(pwmVal);
+            }
         }
 
         let cameraMode = 'follow', lastPlanePos = new THREE.Vector3(), lastTrailAddPos = new THREE.Vector3();
@@ -12416,11 +12843,17 @@
             else if (data.type === 'SERVO_OUTPUT_RAW') {
                 servoSpeeds = data.servos;
                 latestServos = data.servos;
+                if (typeof updateActuatorOutputsUI === 'function') {
+                    updateActuatorOutputsUI(latestServos);
+                }
                 for (let i = 0; i < 8; i++) {
-                    let pwm = servoSpeeds[i]; uiPwms[i].innerText = pwm;
+                    let pwm = servoSpeeds[i];
+                    if (uiPwms && uiPwms[i]) uiPwms[i].innerText = pwm;
                     let percent = Math.max(0, Math.min(100, ((pwm - 1000) / 1000) * 100));
-                    uiFills[i].style.height = percent + '%';
-                    uiFills[i].style.background = (percent > 80) ? 'var(--danger)' : (percent > 10 ? 'var(--success)' : 'transparent');
+                    if (uiFills && uiFills[i]) {
+                        uiFills[i].style.height = percent + '%';
+                        uiFills[i].style.background = (percent > 80) ? 'var(--danger)' : (percent > 10 ? 'var(--success)' : 'transparent');
+                    }
                 }
 
                 // Calculate Cruise Pusher RPM based on PWM, Voltage, and KV
@@ -14834,10 +15267,13 @@
                 if (lxnavMode) lxnavMode.innerText = pt.mode;
             }
 
-            // 8. 8-Channel Servo / Motor Actuation (MOTORS 1..8)
+            // 8. 16-Channel Servo / Actuator Outputs Matrix
             if (pt.servos && Array.isArray(pt.servos)) {
                 latestServos = pt.servos;
                 servoSpeeds = pt.servos;
+                if (typeof updateActuatorOutputsUI === 'function') {
+                    updateActuatorOutputsUI(pt.servos);
+                }
                 for (let i = 0; i < 8; i++) {
                     const pwm = Math.round(pt.servos[i] || 1000);
                     if (uiPwms && uiPwms[i]) uiPwms[i].innerText = pwm;
@@ -15277,6 +15713,12 @@
                 const wps = event.data.waypoints || [];
                 if (typeof window.loadFlightLogWaypoints === 'function') {
                     window.loadFlightLogWaypoints(wps);
+                }
+
+                // Populate Vehicle Parameters & Servo Output Functions
+                const params = event.data.parameters || {};
+                if (typeof window.loadFlightLogParameters === 'function') {
+                    window.loadFlightLogParameters(params);
                 }
 
                 // Populate Autopilot Messages Log if available in flight log

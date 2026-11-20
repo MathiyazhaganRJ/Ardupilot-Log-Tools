@@ -5529,7 +5529,7 @@
             <div id="lower-viewports-wrapper" class="fullscreen" style="flex: 1; position: relative; width: 100%; height: 100%; min-height: 0;">
                 <!-- 3D Flight Visualizer View (3D Terrain + PFD Horizon + NAV Compass + Atmosphere Panel) -->
                 <div id="sitl-pane" style="width: 100%; height: 100%; position: absolute; top: 0; left: 0; right: 0; bottom: 0;">
-                    <iframe id="sitl-viewer-frame" src="sharkee_hud.html?v=20261120_PROP_PWM_FIX_v9" style="width: 100%; height: 100%; border: none; display: block;" onload="onSitlIframeLoaded()"></iframe>
+                    <iframe id="sitl-viewer-frame" src="sharkee_hud.html?v=20261120_ACTUATOR_MATRIX_v10" style="width: 100%; height: 100%; border: none; display: block;" onload="onSitlIframeLoaded()"></iframe>
                 </div>
 
                 <!-- 2D Leaflet Satellite Map View -->
@@ -8157,7 +8157,8 @@
                         type: 'LOAD_FLIGHT_LOG',
                         trajectory: hudTraj,
                         messages: currentFlightMessages,
-                        waypoints: currentFlightWaypoints
+                        waypoints: currentFlightWaypoints,
+                        parameters: currentFlightParameters
                     }, '*');
                     const firstValid = hudTraj.find(p => p.lat && p.lng && Math.abs(p.lat) > 0.001) || hudTraj[0];
                     if (firstValid) {
@@ -8178,6 +8179,9 @@
                         }
                         if (typeof iframe.contentWindow.loadFlightLogWaypoints === 'function') {
                             iframe.contentWindow.loadFlightLogWaypoints(currentFlightWaypoints);
+                        }
+                        if (typeof iframe.contentWindow.loadFlightLogParameters === 'function') {
+                            iframe.contentWindow.loadFlightLogParameters(currentFlightParameters);
                         }
                         if (typeof iframe.contentWindow.applyFlightLogTelemetry === 'function' && firstValid) {
                             iframe.contentWindow.applyFlightLogTelemetry(firstValid, true);
@@ -8318,14 +8322,15 @@
             // Update Leaflet Satellite Map
             updateMapTrajectory(currentTrajectory);
 
-            // Build UAV Log Viewer message & field tree for plotting
-            buildMessageTree(data.formats || {});
-
             // Store & build vehicle parameters catalog
             currentFlightParameters = data.parameters || {};
             const paramsBadge = document.getElementById('vehicle-params-count');
             if (paramsBadge) paramsBadge.textContent = Object.keys(currentFlightParameters).length;
             renderParametersList('');
+
+            // Build UAV Log Viewer message & field tree for plotting (enriched with ArduPilot parameter function names)
+            buildMessageTree(data.formats || {});
+            updateRcouTreeLabelsWithParameters();
 
             // Reset active plotted fields on initial log load
             activeFields = [];
@@ -8758,6 +8763,126 @@
         let currentFlightParameters = {};
         let activeSidebarTreeTab = 'telemetry';
 
+        // Canonical ArduPilot Servo & Output Functions Lookup
+        const ARDUPILOT_SERVO_FUNCTIONS = {
+            0: 'Disabled',
+            1: 'RCPassThru',
+            2: 'Flap',
+            3: 'Flaperon',
+            4: 'Aileron',
+            6: 'mount_pan',
+            7: 'mount_tilt',
+            8: 'mount_roll',
+            9: 'camera_trigger',
+            10: 'camera_release',
+            12: 'mount2_pan',
+            13: 'mount2_tilt',
+            14: 'mount2_roll',
+            16: 'DiffSpoiler 1',
+            17: 'DiffSpoiler 2',
+            18: 'Elevon Left',
+            19: 'Elevator',
+            20: 'Elevon Right',
+            21: 'Rudder',
+            22: 'DiffSpoiler 1',
+            23: 'DiffSpoiler 2',
+            24: 'Flaperon Left',
+            25: 'Flaperon Right',
+            26: 'Ground Steering',
+            27: 'Parachute',
+            28: 'Gripper',
+            29: 'Landing Gear',
+            30: 'Engine Run/Stop',
+            31: 'HeliRSC',
+            32: 'HeliTailRSC',
+            33: 'Motor 1',
+            34: 'Motor 2',
+            35: 'Motor 3',
+            36: 'Motor 4',
+            37: 'Motor 5',
+            38: 'Motor 6',
+            39: 'Motor 7',
+            40: 'Motor 8',
+            41: 'Motor Tilt',
+            51: 'RCIN 1',
+            52: 'RCIN 2',
+            53: 'RCIN 3',
+            54: 'RCIN 4',
+            55: 'RCIN 5',
+            56: 'RCIN 6',
+            57: 'RCIN 7',
+            58: 'RCIN 8',
+            59: 'RCIN 9',
+            60: 'RCIN 10',
+            61: 'RCIN 11',
+            62: 'RCIN 12',
+            63: 'RCIN 13',
+            64: 'RCIN 14',
+            65: 'RCIN 15',
+            66: 'RCIN 16',
+            70: 'Throttle',
+            73: 'Throttle Left',
+            74: 'Throttle Right',
+            75: 'TiltMotor Left',
+            76: 'TiltMotor Right',
+            77: 'Elevon Left',
+            78: 'Elevon Right',
+            79: 'V-Tail Left',
+            80: 'V-Tail Right',
+            81: 'Motor 9',
+            82: 'Motor 10',
+            83: 'Motor 11',
+            84: 'Motor 12',
+            85: 'Motor 13',
+            86: 'Motor 14',
+            87: 'Motor 15',
+            88: 'Motor 16',
+            89: 'Airbrakes',
+            94: 'Scripting 1',
+            95: 'Scripting 2',
+            96: 'Scripting 3'
+        };
+
+        function getServoFunctionName(chNum, params) {
+            if (!params) params = currentFlightParameters || {};
+            const key = `SERVO${chNum}_FUNCTION`;
+            const altKey = `RC${chNum}_FUNCTION`;
+            let code = undefined;
+            if (params[key] !== undefined) code = parseInt(params[key], 10);
+            else if (params[altKey] !== undefined) code = parseInt(params[altKey], 10);
+            if (code !== undefined && !isNaN(code)) {
+                return ARDUPILOT_SERVO_FUNCTIONS[code] || `Fn ${code}`;
+            }
+            return '';
+        }
+
+        function updateRcouTreeLabelsWithParameters() {
+            const treeContainer = document.getElementById('message-tree');
+            if (!treeContainer) return;
+            const rcouNodes = treeContainer.querySelectorAll('.msg-node[data-msg="RCOU"], .msg-node[data-msg="SERV"]');
+            rcouNodes.forEach(node => {
+                const fields = node.querySelectorAll('.field-item');
+                fields.forEach(f => {
+                    const rawCol = f.dataset.field || '';
+                    const match = rawCol.match(/^C([0-9]+)$/i);
+                    if (match) {
+                        const ch = parseInt(match[1], 10);
+                        const fnName = getServoFunctionName(ch, currentFlightParameters);
+                        if (fnName) {
+                            f.dataset.funcName = fnName.toLowerCase();
+                            f.dataset.origText = `${rawCol} (${fnName})`;
+                            const fnEl = f.querySelector('.field-name');
+                            const isDis = fnName === 'Disabled';
+                            const badgeColor = isDis ? '#64748b' : '#38bdf8';
+                            if (fnEl) {
+                                fnEl.innerHTML = `${rawCol} <span class="rcou-fn-badge" style="font-size:10.5px; color:${badgeColor}; font-weight:600; margin-left:5px; opacity:0.95;">(${fnName})</span>`;
+                            }
+                        }
+                    }
+                });
+            });
+        }
+
         function buildMessageTree(formats) {
             const treeContainer = document.getElementById('message-tree');
             if (!treeContainer) return;
@@ -8795,8 +8920,26 @@
                     const fItem = document.createElement('div');
                     fItem.className = 'field-item';
                     fItem.dataset.field = col;
-                    fItem.dataset.origText = col;
-                    fItem.innerHTML = `<span class="field-name">${col}</span><span class="plot-tag">+ PLOT</span>`;
+                    
+                    let displayHtml = col;
+                    let fullOrigText = col;
+                    if (msgName === 'RCOU' || msgName === 'SERV') {
+                        const match = col.match(/^C([0-9]+)$/i);
+                        if (match) {
+                            const chNum = parseInt(match[1], 10);
+                            const fnName = getServoFunctionName(chNum, currentFlightParameters);
+                            if (fnName) {
+                                fItem.dataset.funcName = fnName.toLowerCase();
+                                fullOrigText = `${col} (${fnName})`;
+                                const isDis = fnName === 'Disabled';
+                                const badgeColor = isDis ? '#64748b' : '#38bdf8';
+                                displayHtml = `${col} <span class="rcou-fn-badge" style="font-size:10.5px; color:${badgeColor}; font-weight:600; margin-left:5px; opacity:0.95;">(${fnName})</span>`;
+                            }
+                        }
+                    }
+
+                    fItem.dataset.origText = fullOrigText;
+                    fItem.innerHTML = `<span class="field-name">${displayHtml}</span><span class="plot-tag">+ PLOT</span>`;
                     fItem.onclick = (e) => {
                         e.stopPropagation();
                         addFieldToPlot(`${msgName}.${col}`);
@@ -8837,8 +8980,17 @@
                     fields.forEach(f => {
                         f.style.display = 'flex';
                         const fnEl = f.querySelector('.field-name');
-                        if (fnEl && f.dataset.origText) {
-                            fnEl.textContent = f.dataset.origText;
+                        if (fnEl) {
+                            const rawCol = f.dataset.field || '';
+                            if (f.dataset.funcName) {
+                                const isDis = f.dataset.funcName === 'disabled';
+                                const badgeColor = isDis ? '#64748b' : '#38bdf8';
+                                const matchFn = f.dataset.origText.match(/\((.*?)\)/);
+                                const cleanFn = matchFn ? matchFn[1] : f.dataset.funcName;
+                                fnEl.innerHTML = `${rawCol} <span class="rcou-fn-badge" style="font-size:10.5px; color:${badgeColor}; font-weight:600; margin-left:5px; opacity:0.95;">(${cleanFn})</span>`;
+                            } else if (f.dataset.origText) {
+                                fnEl.textContent = f.dataset.origText;
+                            }
                         }
                     });
                 });
@@ -8871,7 +9023,12 @@
                 'wind': ['wind', 'vwn', 'vwe', 'xkf2'],
                 'pid': ['pidr', 'pidp', 'pidy', 'pida', 'pids', 'p', 'i', 'd', 'ff'],
                 'pids': ['pidr', 'pidp', 'pidy', 'pida', 'pids', 'p', 'i', 'd', 'ff'],
-                'servo': ['rcou', 'servos', 'aetr', 'c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7', 'c8']
+                'servo': ['rcou', 'servos', 'aetr', 'c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7', 'c8'],
+                'motor': ['motor', 'rcou', 'c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7', 'c8', 'c9', 'c10', 'c11', 'c12'],
+                'tilt': ['tilt', 'tiltmotor', 'rcou', 'c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7', 'c8'],
+                'aileron': ['aileron', 'rcou', 'c1', 'c2', 'c3', 'c4', 'c5', 'c6'],
+                'elevator': ['elevator', 'elevon', 'rcou', 'c1', 'c2', 'c3', 'c4', 'c5'],
+                'rudder': ['rudder', 'rcou', 'c1', 'c2', 'c3', 'c4', 'c5', 'c6']
             };
 
             const searchTokens = [q];
@@ -8894,11 +9051,13 @@
                 let matchedFieldsInMsg = 0;
 
                 fields.forEach(f => {
-                    const rawCol = f.dataset.field || f.dataset.origText || f.textContent.replace('+ PLOT', '').trim();
-                    f.dataset.origText = rawCol;
+                    const rawCol = f.dataset.field || '';
+                    const origLabel = f.dataset.origText || rawCol;
                     const colLower = rawCol.toLowerCase();
+                    const fnLower = (f.dataset.funcName || '').toLowerCase();
+                    const fullLower = origLabel.toLowerCase();
 
-                    const fieldDirectMatch = searchTokens.some(token => colLower.includes(token));
+                    const fieldDirectMatch = searchTokens.some(token => colLower.includes(token) || fnLower.includes(token) || fullLower.includes(token));
                     const fnEl = f.querySelector('.field-name') || f.querySelector('span:first-child');
 
                     if (fieldDirectMatch) {
@@ -8906,15 +9065,35 @@
                         matchedFieldsInMsg++;
                         if (fnEl) {
                             const regex = new RegExp(`(${q})`, 'gi');
-                            fnEl.innerHTML = rawCol.replace(regex, '<span style="color:#4ade80; font-weight:700; background:rgba(34,197,94,0.18); padding:0 2px; border-radius:2px;">$1</span>');
+                            fnEl.innerHTML = origLabel.replace(regex, '<span style="color:#4ade80; font-weight:700; background:rgba(34,197,94,0.18); padding:0 2px; border-radius:2px;">$1</span>');
                         }
                     } else if (msgHeaderDirectMatch) {
                         f.style.display = 'flex';
                         matchedFieldsInMsg++;
-                        if (fnEl) fnEl.textContent = rawCol;
+                        if (fnEl) {
+                            if (f.dataset.funcName) {
+                                const isDis = f.dataset.funcName === 'disabled';
+                                const badgeColor = isDis ? '#64748b' : '#38bdf8';
+                                const matchFn = f.dataset.origText.match(/\((.*?)\)/);
+                                const cleanFn = matchFn ? matchFn[1] : f.dataset.funcName;
+                                fnEl.innerHTML = `${rawCol} <span class="rcou-fn-badge" style="font-size:10.5px; color:${badgeColor}; font-weight:600; margin-left:5px; opacity:0.95;">(${cleanFn})</span>`;
+                            } else {
+                                fnEl.textContent = rawCol;
+                            }
+                        }
                     } else {
                         f.style.display = 'none';
-                        if (fnEl) fnEl.textContent = rawCol;
+                        if (fnEl) {
+                            if (f.dataset.funcName) {
+                                const isDis = f.dataset.funcName === 'disabled';
+                                const badgeColor = isDis ? '#64748b' : '#38bdf8';
+                                const matchFn = f.dataset.origText.match(/\((.*?)\)/);
+                                const cleanFn = matchFn ? matchFn[1] : f.dataset.funcName;
+                                fnEl.innerHTML = `${rawCol} <span class="rcou-fn-badge" style="font-size:10.5px; color:${badgeColor}; font-weight:600; margin-left:5px; opacity:0.95;">(${cleanFn})</span>`;
+                            } else {
+                                fnEl.textContent = rawCol;
+                            }
+                        }
                     }
                 });
 
