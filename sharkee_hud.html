@@ -1844,11 +1844,11 @@
             max-width: 320px;
             height: 420px;
             box-sizing: border-box;
-            background: #000000;
-            border: 2px solid #1a2230;
-            border-radius: 14px;
+            background: #0f1013;
+            border: 1.5px solid #24262c;
+            border-radius: 12px;
             padding: 8px 10px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.08);
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.75), inset 0 1px 1px rgba(255, 255, 255, 0.05);
             z-index: 100;
             user-select: none;
             transition: opacity 0.25s ease, transform 0.25s ease;
@@ -1864,8 +1864,9 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0 4px 3px 4px;
+            padding: 0 4px 5px 4px;
             flex-shrink: 0;
+            border-bottom: 1px solid #1e2026;
             cursor: grab;
         }
         .gi-top-bar:active { cursor: grabbing; }
@@ -1884,35 +1885,36 @@
             gap: 4px;
         }
         .gi-mode-btn {
-            background: #0c1219;
-            border: 1px solid #283648;
-            border-radius: 3px;
+            background: #18191d;
+            border: 1px solid #24262c;
+            border-radius: 4px;
             padding: 1px 8px;
             min-width: 18px;
             text-align: center;
             font-size: 9px;
             font-weight: 800;
-            color: #9cb0c8;
+            color: #94a3b8;
             cursor: pointer;
             font-family: 'B612 Mono', monospace;
             transition: all 0.15s ease;
         }
         .gi-mode-btn:hover {
-            border-color: #00e5ff;
+            border-color: #3e424c;
             color: #ffffff;
+            background: #22242a;
         }
         .gi-mode-btn.active {
-            background: rgba(0, 229, 255, 0.2);
-            border-color: #00e5ff;
-            color: #00e5ff;
+            background: #24262c;
+            border-color: #3e424c;
+            color: #f1f5f9;
         }
 
 
         /* Top RPM Arch Box (Authentic Garmin Arch Capsule) */
         .gi-rpm-capsule {
-            border: 1px solid #1a2332;
+            border: 1px solid #24262c;
             border-radius: 8px;
-            background: #05080c;
+            background: #141519;
             padding: 3px 8px;
             display: flex;
             align-items: center;
@@ -1920,7 +1922,7 @@
             height: 70px;
             box-sizing: border-box;
             flex-shrink: 0;
-            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.8);
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5);
         }
         .gi-capsule-side {
             display: flex;
@@ -1993,9 +1995,10 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             grid-template-rows: 1fr 1fr 1fr;
-            border: 1px solid #1a2332;
+            border: 1px solid #24262c;
             border-radius: 8px;
-            background: #000000;
+            background: #18191d;
+            gap: 1px;
             overflow: hidden;
             flex: 1;
             margin: 4px 0;
@@ -2006,11 +2009,11 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            border-bottom: 1px solid #141c28;
-            background: #000000;
+            border-bottom: 1px solid #1a1b20;
+            background: #0f1013;
         }
         .gi-grid-cell:nth-child(odd) {
-            border-right: 1px solid #141c28;
+            border-right: 1px solid #1a1b20;
         }
         .gi-grid-cell:nth-child(5), .gi-grid-cell:nth-child(6) {
             border-bottom: none;
@@ -2186,15 +2189,15 @@
 
         /* Bottom Avionics Status Strip - Discrete Structured Multi-Column Layout */
         .gi-bottom-status-pill {
-            background: #05080c;
-            border: 1px solid #1a2332;
+            background: #141519;
+            border: 1px solid #24262c;
             border-radius: 8px;
             padding: 5px 14px;
             display: flex;
             align-items: center;
             justify-content: space-around;
             flex-shrink: 0;
-            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.8);
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5);
             font-family: 'B612 Mono', monospace;
         }
         .gi-status-col {
@@ -2206,7 +2209,7 @@
             font-family: 'B612', sans-serif;
             font-size: 8px;
             font-weight: 700;
-            color: #64748b;
+            color: #8a9bb2;
             letter-spacing: 0.6px;
             text-transform: uppercase;
         }
@@ -2219,7 +2222,7 @@
         .gi-stat-divider {
             width: 1px;
             height: 12px;
-            background: #1e293b;
+            background: #24262c;
         }
     
         /* ========================================================= */
@@ -2607,6 +2610,7 @@
         body.corv-mode-active #eis-widget,
         body.corv-mode-active #compass-widget,
         body.corv-mode-active #terrain-graph-container,
+        body.corv-mode-active #actuators-panel-container,
         body.corv-mode-active #btn-expand-panel,
         body.corv-mode-active .floating-toolbar,
         body.corv-mode-active #weather-modal,
@@ -4603,125 +4607,125 @@
 
     <!-- Garmin Atmospheric & Environmental Telemetry Panel -->
     <div id="terrain-graph-container" class="env-telemetry-panel"
-        style="position: absolute; bottom: 10px; right: 20px; width: min(580px, calc(100vw - 360px)); height: 172px; box-sizing: border-box; overflow: hidden; background: #000000; border-radius: 12px; border: 2px solid #1a2332; padding: 7px 10px; display: none; flex-direction: column; justify-content: space-between; box-shadow: 0 16px 45px rgba(0, 0, 0, 0.95), inset 0 1px 2px rgba(255, 255, 255, 0.08); z-index: 90; pointer-events: auto; font-family: 'B612', 'B612 Mono', 'JetBrains Mono', monospace; user-select: none;">
+        style="position: absolute; bottom: 10px; right: 20px; width: min(580px, calc(100vw - 360px)); height: 172px; box-sizing: border-box; overflow: hidden; background: #0f1013; border-radius: 12px; border: 1.5px solid #24262c; padding: 7px 10px; display: none; flex-direction: column; justify-content: space-between; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.75), inset 0 1px 1px rgba(255, 255, 255, 0.05); z-index: 90; pointer-events: auto; font-family: 'B612', 'B612 Mono', 'JetBrains Mono', monospace; user-select: none;">
         
         <!-- Garmin Top Bar -->
-        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0 2px 4px 2px; flex-shrink: 0; border-bottom: 1px solid #141c28;">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0 2px 4px 2px; flex-shrink: 0; border-bottom: 1px solid #1e2026; cursor: grab;">
             <div style="display: flex; align-items: center; gap: 7px; white-space: nowrap;">
-                <span style="width: 7px; height: 7px; border-radius: 50%; background: #00e5ff; box-shadow: 0 0 8px #00e5ff;"></span>
+                <span style="width: 7px; height: 7px; border-radius: 50%; background: #94a3b8; box-shadow: 0 0 6px rgba(148, 163, 184, 0.4);"></span>
                 <span style="font-family: 'B612', sans-serif; font-size: 10px; font-weight: 800; letter-spacing: 1.5px; color: #8a9bb2; text-transform: uppercase;">ATMOSPHERE & ENVIRONMENT</span>
             </div>
             <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0; white-space: nowrap;">
                 <!-- Field Elevation Badge -->
-                <div style="background: #0c1219; border: 1px solid #1f2b3c; border-radius: 4px; padding: 1px 7px; font-family: 'B612 Mono', monospace; font-size: 9.5px; font-weight: 700;">
+                <div style="background: #18191d; border: 1px solid #24262c; border-radius: 4px; padding: 1px 7px; font-family: 'B612 Mono', monospace; font-size: 9.5px; font-weight: 700;">
                     <span style="color: #8a9bb2; font-size: 8.5px; margin-right: 4px; letter-spacing: 0.5px;">ELEV</span>
                     <span id="env-field-elev-val" style="color: #e2e8f0;">-- m</span>
                 </div>
                 <!-- AMSL Badge -->
-                <div style="background: #0c1219; border: 1px solid #1f2b3c; border-radius: 4px; padding: 1px 7px; font-family: 'B612 Mono', monospace; font-size: 9.5px; font-weight: 700;">
-                    <span style="color: #00e5ff; font-size: 8.5px; margin-right: 4px; letter-spacing: 0.5px;">AMSL</span>
+                <div style="background: #18191d; border: 1px solid #24262c; border-radius: 4px; padding: 1px 7px; font-family: 'B612 Mono', monospace; font-size: 9.5px; font-weight: 700;">
+                    <span style="color: #94a3b8; font-size: 8.5px; margin-right: 4px; letter-spacing: 0.5px;">AMSL</span>
                     <span id="env-amsl-val" style="color: #ffffff;">-- m</span>
                 </div>
                 <!-- AGL Badge -->
-                <div style="background: #0c1219; border: 1px solid #1f2b3c; border-radius: 4px; padding: 1px 7px; font-family: 'B612 Mono', monospace; font-size: 9.5px; font-weight: 700;">
-                    <span style="color: #72e38c; font-size: 8.5px; margin-right: 4px; letter-spacing: 0.5px;">AGL</span>
+                <div style="background: #18191d; border: 1px solid #24262c; border-radius: 4px; padding: 1px 7px; font-family: 'B612 Mono', monospace; font-size: 9.5px; font-weight: 700;">
+                    <span style="color: #94a3b8; font-size: 8.5px; margin-right: 4px; letter-spacing: 0.5px;">AGL</span>
                     <span id="terrain-alt-text" style="color: #ffffff;">0.0 m</span>
                 </div>
-                <!-- Atmosphere & Environment Close Button (MacBook Red Dot) -->
+                <!-- Atmosphere & Environment Close Button -->
                 <button class="env-btn-close avionics-close-dot" onclick="toggleEnvPanel()" title="Close Atmosphere & Environment Panel">&times;</button>
             </div>
         </div>
 
         <!-- Garmin 6-Box Environmental Grid (3 Columns x 2 Rows) -->
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, 1fr); gap: 1px; background: #141c28; border: 1px solid #1a2332; border-radius: 7px; overflow: hidden; flex: 1; margin-top: 5px;">
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, 1fr); gap: 1px; background: #18191d; border: 1px solid #24262c; border-radius: 7px; overflow: hidden; flex: 1; margin-top: 5px;">
             
             <!-- Cell 1: BARO TEMP -->
-            <div style="background: #000000; padding: 5px 8px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div style="background: #0f1013; padding: 5px 8px; display: flex; flex-direction: column; justify-content: space-between;">
                 <div style="display: flex; justify-content: space-between; align-items: center; white-space: nowrap;">
                     <span style="font-family: 'B612', sans-serif; font-size: 9px; font-weight: 700; color: #8a9bb2; letter-spacing: 0.8px; text-transform: uppercase;">BARO TEMP</span>
-                    <span style="font-family: 'B612 Mono', monospace; font-size: 8px; font-weight: 700; color: #55667a; text-transform: uppercase;">FC SENSOR</span>
+                    <span style="font-family: 'B612 Mono', monospace; font-size: 8px; font-weight: 700; color: #64748b; text-transform: uppercase;">FC SENSOR</span>
                 </div>
                 <div style="display: flex; align-items: baseline; justify-content: space-between; margin: 0; white-space: nowrap;">
-                    <span id="env-baro-temp-val" style="color: #00e5ff; font-size: 18px; font-weight: 700; font-family: 'B612 Mono', monospace; letter-spacing: -0.5px;">--</span>
-                    <span style="color: #00e5ff; font-size: 10px; font-weight: 700; font-family: 'B612 Mono', monospace;">°C</span>
+                    <span id="env-baro-temp-val" style="color: #38bdf8; font-size: 18px; font-weight: 700; font-family: 'B612 Mono', monospace; letter-spacing: -0.5px;">--</span>
+                    <span style="color: #38bdf8; font-size: 10px; font-weight: 700; font-family: 'B612 Mono', monospace;">°C</span>
                 </div>
-                <div style="display: flex; justify-content: space-between; align-items: center; background: #080d13; border: 1px solid #16202c; border-radius: 3px; padding: 2px 5px; font-family: 'B612 Mono', monospace; font-size: 8px; white-space: nowrap;">
-                    <span><span style="color: #55667a; font-weight: 700;">MIN</span> <b id="env-baro-min" style="color: #cbd5e1; font-weight: 700;">--</b></span>
-                    <span><span style="color: #55667a; font-weight: 700;">MAX</span> <b id="env-baro-max" style="color: #cbd5e1; font-weight: 700;">--</b></span>
-                    <span><span style="color: #55667a; font-weight: 700;">AVG</span> <b id="env-baro-avg" style="color: #ffffff; font-weight: 700;">--</b></span>
+                <div style="display: flex; justify-content: space-between; align-items: center; background: #141519; border: 1px solid #1e2026; border-radius: 3px; padding: 2px 5px; font-family: 'B612 Mono', monospace; font-size: 8px; white-space: nowrap;">
+                    <span><span style="color: #64748b; font-weight: 700;">MIN</span> <b id="env-baro-min" style="color: #cbd5e1; font-weight: 700;">--</b></span>
+                    <span><span style="color: #64748b; font-weight: 700;">MAX</span> <b id="env-baro-max" style="color: #cbd5e1; font-weight: 700;">--</b></span>
+                    <span><span style="color: #64748b; font-weight: 700;">AVG</span> <b id="env-baro-avg" style="color: #ffffff; font-weight: 700;">--</b></span>
                 </div>
             </div>
 
             <!-- Cell 2: ARSP TEMP -->
-            <div style="background: #000000; padding: 5px 8px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div style="background: #0f1013; padding: 5px 8px; display: flex; flex-direction: column; justify-content: space-between;">
                 <div style="display: flex; justify-content: space-between; align-items: center; white-space: nowrap;">
                     <span style="font-family: 'B612', sans-serif; font-size: 9px; font-weight: 700; color: #8a9bb2; letter-spacing: 0.8px; text-transform: uppercase;">ARSP TEMP</span>
-                    <span style="font-family: 'B612 Mono', monospace; font-size: 8px; font-weight: 700; color: #55667a; text-transform: uppercase;">PITOT OAT</span>
+                    <span style="font-family: 'B612 Mono', monospace; font-size: 8px; font-weight: 700; color: #64748b; text-transform: uppercase;">PITOT OAT</span>
                 </div>
                 <div style="display: flex; align-items: baseline; justify-content: space-between; margin: 0; white-space: nowrap;">
-                    <span id="env-arsp-temp-val" style="color: #00e5ff; font-size: 18px; font-weight: 700; font-family: 'B612 Mono', monospace; letter-spacing: -0.5px;">--</span>
-                    <span style="color: #00e5ff; font-size: 10px; font-weight: 700; font-family: 'B612 Mono', monospace;">°C</span>
+                    <span id="env-arsp-temp-val" style="color: #38bdf8; font-size: 18px; font-weight: 700; font-family: 'B612 Mono', monospace; letter-spacing: -0.5px;">--</span>
+                    <span style="color: #38bdf8; font-size: 10px; font-weight: 700; font-family: 'B612 Mono', monospace;">°C</span>
                 </div>
-                <div style="display: flex; justify-content: space-between; align-items: center; background: #080d13; border: 1px solid #16202c; border-radius: 3px; padding: 2px 5px; font-family: 'B612 Mono', monospace; font-size: 8px; white-space: nowrap;">
-                    <span><span style="color: #55667a; font-weight: 700;">MIN</span> <b id="env-arsp-min" style="color: #cbd5e1; font-weight: 700;">--</b></span>
-                    <span><span style="color: #55667a; font-weight: 700;">MAX</span> <b id="env-arsp-max" style="color: #cbd5e1; font-weight: 700;">--</b></span>
-                    <span><span style="color: #55667a; font-weight: 700;">AVG</span> <b id="env-arsp-avg" style="color: #ffffff; font-weight: 700;">--</b></span>
+                <div style="display: flex; justify-content: space-between; align-items: center; background: #141519; border: 1px solid #1e2026; border-radius: 3px; padding: 2px 5px; font-family: 'B612 Mono', monospace; font-size: 8px; white-space: nowrap;">
+                    <span><span style="color: #64748b; font-weight: 700;">MIN</span> <b id="env-arsp-min" style="color: #cbd5e1; font-weight: 700;">--</b></span>
+                    <span><span style="color: #64748b; font-weight: 700;">MAX</span> <b id="env-arsp-max" style="color: #cbd5e1; font-weight: 700;">--</b></span>
+                    <span><span style="color: #64748b; font-weight: 700;">AVG</span> <b id="env-arsp-avg" style="color: #ffffff; font-weight: 700;">--</b></span>
                 </div>
             </div>
 
             <!-- Cell 3: QNH ALTIMETER -->
-            <div style="background: #000000; padding: 5px 8px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div style="background: #0f1013; padding: 5px 8px; display: flex; flex-direction: column; justify-content: space-between;">
                 <div style="display: flex; justify-content: space-between; align-items: center; white-space: nowrap;">
                     <span style="font-family: 'B612', sans-serif; font-size: 9px; font-weight: 700; color: #8a9bb2; letter-spacing: 0.8px; text-transform: uppercase;">QNH BARO</span>
-                    <span style="font-family: 'B612 Mono', monospace; font-size: 8px; font-weight: 700; color: #55667a; text-transform: uppercase;">SEA LEVEL</span>
+                    <span style="font-family: 'B612 Mono', monospace; font-size: 8px; font-weight: 700; color: #64748b; text-transform: uppercase;">SEA LEVEL</span>
                 </div>
                 <div style="display: flex; align-items: baseline; justify-content: space-between; margin: 0; white-space: nowrap;">
                     <span id="env-qnh-val" style="color: #ffb300; font-size: 18px; font-weight: 700; font-family: 'B612 Mono', monospace; letter-spacing: -0.5px;">--</span>
                     <span style="color: #ffb300; font-size: 10px; font-weight: 700; font-family: 'B612 Mono', monospace;">hPa</span>
                 </div>
-                <div style="display: flex; justify-content: space-between; align-items: center; background: #080d13; border: 1px solid #16202c; border-radius: 3px; padding: 2px 5px; font-family: 'B612 Mono', monospace; font-size: 8px; white-space: nowrap;">
-                    <span><span style="color: #55667a; font-weight: 700;">MIN</span> <b id="env-qnh-min" style="color: #cbd5e1; font-weight: 700;">--</b></span>
-                    <span><span style="color: #55667a; font-weight: 700;">MAX</span> <b id="env-qnh-max" style="color: #cbd5e1; font-weight: 700;">--</b></span>
-                    <span><span style="color: #55667a; font-weight: 700;">AVG</span> <b id="env-qnh-avg" style="color: #ffffff; font-weight: 700;">--</b></span>
+                <div style="display: flex; justify-content: space-between; align-items: center; background: #141519; border: 1px solid #1e2026; border-radius: 3px; padding: 2px 5px; font-family: 'B612 Mono', monospace; font-size: 8px; white-space: nowrap;">
+                    <span><span style="color: #64748b; font-weight: 700;">MIN</span> <b id="env-qnh-min" style="color: #cbd5e1; font-weight: 700;">--</b></span>
+                    <span><span style="color: #64748b; font-weight: 700;">MAX</span> <b id="env-qnh-max" style="color: #cbd5e1; font-weight: 700;">--</b></span>
+                    <span><span style="color: #64748b; font-weight: 700;">AVG</span> <b id="env-qnh-avg" style="color: #ffffff; font-weight: 700;">--</b></span>
                 </div>
             </div>
 
             <!-- Cell 4: STATION PRESS -->
-            <div style="background: #000000; padding: 5px 8px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div style="background: #0f1013; padding: 5px 8px; display: flex; flex-direction: column; justify-content: space-between;">
                 <div style="display: flex; justify-content: space-between; align-items: center; white-space: nowrap;">
                     <span style="font-family: 'B612', sans-serif; font-size: 9px; font-weight: 700; color: #8a9bb2; letter-spacing: 0.8px; text-transform: uppercase;">STATION PRESS</span>
-                    <span style="font-family: 'B612 Mono', monospace; font-size: 8px; font-weight: 700; color: #55667a; text-transform: uppercase;">STATIC</span>
+                    <span style="font-family: 'B612 Mono', monospace; font-size: 8px; font-weight: 700; color: #64748b; text-transform: uppercase;">STATIC</span>
                 </div>
                 <div style="display: flex; align-items: baseline; justify-content: space-between; margin: 0; white-space: nowrap;">
                     <span id="env-press-val" style="color: #ffb300; font-size: 18px; font-weight: 700; font-family: 'B612 Mono', monospace; letter-spacing: -0.5px;">--</span>
                     <span style="color: #ffb300; font-size: 10px; font-weight: 700; font-family: 'B612 Mono', monospace;">hPa</span>
                 </div>
-                <div style="display: flex; justify-content: space-between; align-items: center; background: #080d13; border: 1px solid #16202c; border-radius: 3px; padding: 2px 5px; font-family: 'B612 Mono', monospace; font-size: 8px; white-space: nowrap;">
-                    <span><span style="color: #55667a; font-weight: 700;">MIN</span> <b id="env-press-min" style="color: #cbd5e1; font-weight: 700;">--</b></span>
-                    <span><span style="color: #55667a; font-weight: 700;">MAX</span> <b id="env-press-max" style="color: #cbd5e1; font-weight: 700;">--</b></span>
-                    <span><span style="color: #55667a; font-weight: 700;">AVG</span> <b id="env-press-avg" style="color: #ffffff; font-weight: 700;">--</b></span>
+                <div style="display: flex; justify-content: space-between; align-items: center; background: #141519; border: 1px solid #1e2026; border-radius: 3px; padding: 2px 5px; font-family: 'B612 Mono', monospace; font-size: 8px; white-space: nowrap;">
+                    <span><span style="color: #64748b; font-weight: 700;">MIN</span> <b id="env-press-min" style="color: #cbd5e1; font-weight: 700;">--</b></span>
+                    <span><span style="color: #64748b; font-weight: 700;">MAX</span> <b id="env-press-max" style="color: #cbd5e1; font-weight: 700;">--</b></span>
+                    <span><span style="color: #64748b; font-weight: 700;">AVG</span> <b id="env-press-avg" style="color: #ffffff; font-weight: 700;">--</b></span>
                 </div>
             </div>
 
             <!-- Cell 5: AIR DENSITY (rho) -->
-            <div style="background: #000000; padding: 5px 8px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div style="background: #0f1013; padding: 5px 8px; display: flex; flex-direction: column; justify-content: space-between;">
                 <div style="display: flex; justify-content: space-between; align-items: center; white-space: nowrap;">
                     <span style="font-family: 'B612', sans-serif; font-size: 9px; font-weight: 700; color: #8a9bb2; letter-spacing: 0.8px; text-transform: uppercase;">AIR DENSITY (ρ)</span>
-                    <span style="font-family: 'B612 Mono', monospace; font-size: 8px; font-weight: 700; color: #55667a; text-transform: uppercase;">P / RT</span>
+                    <span style="font-family: 'B612 Mono', monospace; font-size: 8px; font-weight: 700; color: #64748b; text-transform: uppercase;">P / RT</span>
                 </div>
                 <div style="display: flex; align-items: baseline; gap: 4px; margin: 0; white-space: nowrap;">
                     <span id="env-density-val" style="color: #c084fc; font-size: 18px; font-weight: 700; font-family: 'B612 Mono', monospace; letter-spacing: -0.5px;">--</span>
                     <span style="color: #c084fc; font-size: 10px; font-weight: 700; font-family: 'B612 Mono', monospace; white-space: nowrap;">kg/m³</span>
                 </div>
-                <div style="display: flex; justify-content: space-between; align-items: center; background: #080d13; border: 1px solid #16202c; border-radius: 3px; padding: 2px 5px; font-family: 'B612 Mono', monospace; font-size: 8px; white-space: nowrap;">
-                    <span><span style="color: #55667a; font-weight: 700;">MIN</span> <b id="env-density-min" style="color: #cbd5e1; font-weight: 700;">--</b></span>
-                    <span><span style="color: #55667a; font-weight: 700;">MAX</span> <b id="env-density-max" style="color: #cbd5e1; font-weight: 700;">--</b></span>
-                    <span><span style="color: #55667a; font-weight: 700;">AVG</span> <b id="env-density-avg" style="color: #ffffff; font-weight: 700;">--</b></span>
+                <div style="display: flex; justify-content: space-between; align-items: center; background: #141519; border: 1px solid #1e2026; border-radius: 3px; padding: 2px 5px; font-family: 'B612 Mono', monospace; font-size: 8px; white-space: nowrap;">
+                    <span><span style="color: #64748b; font-weight: 700;">MIN</span> <b id="env-density-min" style="color: #cbd5e1; font-weight: 700;">--</b></span>
+                    <span><span style="color: #64748b; font-weight: 700;">MAX</span> <b id="env-density-max" style="color: #cbd5e1; font-weight: 700;">--</b></span>
+                    <span><span style="color: #64748b; font-weight: 700;">AVG</span> <b id="env-density-avg" style="color: #ffffff; font-weight: 700;">--</b></span>
                 </div>
             </div>
 
             <!-- Cell 6: WIND VECTOR -->
-            <div style="background: #000000; padding: 5px 8px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div style="background: #0f1013; padding: 5px 8px; display: flex; flex-direction: column; justify-content: space-between;">
                 <div style="display: flex; justify-content: space-between; align-items: center; white-space: nowrap;">
                     <span style="font-family: 'B612', sans-serif; font-size: 9px; font-weight: 700; color: #8a9bb2; letter-spacing: 0.8px; text-transform: uppercase;">WIND VECTOR</span>
                     <span id="env-wind-comps" style="color: #30d158; font-size: 8.5px; font-weight: 700; font-family: 'B612 Mono', monospace; white-space: nowrap;">HW: -- XW: --</span>
@@ -4731,10 +4735,10 @@
                     <span style="color: #30d158; font-size: 9.5px; font-weight: 700; font-family: 'B612 Mono', monospace;">m/s</span>
                     <span id="env-wind-dir" style="color: #72e38c; font-size: 12px; font-weight: 700; font-family: 'B612 Mono', monospace; margin-left: 2px;">--°</span>
                 </div>
-                <div style="display: flex; justify-content: space-between; align-items: center; background: #080d13; border: 1px solid #16202c; border-radius: 3px; padding: 2px 5px; font-family: 'B612 Mono', monospace; font-size: 8px; white-space: nowrap;">
-                    <span><span style="color: #55667a; font-weight: 700;">MAX</span> <b id="env-wind-max" style="color: #cbd5e1; font-weight: 700;">--</b></span>
-                    <span><span style="color: #55667a; font-weight: 700;">AVG</span> <b id="env-wind-avg" style="color: #cbd5e1; font-weight: 700;">--</b></span>
-                    <span><span style="color: #55667a; font-weight: 700;">DIR</span> <b id="env-wind-main-dir" style="color: #ffffff; font-weight: 700;">--</b></span>
+                <div style="display: flex; justify-content: space-between; align-items: center; background: #141519; border: 1px solid #1e2026; border-radius: 3px; padding: 2px 5px; font-family: 'B612 Mono', monospace; font-size: 8px; white-space: nowrap;">
+                    <span><span style="color: #64748b; font-weight: 700;">MAX</span> <b id="env-wind-max" style="color: #cbd5e1; font-weight: 700;">--</b></span>
+                    <span><span style="color: #64748b; font-weight: 700;">AVG</span> <b id="env-wind-avg" style="color: #cbd5e1; font-weight: 700;">--</b></span>
+                    <span><span style="color: #64748b; font-weight: 700;">DIR</span> <b id="env-wind-main-dir" style="color: #ffffff; font-weight: 700;">--</b></span>
                 </div>
             </div>
 
@@ -4743,21 +4747,21 @@
 
     <!-- 16-Channel Actuator & Servo Outputs Matrix (ArduPilot Canonical Mapping) -->
     <div id="actuators-panel-container" class="actuators-matrix-panel"
-        style="position: absolute; bottom: 20px; left: 345px; width: min(760px, calc(100vw - 370px)); height: 265px; box-sizing: border-box; overflow: hidden; background: #000000; border-radius: 12px; border: 2px solid #1a2332; padding: 8px 12px; display: none; flex-direction: column; justify-content: space-between; box-shadow: 0 16px 45px rgba(0, 0, 0, 0.95), inset 0 1px 2px rgba(255, 255, 255, 0.08); z-index: 1000; pointer-events: auto; font-family: 'B612', 'B612 Mono', 'JetBrains Mono', monospace; user-select: none;">
+        style="position: absolute; bottom: 20px; left: 345px; width: min(760px, calc(100vw - 370px)); height: 265px; box-sizing: border-box; overflow: hidden; background: #0f1013; border-radius: 12px; border: 1.5px solid #24262c; padding: 8px 12px; display: none; flex-direction: column; justify-content: space-between; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.75), inset 0 1px 1px rgba(255, 255, 255, 0.05); z-index: 1000; pointer-events: auto; font-family: 'B612', 'B612 Mono', 'JetBrains Mono', monospace; user-select: none;">
         
         <!-- Top Header & Filter Bar -->
-        <div class="actuators-header" style="display: flex; justify-content: space-between; align-items: center; padding: 0 2px 6px 2px; flex-shrink: 0; border-bottom: 1px solid #141c28; cursor: grab;">
+        <div class="actuators-header" style="display: flex; justify-content: space-between; align-items: center; padding: 0 2px 6px 2px; flex-shrink: 0; border-bottom: 1px solid #1e2026; cursor: grab;">
             <div style="display: flex; align-items: center; gap: 8px; white-space: nowrap;">
-                <span style="width: 7px; height: 7px; border-radius: 50%; background: #38bdf8; box-shadow: 0 0 8px #38bdf8;"></span>
+                <span style="width: 7px; height: 7px; border-radius: 50%; background: #94a3b8; box-shadow: 0 0 6px rgba(148, 163, 184, 0.4);"></span>
                 <span style="font-family: 'B612', sans-serif; font-size: 10px; font-weight: 800; letter-spacing: 1.5px; color: #8a9bb2; text-transform: uppercase;">ACTUATOR & SERVO OUTPUTS</span>
-                <span id="actuators-status-badge" style="background: rgba(56, 189, 248, 0.14); border: 1px solid rgba(56, 189, 248, 0.35); color: #38bdf8; font-size: 9px; font-weight: 700; padding: 1px 6px; border-radius: 3px; letter-spacing: 0.5px;">16 CHANNELS</span>
+                <span id="actuators-status-badge" style="background: #18191d; border: 1px solid #24262c; color: #94a3b8; font-size: 9px; font-weight: 700; padding: 1px 6px; border-radius: 3px; letter-spacing: 0.5px;">16 CHANNELS</span>
             </div>
             
             <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
                 <!-- Filter Mode: ALL vs ASSIGNED ONLY -->
-                <div style="display: flex; background: #0c1219; border: 1px solid #1f2b3c; border-radius: 4px; padding: 2px; gap: 2px;">
-                    <button id="btn-actuator-filter-all" class="actuator-filter-btn active" onclick="setActuatorFilter('all')" style="border: none; background: #1e293b; color: #38bdf8; font-family: 'B612', sans-serif; font-size: 9px; font-weight: 700; padding: 2px 8px; border-radius: 3px; cursor: pointer;">ALL (16)</button>
-                    <button id="btn-actuator-filter-assigned" class="actuator-filter-btn" onclick="setActuatorFilter('assigned')" style="border: none; background: transparent; color: #64748b; font-family: 'B612', sans-serif; font-size: 9px; font-weight: 700; padding: 2px 8px; border-radius: 3px; cursor: pointer;">ASSIGNED ONLY</button>
+                <div style="display: flex; background: #141519; border: 1px solid #24262c; border-radius: 4px; padding: 2px; gap: 2px;">
+                    <button id="btn-actuator-filter-all" class="actuator-filter-btn active" onclick="setActuatorFilter('all')" style="border: 1px solid #3e424c; background: #24262c; color: #f1f5f9; font-family: 'B612', sans-serif; font-size: 9px; font-weight: 700; padding: 2px 8px; border-radius: 3px; cursor: pointer;">ALL (16)</button>
+                    <button id="btn-actuator-filter-assigned" class="actuator-filter-btn" onclick="setActuatorFilter('assigned')" style="border: 1px solid transparent; background: transparent; color: #64748b; font-family: 'B612', sans-serif; font-size: 9px; font-weight: 700; padding: 2px 8px; border-radius: 3px; cursor: pointer;">ASSIGNED ONLY</button>
                 </div>
                 <!-- Close Button -->
                 <button class="avionics-close-dot" onclick="toggleActuatorsPanel(false)" title="Close Actuators Panel (Hotkey 'O')">&times;</button>
@@ -4770,13 +4774,9 @@
         </div>
 
         <!-- Bottom Legend Bar -->
-        <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 6px; border-top: 1px solid #141c28; flex-shrink: 0; font-size: 8.5px; color: #64748b;">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 6px; border-top: 1px solid #1e2026; flex-shrink: 0; font-size: 8.5px; color: #64748b;">
             <div style="display: flex; gap: 10px; align-items: center;">
-                <span style="display: flex; align-items: center; gap: 3px;"><span style="width: 6px; height: 6px; border-radius: 50%; background: #ff9f0a;"></span> PROP</span>
-                <span style="display: flex; align-items: center; gap: 3px;"><span style="width: 6px; height: 6px; border-radius: 50%; background: #bf5af2;"></span> TILT</span>
-                <span style="display: flex; align-items: center; gap: 3px;"><span style="width: 6px; height: 6px; border-radius: 50%; background: #00d2ff;"></span> AERO</span>
-                <span style="display: flex; align-items: center; gap: 3px;"><span style="width: 6px; height: 6px; border-radius: 50%; background: #30d158;"></span> RC</span>
-                <span style="display: flex; align-items: center; gap: 3px;"><span style="width: 6px; height: 6px; border-radius: 50%; background: #475569;"></span> OFF</span>
+                <span style="font-family: 'B612', sans-serif; font-size: 8.5px; font-weight: 700; color: #8a9bb2; letter-spacing: 0.5px; text-transform: uppercase;">SERVO OUTPUT CHANNELS 1 — 16</span>
             </div>
             <div id="actuators-active-summary" style="font-family: 'B612 Mono', monospace; color: #94a3b8; font-weight: 700;">
                 ACTIVE: -- / 16
@@ -5193,9 +5193,10 @@
         }
         window.resetLxnavDefaultPosition = resetLxnavDefaultPosition;
 
-        function resetEisDefaultPosition() {
+        function resetEisDefaultPosition(force) {
             const w = document.getElementById('eis-widget');
             if (!w) return;
+            if (w.dataset.userDragged && !force) return;
             delete w.dataset.userDragged;
             w.style.top = '';
             w.style.left = '';
@@ -5204,9 +5205,10 @@
         }
         window.resetEisDefaultPosition = resetEisDefaultPosition;
 
-        function resetWeatherDefaultPosition() {
+        function resetWeatherDefaultPosition(force) {
             const w = document.getElementById('weather-widget');
             if (!w) return;
+            if (w.dataset.userDragged && !force) return;
             delete w.dataset.userDragged;
             w.style.top = '';
             w.style.left = '';
@@ -5215,9 +5217,10 @@
         }
         window.resetWeatherDefaultPosition = resetWeatherDefaultPosition;
 
-        function resetEnvDefaultPosition() {
+        function resetEnvDefaultPosition(force) {
             const w = document.getElementById('terrain-graph-container');
             if (!w) return;
+            if (w.dataset.userDragged && !force) return;
             delete w.dataset.userDragged;
             w.style.top = '';
             w.style.left = '';
@@ -7097,55 +7100,72 @@
 
         // Draggable Floating Panels
         function makeDraggable(element, handle) {
-            if (!element || !handle) return;
-            let p1 = 0, p2 = 0, p3 = 0, p4 = 0;
-            let savedTransition = '';
-            handle.style.cursor = 'grab';
+            if (!element) return;
+            const targetHandle = handle || element;
+            targetHandle.style.cursor = 'grab';
 
-            handle.onmousedown = (e) => {
-                if (e.target.closest('button, input, select, textarea, .compass-badge, .icon-btn, .gi-btn-close, .sixpack-btn-close, .compass-btn-close, .lxnav-btn-close, .lxnav-knob-btn, .btn-refresh, [onclick]')) return;
+            targetHandle.addEventListener('mousedown', (e) => {
+                if (e.target.closest('button, input, select, textarea, .compass-badge, .icon-btn, .gi-btn-close, .sixpack-btn-close, .compass-btn-close, .lxnav-btn-close, .lxnav-knob-btn, .btn-refresh, .actuator-filter-btn, .gi-mode-btn, .avionics-close-dot, [onclick]')) return;
                 e.preventDefault();
-                handle.style.cursor = 'grabbing';
-                savedTransition = element.style.transition;
+                e.stopPropagation();
+                targetHandle.style.cursor = 'grabbing';
+                const savedTransition = element.style.transition;
                 element.style.transition = 'none';
-                p3 = e.clientX;
-                p4 = e.clientY;
-                document.onmouseup = () => {
-                    handle.style.cursor = 'grab';
-                    element.style.transition = savedTransition;
-                    document.onmouseup = null;
-                    document.onmousemove = null;
-                };
-                document.onmousemove = (ev) => {
+
+                const rect = element.getBoundingClientRect();
+                element.style.left = rect.left + 'px';
+                element.style.top = rect.top + 'px';
+                element.style.bottom = 'auto';
+                element.style.right = 'auto';
+
+                const startX = e.clientX;
+                const startY = e.clientY;
+                const initialLeft = rect.left;
+                const initialTop = rect.top;
+
+                const onMouseMove = (ev) => {
                     ev.preventDefault();
+                    ev.stopPropagation();
                     element.dataset.userDragged = 'true';
-                    p1 = p3 - ev.clientX;
-                    p2 = p4 - ev.clientY;
-                    p3 = ev.clientX;
-                    p4 = ev.clientY;
-                    element.style.bottom = 'auto';
-                    element.style.right = 'auto';
-                    element.style.top = Math.max(10, Math.min(window.innerHeight - 80, element.offsetTop - p2)) + 'px';
-                    element.style.left = Math.max(10, Math.min(window.innerWidth - 80, element.offsetLeft - p1)) + 'px';
+                    const dx = ev.clientX - startX;
+                    const dy = ev.clientY - startY;
+                    const newLeft = Math.max(5, Math.min(window.innerWidth - 60, initialLeft + dx));
+                    const newTop = Math.max(5, Math.min(window.innerHeight - 40, initialTop + dy));
+                    element.style.left = newLeft + 'px';
+                    element.style.top = newTop + 'px';
                 };
-            };
+
+                const onMouseUp = () => {
+                    targetHandle.style.cursor = 'grab';
+                    element.style.transition = savedTransition;
+                    document.removeEventListener('mousemove', onMouseMove);
+                    document.removeEventListener('mouseup', onMouseUp);
+                };
+
+                document.addEventListener('mousemove', onMouseMove);
+                document.addEventListener('mouseup', onMouseUp);
+            });
         }
         if (compassWidget) {
             makeDraggable(compassWidget, compassWidget);
         }
         if (weatherWidget) {
-            makeDraggable(weatherWidget, weatherWidget.querySelector('.weather-header') || weatherWidget);
+            makeDraggable(weatherWidget, weatherWidget);
         }
         const lxnavMfdEl = document.getElementById('lxnav-mfd-widget');
         if (lxnavMfdEl) {
-            makeDraggable(lxnavMfdEl, lxnavMfdEl.querySelector('.lxnav-header') || lxnavMfdEl);
+            makeDraggable(lxnavMfdEl, lxnavMfdEl);
         }
         if (graphContainer) {
-            makeDraggable(graphContainer, graphContainer.querySelector('div') || graphContainer);
+            makeDraggable(graphContainer, graphContainer);
         }
         const actuatorsPanelEl = document.getElementById('actuators-panel-container');
         if (actuatorsPanelEl) {
-            makeDraggable(actuatorsPanelEl, actuatorsPanelEl.querySelector('.actuators-header') || actuatorsPanelEl);
+            makeDraggable(actuatorsPanelEl, actuatorsPanelEl);
+        }
+        const eisWidgetEl = document.getElementById('eis-widget');
+        if (eisWidgetEl) {
+            makeDraggable(eisWidgetEl, eisWidgetEl);
         }
 
         // FMS CDU Navigation Panel Toggle
@@ -9645,7 +9665,7 @@
                     const col = document.createElement('div');
                     col.className = 'actuator-matrix-col';
                     col.dataset.ch = ch;
-                    col.style.cssText = 'flex: 1; min-width: 38px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; background: #080d14; border: 1px solid #16202c; border-radius: 6px; padding: 5px 2px; transition: all 0.15s ease;';
+                    col.style.cssText = 'flex: 1; min-width: 40px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; background: #141519; border: 1px solid #24262c; border-radius: 6px; padding: 6px 3px 5px 3px; transition: all 0.15s ease; box-sizing: border-box;';
 
                     const pwmEl = document.createElement('div');
                     pwmEl.className = 'actuator-pwm-val';
@@ -9653,7 +9673,7 @@
                     pwmEl.textContent = '1000';
 
                     const barBg = document.createElement('div');
-                    barBg.style.cssText = 'width: 14px; height: 110px; background: #161b22; border-radius: 7px; position: relative; overflow: hidden; border: 1px solid #21262d; display: flex; flex-direction: column-reverse; margin: 3px auto;';
+                    barBg.style.cssText = 'width: 14px; height: 110px; background: #0f1013; border-radius: 7px; position: relative; overflow: hidden; border: 1px solid #24262c; display: flex; flex-direction: column-reverse; margin: 3px auto; flex-shrink: 0;';
 
                     const barFill = document.createElement('div');
                     barFill.style.cssText = 'width: 100%; height: 0%; background: #30d158; border-radius: 7px; transition: height 0.08s ease, background 0.12s ease;';
@@ -9668,23 +9688,18 @@
                     chLabel.style.cssText = "font-family: 'B612 Mono', monospace; font-size: 8.5px; font-weight: 800; color: #8a9bb2; text-align: center; margin-top: 3px;";
                     chLabel.textContent = `C${ch}`;
 
-                    const catTag = document.createElement('span');
-                    catTag.style.cssText = `font-family: 'B612', sans-serif; font-size: 7.5px; font-weight: 800; text-transform: uppercase; padding: 1px 3px; border-radius: 2px; color: ${info.color}; background: ${info.color}18; border: 1px solid ${info.color}40; margin: 2px 0;`;
-                    catTag.textContent = info.category;
-
                     const fnLabel = document.createElement('div');
-                    fnLabel.style.cssText = "font-family: 'B612', sans-serif; font-size: 8.5px; font-weight: 700; color: #cbd5e1; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 44px; letter-spacing: -0.2px;";
+                    fnLabel.style.cssText = "font-family: 'B612', sans-serif; font-size: 9px; font-weight: 700; color: #e2e8f0; text-align: center; line-height: 1.15; word-break: break-word; min-height: 22px; width: 100%; display: flex; align-items: center; justify-content: center; letter-spacing: -0.2px; margin-top: 2px;";
                     fnLabel.textContent = info.name;
                     fnLabel.title = `CH ${ch}: ${info.name}`;
 
                     col.appendChild(pwmEl);
                     col.appendChild(barBg);
                     col.appendChild(chLabel);
-                    col.appendChild(catTag);
                     col.appendChild(fnLabel);
                     grid.appendChild(col);
 
-                    actuatorMatrixCols.push({ colEl: col, pwmEl, fillEl: barFill, catEl: catTag, fnEl: fnLabel });
+                    actuatorMatrixCols.push({ colEl: col, pwmEl, fillEl: barFill, fnEl: fnLabel });
                 }
 
                 // 2. Build Sidebar Compact Channel Row
@@ -9701,17 +9716,12 @@
                     chBadge.style.cssText = "font-family: 'B612 Mono', monospace; font-size: 9px; font-weight: 800; color: #8a9bb2; flex-shrink: 0; width: 28px;";
                     chBadge.textContent = `C${ch}`;
 
-                    const catBadge = document.createElement('span');
-                    catBadge.style.cssText = `font-family: 'B612', sans-serif; font-size: 7.5px; font-weight: 800; text-transform: uppercase; padding: 1px 3px; border-radius: 2px; color: ${info.color}; background: ${info.color}18; border: 1px solid ${info.color}40; flex-shrink: 0;`;
-                    catBadge.textContent = info.category;
-
                     const fnName = document.createElement('span');
                     fnName.style.cssText = "font-family: 'B612', sans-serif; font-size: 10px; font-weight: 700; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;";
                     fnName.textContent = info.name;
                     fnName.title = `CH ${ch}: ${info.name}`;
 
                     leftWrap.appendChild(chBadge);
-                    leftWrap.appendChild(catBadge);
                     leftWrap.appendChild(fnName);
 
                     const rightWrap = document.createElement('div');
@@ -9735,7 +9745,7 @@
                     row.appendChild(rightWrap);
                     sidebarList.appendChild(row);
 
-                    actuatorSidebarRows.push({ rowEl: row, pwmEl: pwmVal, fillEl: miniBarFill, catEl: catBadge, fnEl: fnName });
+                    actuatorSidebarRows.push({ rowEl: row, pwmEl: pwmVal, fillEl: miniBarFill, fnEl: fnName });
                 }
             }
             updateActuatorLabelsFromParameters();
@@ -9789,10 +9799,12 @@
                     const c = actuatorMatrixCols[ch - 1];
                     c.fnEl.textContent = info.name;
                     c.fnEl.title = `CH ${ch}: ${info.name} (Code ${info.code})`;
-                    c.catEl.textContent = info.category;
-                    c.catEl.style.color = info.color;
-                    c.catEl.style.border = `1px solid ${info.color}40`;
-                    c.catEl.style.background = `${info.color}18`;
+                    if (c.catEl) {
+                        c.catEl.textContent = info.category;
+                        c.catEl.style.color = info.color;
+                        c.catEl.style.border = `1px solid ${info.color}40`;
+                        c.catEl.style.background = `${info.color}18`;
+                    }
                     c.colEl.style.display = isVisible ? 'flex' : 'none';
                 }
 
@@ -9800,10 +9812,12 @@
                     const r = actuatorSidebarRows[ch - 1];
                     r.fnEl.textContent = info.name;
                     r.fnEl.title = `CH ${ch}: ${info.name} (Code ${info.code})`;
-                    r.catEl.textContent = info.category;
-                    r.catEl.style.color = info.color;
-                    r.catEl.style.border = `1px solid ${info.color}40`;
-                    r.catEl.style.background = `${info.color}18`;
+                    if (r.catEl) {
+                        r.catEl.textContent = info.category;
+                        r.catEl.style.color = info.color;
+                        r.catEl.style.border = `1px solid ${info.color}40`;
+                        r.catEl.style.background = `${info.color}18`;
+                    }
                     r.rowEl.style.display = isVisible ? 'flex' : 'none';
                 }
             }
@@ -9824,13 +9838,15 @@
             const btnAssigned = document.getElementById('btn-actuator-filter-assigned');
             if (btnAll) {
                 btnAll.classList.toggle('active', mode === 'all');
-                btnAll.style.background = mode === 'all' ? '#1e293b' : 'transparent';
-                btnAll.style.color = mode === 'all' ? '#38bdf8' : '#64748b';
+                btnAll.style.background = mode === 'all' ? '#24262c' : 'transparent';
+                btnAll.style.border = mode === 'all' ? '1px solid #3e424c' : '1px solid transparent';
+                btnAll.style.color = mode === 'all' ? '#f1f5f9' : '#64748b';
             }
             if (btnAssigned) {
                 btnAssigned.classList.toggle('active', mode === 'assigned');
-                btnAssigned.style.background = mode === 'assigned' ? '#1e293b' : 'transparent';
-                btnAssigned.style.color = mode === 'assigned' ? '#38bdf8' : '#64748b';
+                btnAssigned.style.background = mode === 'assigned' ? '#24262c' : 'transparent';
+                btnAssigned.style.border = mode === 'assigned' ? '1px solid #3e424c' : '1px solid transparent';
+                btnAssigned.style.color = mode === 'assigned' ? '#f1f5f9' : '#64748b';
             }
             const btnSbAll = document.getElementById('btn-sidebar-act-all');
             const btnSbAssigned = document.getElementById('btn-sidebar-act-assigned');
@@ -9846,9 +9862,10 @@
         }
         window.setActuatorFilter = setActuatorFilter;
 
-        function resetActuatorsDefaultPosition() {
+        function resetActuatorsDefaultPosition(force) {
             const w = document.getElementById('actuators-panel-container');
             if (!w) return;
+            if (w.dataset.userDragged && !force) return;
             delete w.dataset.userDragged;
             w.style.top = '';
             w.style.right = '';
@@ -9957,7 +9974,7 @@
         // Dynamic 3P Chase Camera Mouse Wheel & Pinch Zoom
         window.addEventListener('wheel', (e) => {
             if (cameraMode === 'corv_chase') {
-                if (e.target && typeof e.target.closest === 'function' && (e.target.closest('.corv-radar-widget') || e.target.closest('#ui-panel') || e.target.closest('#lxnav-mfd-widget') || e.target.closest('#eis-widget') || e.target.closest('#compass-widget') || e.target.closest('#weather-widget') || e.target.closest('#fms-widget') || e.target.closest('#terrain-graph-container'))) return;
+                if (e.target && typeof e.target.closest === 'function' && (e.target.closest('.corv-radar-widget') || e.target.closest('#ui-panel') || e.target.closest('#lxnav-mfd-widget') || e.target.closest('#eis-widget') || e.target.closest('#compass-widget') || e.target.closest('#weather-widget') || e.target.closest('#fms-widget') || e.target.closest('#terrain-graph-container') || e.target.closest('#actuators-panel-container'))) return;
                 const factor = Math.exp(e.deltaY * 0.0012);
                 corvChaseTargetDist = Math.max(6.0, Math.min(1200.0, corvChaseTargetDist * factor));
             }
@@ -9972,7 +9989,7 @@
                 if (e.target && typeof e.target.closest === 'function' && (e.target.closest('button') || e.target.closest('select') || e.target.closest('input') ||
                     e.target.closest('#corv-topbar') || e.target.closest('.corv-radar-widget') || e.target.closest('#corv-traffic-panel') ||
                     e.target.closest('#ui-panel') || e.target.closest('#lxnav-mfd-widget') || e.target.closest('#eis-widget') ||
-                    e.target.closest('#compass-widget') || e.target.closest('#weather-widget') || e.target.closest('#fms-widget') || e.target.closest('#terrain-graph-container'))) return;
+                    e.target.closest('#compass-widget') || e.target.closest('#weather-widget') || e.target.closest('#fms-widget') || e.target.closest('#terrain-graph-container') || e.target.closest('#actuators-panel-container'))) return;
                 isPointerDown3P = true;
                 lastPointerX = e.clientX;
                 lastPointerY = e.clientY;
@@ -13673,7 +13690,7 @@
         updateEisPageUI();
 
         if (eisWidget) {
-            makeDraggable(eisWidget, document.getElementById('gi-header') || eisWidget);
+            makeDraggable(eisWidget, eisWidget);
         }
 
         // Helper to update SVG triangle pointer along the top RPM arch
