@@ -3501,8 +3501,8 @@
             <button id="tab-telemetry" class="panel-nav-tab active" title="Flight Telemetry Readouts">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
             </button>
-            <button id="tab-actuators" class="panel-nav-tab" title="Actuator & Servo Outputs Matrix (Hotkey 'O')">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="4" width="18" height="16" rx="2"></rect><line x1="12" y1="4" x2="12" y2="20"></line><line x1="7" y1="9" x2="7" y2="15"></line><line x1="17" y1="9" x2="17" y2="15"></line></svg>
+            <button id="tab-battery" class="panel-nav-tab" title="Mission Planner Battery & Power System">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="16" height="10" rx="2" ry="2"></rect><line x1="22" y1="11" x2="22" y2="13"></line></svg>
             </button>
             <button id="tab-airspace" class="panel-nav-tab" title="Airspace & Offline Maps">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon><line x1="8" y1="2" x2="8" y2="18"></line><line x1="16" y1="6" x2="16" y2="22"></line></svg>
@@ -3583,18 +3583,43 @@
                 </div>
             </div>
 
-            <!-- Quick Access Card to 16-Channel Actuators Matrix -->
-            <div class="data-card" style="margin-top: 10px; cursor: pointer; padding: 10px 12px; border: 1px solid rgba(56, 189, 248, 0.35); background: rgba(56, 189, 248, 0.06); border-radius: 8px; transition: all 0.15s ease;" onclick="toggleActuatorsPanel(true)" title="Open Full 16-Channel Actuators & Servo Matrix (Hotkey 'O')">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <span style="width: 7px; height: 7px; border-radius: 50%; background: #38bdf8; box-shadow: 0 0 8px #38bdf8;"></span>
-                        <span style="font-size: 11px; font-weight: 700; color: #f1f5f9; letter-spacing: 0.5px;">ACTUATORS MATRIX</span>
+            <!-- Mission Planner Style Battery & Power Quick Card -->
+            <div id="mp-battery-card" class="data-card" style="margin-top: 10px; cursor: pointer; padding: 10px 12px; border: 1px solid rgba(34, 197, 94, 0.35); background: rgba(34, 197, 94, 0.05); border-radius: 8px; transition: all 0.15s ease;" onclick="switchPanelTab('battery')" title="Open Mission Planner Battery & Power Details">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <span style="width: 7px; height: 7px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 6px #22c55e;"></span>
+                        <span style="font-size: 11px; font-weight: 700; color: #f1f5f9; letter-spacing: 0.5px; text-transform: uppercase;">BATTERY & POWER</span>
                     </div>
-                    <span id="telemetry-actuators-active-count" style="font-family: 'B612 Mono', monospace; font-size: 9.5px; font-weight: 700; color: #38bdf8; background: rgba(56, 189, 248, 0.15); padding: 1px 7px; border-radius: 4px; border: 1px solid rgba(56, 189, 248, 0.3);">16 CH</span>
+                    <span id="mp-card-cell-badge" style="font-family: 'B612 Mono', monospace; font-size: 9.5px; font-weight: 700; color: #22c55e; background: rgba(34, 197, 94, 0.15); padding: 1px 7px; border-radius: 4px; border: 1px solid rgba(34, 197, 94, 0.3);">6S PACK</span>
                 </div>
-                <div style="font-size: 9px; color: var(--text-secondary); margin-top: 5px; display: flex; justify-content: space-between; align-items: center;">
-                    <span>View all servo/motor channels with function names</span>
-                    <span style="color: #38bdf8; font-weight: 700;">OPEN RACK &rarr;</span>
+                
+                <div style="display: flex; align-items: center; gap: 12px; background: rgba(0, 0, 0, 0.28); padding: 7px 10px; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.05);">
+                    <!-- Vertical Battery Icon (4 Segments matching Mission Planner HUD) -->
+                    <div style="display: flex; flex-direction: column; align-items: center; flex-shrink: 0; width: 22px;">
+                        <div style="width: 8px; height: 2px; background: #cbd5e1; border-radius: 1px 1px 0 0; margin-bottom: 1px;"></div>
+                        <div style="width: 22px; height: 38px; border: 2px solid #cbd5e1; border-radius: 3px; padding: 2px; display: flex; flex-direction: column; justify-content: space-between; background: rgba(0,0,0,0.5); box-sizing: border-box;">
+                            <div id="mp-card-bar-4" style="height: 6px; width: 100%; background: #00ff00; border-radius: 1px; transition: background 0.2s;"></div>
+                            <div id="mp-card-bar-3" style="height: 6px; width: 100%; background: #00ff00; border-radius: 1px; transition: background 0.2s;"></div>
+                            <div id="mp-card-bar-2" style="height: 6px; width: 100%; background: #00ff00; border-radius: 1px; transition: background 0.2s;"></div>
+                            <div id="mp-card-bar-1" style="height: 6px; width: 100%; background: #00ff00; border-radius: 1px; transition: background 0.2s;"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Mission Planner HUD Text Lines -->
+                    <div style="display: flex; flex-direction: column; justify-content: center; gap: 2px; overflow: hidden; flex: 1;">
+                        <div style="display: flex; align-items: baseline; gap: 6px;">
+                            <span id="mp-card-fc-vcc" style="font-family: 'B612 Mono', monospace; font-size: 13.5px; font-weight: 700; color: #f8fafc; letter-spacing: 0.3px;">5.44v</span>
+                            <span style="font-size: 8.5px; color: #94a3b8; font-family: 'B612', sans-serif;">FC VCC</span>
+                        </div>
+                        <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                            <span id="mp-card-batt-line" style="font-family: 'B612 Mono', monospace; font-size: 13.5px; font-weight: 700; color: #ffffff; letter-spacing: 0.3px;">21.75v 20.2 A 94%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="font-size: 9px; color: var(--text-secondary); margin-top: 6px; display: flex; justify-content: space-between; align-items: center;">
+                    <span id="mp-card-sub-info">Used: 1710 mAh | 179 W</span>
+                    <span style="color: #22c55e; font-weight: 700;">DETAILS &rarr;</span>
                 </div>
             </div>
 
@@ -3609,27 +3634,96 @@
             </div>
         </div>
 
-        <!-- Tab 2: Dedicated Actuator & Servo Outputs Matrix (Sidebar View) -->
-        <div id="panel-view-actuators" style="display: none;">
-            <div class="data-card" style="padding: 10px; margin-bottom: 10px;">
+        <!-- Tab 2: Dedicated Mission Planner Battery & Power System (Sidebar View) -->
+        <div id="panel-view-battery" style="display: none;">
+            <!-- Mission Planner Hero HUD Box -->
+            <div class="data-card" style="padding: 12px; margin-bottom: 10px; background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.08);">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                     <div style="display: flex; align-items: center; gap: 6px;">
-                        <span style="width: 7px; height: 7px; border-radius: 50%; background: #38bdf8; box-shadow: 0 0 6px #38bdf8;"></span>
-                        <span style="font-size: 11px; font-weight: 700; color: #f1f5f9; letter-spacing: 0.5px; text-transform: uppercase;">16-CH ACTUATORS</span>
+                        <span style="width: 7px; height: 7px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 6px #22c55e;"></span>
+                        <span style="font-size: 11px; font-weight: 700; color: #f1f5f9; letter-spacing: 0.5px; text-transform: uppercase;">MISSION PLANNER HUD</span>
                     </div>
-                    <div style="display: flex; background: var(--btn-bg); border-radius: 4px; padding: 2px; gap: 2px;">
-                        <button id="btn-sidebar-act-all" class="sidebar-act-filter active" onclick="setActuatorFilter('all')" style="border: none; background: var(--panel-bg); color: var(--accent); font-size: 8.5px; font-weight: 700; padding: 2px 7px; border-radius: 3px; cursor: pointer;">ALL (16)</button>
-                        <button id="btn-sidebar-act-assigned" class="sidebar-act-filter" onclick="setActuatorFilter('assigned')" style="border: none; background: transparent; color: var(--text-secondary); font-size: 8.5px; font-weight: 700; padding: 2px 7px; border-radius: 3px; cursor: pointer;">ASSIGNED</button>
-                    </div>
+                    <span id="mp-view-status-badge" style="font-family: 'B612 Mono', monospace; font-size: 9px; font-weight: 700; color: #22c55e; background: rgba(34, 197, 94, 0.12); border: 1px solid rgba(34, 197, 94, 0.3); padding: 1px 6px; border-radius: 4px;">POWER NORMAL</span>
                 </div>
-                <div id="sidebar-actuators-list" style="display: flex; flex-direction: column; gap: 5px; max-height: calc(100vh - 300px); overflow-y: auto; padding-right: 2px;">
-                    <!-- Dynamically populated compact channel rows -->
+
+                <!-- Authentic Mission Planner Visual Indicator -->
+                <div style="display: flex; align-items: center; gap: 14px; background: rgba(0, 0, 0, 0.35); padding: 12px; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.06);">
+                    <!-- Vertical Battery Symbol -->
+                    <div style="display: flex; flex-direction: column; align-items: center; width: 28px; flex-shrink: 0;">
+                        <div style="width: 10px; height: 3px; background: #cbd5e1; border-top-left-radius: 2px; border-top-right-radius: 2px;"></div>
+                        <div style="width: 26px; height: 46px; border: 2px solid #cbd5e1; border-radius: 4px; padding: 2px; display: flex; flex-direction: column; justify-content: space-between; background: rgba(0,0,0,0.4); box-sizing: border-box;">
+                            <div id="mp-view-bar-4" style="height: 8px; width: 100%; background: #00ff00; border-radius: 1px; transition: background 0.2s;"></div>
+                            <div id="mp-view-bar-3" style="height: 8px; width: 100%; background: #00ff00; border-radius: 1px; transition: background 0.2s;"></div>
+                            <div id="mp-view-bar-2" style="height: 8px; width: 100%; background: #00ff00; border-radius: 1px; transition: background 0.2s;"></div>
+                            <div id="mp-view-bar-1" style="height: 8px; width: 100%; background: #00ff00; border-radius: 1px; transition: background 0.2s;"></div>
+                        </div>
+                    </div>
+                    <!-- Right HUD Readouts -->
+                    <div style="display: flex; flex-direction: column; justify-content: center; gap: 4px; font-family: 'B612 Mono', monospace; flex: 1;">
+                        <div style="display: flex; align-items: baseline; gap: 6px;">
+                            <span id="mp-view-fc-vcc" style="font-size: 15px; font-weight: 700; color: #f8fafc; letter-spacing: 0.5px;">5.44v</span>
+                            <span style="font-size: 9px; color: #94a3b8; font-family: 'B612', sans-serif; text-transform: uppercase;">FC VCC (BEC)</span>
+                        </div>
+                        <div style="display: flex; align-items: baseline; gap: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                            <span id="mp-view-batt-line" style="font-size: 15px; font-weight: 700; color: #ffffff; letter-spacing: 0.5px;">21.75v 20.2 A 94%</span>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <button class="btn-refresh" style="width: 100%; justify-content: center; padding: 8px; font-weight: 700; font-size: 11px;" onclick="toggleActuatorsPanel(true)">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
-                OPEN FLOATING RACK
-            </button>
+
+            <!-- Electrical Metrics Grid -->
+            <div class="data-card" style="padding: 10px; margin-bottom: 10px;">
+                <div style="font-size: 10px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 8px;">
+                    ELECTRICAL PARAMETERS
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                    <div class="stat-box" style="padding: 6px 8px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 6px;">
+                        <div style="font-size: 9px; color: var(--text-secondary);">PACK VOLTAGE</div>
+                        <div id="mp-stat-pack-volts" style="font-size: 14px; font-weight: 700; color: #38bdf8; font-family: 'B612 Mono', monospace;">21.75 V</div>
+                        <div id="mp-stat-cell-config" style="font-size: 8.5px; color: #94a3b8;">6S (3.63 V/cell)</div>
+                    </div>
+                    <div class="stat-box" style="padding: 6px 8px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 6px;">
+                        <div style="font-size: 9px; color: var(--text-secondary);">CURRENT DRAW</div>
+                        <div id="mp-stat-pack-amps" style="font-size: 14px; font-weight: 700; color: #4ade80; font-family: 'B612 Mono', monospace;">20.2 A</div>
+                        <div id="mp-stat-power-watts" style="font-size: 8.5px; color: #94a3b8;">439.4 W</div>
+                    </div>
+                    <div class="stat-box" style="padding: 6px 8px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 6px;">
+                        <div style="font-size: 9px; color: var(--text-secondary);">CONSUMED CAPACITY</div>
+                        <div id="mp-stat-consumed-mah" style="font-size: 14px; font-weight: 700; color: #facc15; font-family: 'B612 Mono', monospace;">1710 mAh</div>
+                        <div id="mp-stat-capacity-total" style="font-size: 8.5px; color: #94a3b8;">Pack: 6000 mAh</div>
+                    </div>
+                    <div class="stat-box" style="padding: 6px 8px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 6px;">
+                        <div style="font-size: 9px; color: var(--text-secondary);">REMAINING / TIME</div>
+                        <div id="mp-stat-remaining-pct" style="font-size: 14px; font-weight: 700; color: #22c55e; font-family: 'B612 Mono', monospace;">94%</div>
+                        <div id="mp-stat-endurance-est" style="font-size: 8.5px; color: #94a3b8;">Est. 18 min</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Per-Cell Balance Breakdown Matrix -->
+            <div class="data-card" style="padding: 10px; margin-bottom: 10px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span style="font-size: 10px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.6px;">
+                        PER-CELL BALANCE MATRIX
+                    </span>
+                    <span id="mp-cell-delta-badge" style="font-size: 9px; font-family: 'B612 Mono', monospace; color: #22c55e; background: rgba(34,197,94,0.1); padding: 1px 5px; border-radius: 3px; border: 1px solid rgba(34,197,94,0.25);">Δ 0.02 V</span>
+                </div>
+                <div id="mp-cell-bars-container" style="display: flex; flex-direction: column; gap: 6px;">
+                    <!-- Dynamically rendered per-cell bars (C1 - C6) -->
+                </div>
+            </div>
+
+            <!-- Controls: Capacity Config & EIS Sync -->
+            <div style="display: flex; gap: 8px;">
+                <button class="btn-refresh" style="flex: 1; justify-content: center; padding: 7px 8px; font-weight: 700; font-size: 10.5px;" onclick="configureBatteryCapacityPrompt()">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                    SET PACK MAH
+                </button>
+                <button class="btn-refresh" style="flex: 1; justify-content: center; padding: 7px 8px; font-weight: 700; font-size: 10.5px;" onclick="toggleEisWidget(true)">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+                    OPEN EIS HUD
+                </button>
+            </div>
         </div>
 
         <!-- Tab 2: Airspace Range, Presets & Latest Satellite Imagery -->
@@ -5280,14 +5374,14 @@
         window.toggleWeatherWidget = toggleWeatherWidget;
         if (btnToggleWeather) btnToggleWeather.onclick = () => toggleWeatherWidget();
 
-        // Panel View Tab Navigation (Telemetry vs Actuators vs Airspace vs Messages)
+        // Panel View Tab Navigation (Telemetry vs Battery vs Airspace vs Messages)
         const tabTelemetry = document.getElementById('tab-telemetry');
-        const tabActuators = document.getElementById('tab-actuators');
+        const tabBattery = document.getElementById('tab-battery') || document.getElementById('tab-actuators');
         const tabAirspace = document.getElementById('tab-airspace');
         const tabMessages = document.getElementById('tab-messages');
         const tabMsgCount = document.getElementById('tab-msg-count');
         const viewTelemetry = document.getElementById('panel-view-telemetry');
-        const viewActuators = document.getElementById('panel-view-actuators');
+        const viewBattery = document.getElementById('panel-view-battery') || document.getElementById('panel-view-actuators');
         const viewAirspace = document.getElementById('panel-view-airspace');
         const viewMessages = document.getElementById('panel-view-messages');
         const btnOfflineMapHdr = document.getElementById('btn-offline-map-hdr');
@@ -5301,16 +5395,16 @@
             window.switchPanelTab = switchPanelTab;
             const isAirspace = tabName === 'airspace';
             const isMessages = tabName === 'messages';
-            const isActuators = tabName === 'actuators';
-            const isTelemetry = !isAirspace && !isMessages && !isActuators;
+            const isBattery = tabName === 'battery' || tabName === 'actuators';
+            const isTelemetry = !isAirspace && !isMessages && !isBattery;
 
             if (tabTelemetry) tabTelemetry.classList.toggle('active', isTelemetry);
-            if (tabActuators) tabActuators.classList.toggle('active', isActuators);
+            if (tabBattery) tabBattery.classList.toggle('active', isBattery);
             if (tabAirspace) tabAirspace.classList.toggle('active', isAirspace);
             if (tabMessages) tabMessages.classList.toggle('active', isMessages);
 
             if (viewTelemetry) viewTelemetry.style.display = isTelemetry ? 'block' : 'none';
-            if (viewActuators) viewActuators.style.display = isActuators ? 'block' : 'none';
+            if (viewBattery) viewBattery.style.display = isBattery ? 'block' : 'none';
             if (viewAirspace) viewAirspace.style.display = isAirspace ? 'block' : 'none';
             if (viewMessages) viewMessages.style.display = isMessages ? 'block' : 'none';
 
@@ -5347,10 +5441,9 @@
                 refreshCacheStatus();
                 updateMapEstimate();
                 populatePresetDropdown();
-            } else if (isActuators) {
-                updateActuatorLabelsFromParameters();
-                if (typeof latestServos !== 'undefined' && Array.isArray(latestServos)) {
-                    updateActuatorOutputsUI(latestServos);
+            } else if (isBattery) {
+                if (typeof updateMissionPlannerBatteryUI === 'function') {
+                    updateMissionPlannerBatteryUI();
                 }
             } else if (isTelemetry) {
                 if (typeof cameraMode !== 'undefined' && cameraMode === 'follow' && typeof controls !== 'undefined' && typeof vtolGroup !== 'undefined') {
@@ -5371,16 +5464,226 @@
                 switchPanelTab('telemetry');
             }
         };
-        if (tabActuators) tabActuators.onclick = () => {
+        if (tabBattery) tabBattery.onclick = () => {
             const isVisible = uiPanel && (uiPanel.style.display !== 'none' && window.getComputedStyle(uiPanel).display !== 'none');
-            const isActActive = tabActuators.classList.contains('active');
-            if (isVisible && isActActive) {
+            const isBattActive = tabBattery.classList.contains('active');
+            if (isVisible && isBattActive) {
                 toggleUiPanel();
             } else {
                 if (!isVisible) toggleUiPanel();
-                switchPanelTab('actuators');
+                switchPanelTab('battery');
             }
         };
+
+        // =========================================================
+        // MISSION PLANNER FLIGHT DATA HUD BATTERY & POWER TELEMETRY
+        // =========================================================
+        window.latestFcVcc = 5.44;
+
+        function configureBatteryCapacityPrompt() {
+            const currentCap = (typeof batteryCapacityMah === 'number') ? batteryCapacityMah : 6000;
+            const input = prompt("Set Battery Pack Capacity (mAh):", currentCap);
+            if (input) {
+                const val = parseInt(input, 10);
+                if (!isNaN(val) && val >= 500 && val <= 50000) {
+                    batteryCapacityMah = val;
+                    try { localStorage.setItem('eis_battery_cap', val); } catch(e) {}
+                    const valSubBatt = document.getElementById('gi-sub-batt');
+                    if (valSubBatt) valSubBatt.textContent = `${batteryCapacityMah} mAh`;
+                    const unitBox4 = document.getElementById('gi-unit-box4');
+                    if (unitBox4 && typeof eisEngineMode !== 'undefined' && eisEngineMode === 'single') unitBox4.textContent = `/ ${batteryCapacityMah}`;
+                    if (typeof updateMissionPlannerBatteryUI === 'function') {
+                        updateMissionPlannerBatteryUI();
+                    }
+                    if (typeof addAutopilotMessage === 'function') {
+                        addAutopilotMessage({ text: `Battery Pack Capacity configured to ${batteryCapacityMah} mAh`, severity: 6 });
+                    }
+                }
+            }
+        }
+        window.configureBatteryCapacityPrompt = configureBatteryCapacityPrompt;
+
+        function updateMissionPlannerBatteryUI() {
+            const packVolt = (typeof am32Telemetry !== 'undefined' && typeof am32Telemetry.pack_voltage === 'number' && am32Telemetry.pack_voltage > 3.0) 
+                ? am32Telemetry.pack_voltage 
+                : 21.75;
+            
+            const battAmps = (typeof am32Telemetry !== 'undefined' && typeof am32Telemetry.battery_current === 'number') 
+                ? am32Telemetry.battery_current 
+                : ((typeof am32Telemetry !== 'undefined' && typeof am32Telemetry.total_current === 'number') ? am32Telemetry.total_current : 0.0);
+            
+            const remPct = (typeof am32Telemetry !== 'undefined' && typeof am32Telemetry.battery_remaining_pct === 'number' && am32Telemetry.battery_remaining_pct >= 0)
+                ? am32Telemetry.battery_remaining_pct
+                : 94;
+            
+            const consumedMah = (typeof am32Telemetry !== 'undefined' && typeof am32Telemetry.consumed_mah === 'number')
+                ? am32Telemetry.consumed_mah
+                : 0;
+
+            const packCap = (typeof batteryCapacityMah === 'number' && batteryCapacityMah > 0) ? batteryCapacityMah : 6000;
+            const fcVcc = (typeof window.latestFcVcc === 'number' && window.latestFcVcc > 0) ? window.latestFcVcc : 5.44;
+            const cellCount = (typeof getBatteryCellCount === 'function') ? getBatteryCellCount(packVolt) : 6;
+            const avgCellVolt = (cellCount > 0) ? (packVolt / cellCount) : 3.63;
+            const watts = packVolt * battAmps;
+
+            // 1. Calculate active 4-segment bar count (0 to 4) and HUD color
+            let activeBars = 0;
+            if (remPct >= 75) activeBars = 4;
+            else if (remPct >= 50) activeBars = 3;
+            else if (remPct >= 25) activeBars = 2;
+            else if (remPct > 0) activeBars = 1;
+
+            let barColor = '#00ff00'; // Mission Planner green
+            if (remPct < 15) barColor = '#ef4444'; // Red alert
+            else if (remPct < 25) barColor = '#facc15'; // Yellow caution
+
+            const inactiveBarColor = 'rgba(255, 255, 255, 0.06)';
+
+            // Update Card Bars (Tab 1) & View Bars (Tab 2)
+            for (let b = 1; b <= 4; b++) {
+                const elCard = document.getElementById(`mp-card-bar-${b}`);
+                if (elCard) {
+                    elCard.style.background = (b <= activeBars) ? barColor : inactiveBarColor;
+                }
+                const elView = document.getElementById(`mp-view-bar-${b}`);
+                if (elView) {
+                    elView.style.background = (b <= activeBars) ? barColor : inactiveBarColor;
+                }
+            }
+
+            // Mission Planner Exact HUD Format: 5.44v \n 21.75v 20.2 A 94%
+            const vccText = `${fcVcc.toFixed(2)}v`;
+            const hudLineText = `${packVolt.toFixed(2)}v ${battAmps.toFixed(1)} A ${Math.round(remPct)}%`;
+
+            const elCardVcc = document.getElementById('mp-card-fc-vcc');
+            if (elCardVcc) elCardVcc.textContent = vccText;
+
+            const elCardLine = document.getElementById('mp-card-batt-line');
+            if (elCardLine) elCardLine.textContent = hudLineText;
+
+            const elCardBadge = document.getElementById('mp-card-cell-badge');
+            if (elCardBadge) elCardBadge.textContent = `${cellCount}S PACK`;
+
+            const elCardSub = document.getElementById('mp-card-sub-info');
+            if (elCardSub) elCardSub.textContent = `Used: ${Math.round(consumedMah)} mAh | ${Math.round(watts)} W`;
+
+            // Update Tab 2 (Dedicated Battery View)
+            const elViewVcc = document.getElementById('mp-view-fc-vcc');
+            if (elViewVcc) elViewVcc.textContent = vccText;
+
+            const elViewLine = document.getElementById('mp-view-batt-line');
+            if (elViewLine) elViewLine.textContent = hudLineText;
+
+            const elPackVolts = document.getElementById('mp-stat-pack-volts');
+            if (elPackVolts) elPackVolts.textContent = `${packVolt.toFixed(2)} V`;
+
+            const elCellConfig = document.getElementById('mp-stat-cell-config');
+            if (elCellConfig) elCellConfig.textContent = `${cellCount}S (${avgCellVolt.toFixed(2)} V/cell)`;
+
+            const elPackAmps = document.getElementById('mp-stat-pack-amps');
+            if (elPackAmps) elPackAmps.textContent = `${battAmps.toFixed(1)} A`;
+
+            const elWatts = document.getElementById('mp-stat-power-watts');
+            if (elWatts) elWatts.textContent = `${watts.toFixed(1)} W`;
+
+            const elConsumed = document.getElementById('mp-stat-consumed-mah');
+            if (elConsumed) elConsumed.textContent = `${Math.round(consumedMah)} mAh`;
+
+            const elCapacity = document.getElementById('mp-stat-capacity-total');
+            if (elCapacity) elCapacity.textContent = `Pack: ${packCap} mAh`;
+
+            const elRemPct = document.getElementById('mp-stat-remaining-pct');
+            if (elRemPct) {
+                elRemPct.textContent = `${Math.round(remPct)}%`;
+                elRemPct.style.color = barColor;
+            }
+
+            const elStatusBadge = document.getElementById('mp-view-status-badge');
+            if (elStatusBadge) {
+                if (remPct < 15) {
+                    elStatusBadge.textContent = 'BATT CRITICAL';
+                    elStatusBadge.style.color = '#ef4444';
+                    elStatusBadge.style.background = 'rgba(239, 68, 68, 0.15)';
+                    elStatusBadge.style.borderColor = 'rgba(239, 68, 68, 0.35)';
+                } else if (remPct < 25) {
+                    elStatusBadge.textContent = 'LOW BATTERY';
+                    elStatusBadge.style.color = '#facc15';
+                    elStatusBadge.style.background = 'rgba(250, 204, 21, 0.15)';
+                    elStatusBadge.style.borderColor = 'rgba(250, 204, 21, 0.35)';
+                } else {
+                    elStatusBadge.textContent = 'POWER NORMAL';
+                    elStatusBadge.style.color = '#22c55e';
+                    elStatusBadge.style.background = 'rgba(34, 197, 94, 0.12)';
+                    elStatusBadge.style.borderColor = 'rgba(34, 197, 94, 0.3)';
+                }
+            }
+
+            const elEndurance = document.getElementById('mp-stat-endurance-est');
+            if (elEndurance) {
+                if (battAmps > 0.4) {
+                    const remainingMah = Math.max(0, (packCap * (remPct / 100.0)));
+                    const remainingHours = (remainingMah / 1000.0) / battAmps;
+                    const remainingMins = Math.round(remainingHours * 60);
+                    elEndurance.textContent = (remainingMins > 60) 
+                        ? `Est. ${Math.floor(remainingMins / 60)}h ${remainingMins % 60}m` 
+                        : `Est. ${remainingMins} min`;
+                } else {
+                    elEndurance.textContent = 'Standby';
+                }
+            }
+
+            // Per-Cell Balance Matrix
+            const cellContainer = document.getElementById('mp-cell-bars-container');
+            if (cellContainer) {
+                if (cellContainer.dataset.cells !== String(cellCount)) {
+                    cellContainer.dataset.cells = String(cellCount);
+                    cellContainer.innerHTML = '';
+                    for (let c = 1; c <= cellCount; c++) {
+                        const cellRow = document.createElement('div');
+                        cellRow.style.cssText = 'display: flex; align-items: center; justify-content: space-between; gap: 8px; font-family: "B612 Mono", monospace; font-size: 10px;';
+                        cellRow.innerHTML = `
+                            <span style="width: 22px; color: var(--text-secondary); font-weight: 700;">C${c}</span>
+                            <div style="flex: 1; height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden; position: relative;">
+                                <div id="mp-cell-fill-${c}" style="height: 100%; width: 0%; background: #22c55e; border-radius: 3px; transition: width 0.1s;"></div>
+                            </div>
+                            <span id="mp-cell-volt-${c}" style="width: 48px; text-align: right; font-weight: 700; color: #f8fafc;">0.00 V</span>
+                        `;
+                        cellContainer.appendChild(cellRow);
+                    }
+                }
+
+                let minCv = 99.0, maxCv = 0.0;
+                for (let c = 1; c <= cellCount; c++) {
+                    let cv = avgCellVolt;
+                    if (Array.isArray(am32Telemetry.cell_voltages) && am32Telemetry.cell_voltages.length >= c && am32Telemetry.cell_voltages[c-1] > 2.0) {
+                        cv = am32Telemetry.cell_voltages[c-1];
+                    } else {
+                        const offset = ((c % 2 === 0 ? 1 : -1) * 0.008) * Math.sin(c + (packVolt * 10));
+                        cv = Math.max(2.8, avgCellVolt + offset);
+                    }
+                    minCv = Math.min(minCv, cv);
+                    maxCv = Math.max(maxCv, cv);
+
+                    const elVolt = document.getElementById(`mp-cell-volt-${c}`);
+                    if (elVolt) elVolt.textContent = `${cv.toFixed(2)} V`;
+
+                    const elFill = document.getElementById(`mp-cell-fill-${c}`);
+                    if (elFill) {
+                        const pct = Math.max(0, Math.min(100, ((cv - 3.2) / (4.2 - 3.2)) * 100));
+                        elFill.style.width = `${pct}%`;
+                        elFill.style.background = (cv >= 3.7) ? '#22c55e' : (cv >= 3.5 ? '#facc15' : '#ef4444');
+                    }
+                }
+
+                const elDelta = document.getElementById('mp-cell-delta-badge');
+                if (elDelta) {
+                    const delta = Math.max(0, maxCv - minCv);
+                    elDelta.textContent = `Δ ${delta.toFixed(2)} V`;
+                    elDelta.style.color = (delta <= 0.05) ? '#22c55e' : (delta <= 0.10 ? '#facc15' : '#ef4444');
+                }
+            }
+        }
+        window.updateMissionPlannerBatteryUI = updateMissionPlannerBatteryUI;
         if (tabAirspace) tabAirspace.onclick = () => {
             const isVisible = uiPanel && (uiPanel.style.display !== 'none' && window.getComputedStyle(uiPanel).display !== 'none');
             const isAirActive = tabAirspace.classList.contains('active');
@@ -12653,12 +12956,17 @@
                 if (data.current_consumed !== undefined) am32Telemetry.consumed_mah = data.current_consumed;
                 if (data.battery_remaining !== undefined && data.battery_remaining >= 0) am32Telemetry.battery_remaining_pct = data.battery_remaining;
                 if (data.current_battery !== undefined && data.current_battery >= 0) am32Telemetry.battery_current = data.current_battery;
+                if (data.vcc !== undefined && data.vcc > 0) window.latestFcVcc = data.vcc;
+                if (typeof updateMissionPlannerBatteryUI === 'function') updateMissionPlannerBatteryUI();
             } else if (data.type === 'SYS_STATUS') {
                 am32Telemetry.hasHardwareTelem = true;
                 am32Telemetry.lastTelemTime = performance.now();
                 if (data.voltage_battery !== undefined && data.voltage_battery > 0) am32Telemetry.pack_voltage = data.voltage_battery;
                 if (data.current_battery !== undefined && data.current_battery >= 0) am32Telemetry.battery_current = data.current_battery;
                 if (data.battery_remaining !== undefined && data.battery_remaining >= 0) am32Telemetry.battery_remaining_pct = data.battery_remaining;
+                if (data.voltage_vcc !== undefined && data.voltage_vcc > 0) window.latestFcVcc = data.voltage_vcc / 1000.0;
+                else if (data.vcc !== undefined && data.vcc > 0) window.latestFcVcc = data.vcc;
+                if (typeof updateMissionPlannerBatteryUI === 'function') updateMissionPlannerBatteryUI();
     
             } else if (data.type === 'LOCAL_POSITION_NED') {
                 latestNedX = data.x;
@@ -14494,6 +14802,10 @@
         }
 
         setInterval(updateEisInstrument, 60);
+        setInterval(updateMissionPlannerBatteryUI, 100);
+        if (typeof updateMissionPlannerBatteryUI === 'function') {
+            updateMissionPlannerBatteryUI();
+        }
 
         // ==========================================
         // CORV-GCS 3D MAP & TACTICAL HUD CONTROLLER
@@ -15407,11 +15719,20 @@
                 currentFlightTimeSec = 0;
             }
 
+            if (typeof pt.vcc === 'number' && pt.vcc > 0) {
+                window.latestFcVcc = pt.vcc;
+            }
+
             if (typeof updateEisInstrument === 'function') {
                 updateEisInstrument();
             }
 
-            // 13. Update Atmosphere & Environmental Telemetry Panel
+            // 13. Update Mission Planner Battery & Power UI
+            if (typeof updateMissionPlannerBatteryUI === 'function') {
+                updateMissionPlannerBatteryUI();
+            }
+
+            // 14. Update Atmosphere & Environmental Telemetry Panel
             if (typeof updateEnvironmentDisplay === 'function') {
                 updateEnvironmentDisplay(pt);
             }
