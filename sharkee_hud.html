@@ -4986,19 +4986,36 @@
         const graphContainer = document.getElementById('terrain-graph-container');
         if (btnToggleGraph) btnToggleGraph.onclick = () => toggleEnvPanel();
 
+        let flightTrackVisible = true;
         const btnToggleTrace = document.getElementById('btn-toggle-trace');
-        btnToggleTrace.onclick = () => {
-            if (trailLine) {
-                trailLine.visible = !trailLine.visible;
-                btnToggleTrace.classList.toggle('active', trailLine.visible);
+
+        function toggleFlightTrack() {
+            flightTrackVisible = !flightTrackVisible;
+            if (window.logCorridorGroup) {
+                window.logCorridorGroup.visible = flightTrackVisible;
+            }
+            if (typeof trailLine !== 'undefined' && trailLine) {
+                trailLine.visible = flightTrackVisible;
+            }
+            if (btnToggleTrace) {
+                btnToggleTrace.classList.toggle('active', flightTrackVisible);
                 const eye = btnToggleTrace.querySelector('svg');
-                if (trailLine.visible) {
-                    eye.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>';
-                } else {
-                    eye.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>';
+                if (eye) {
+                    if (flightTrackVisible) {
+                        eye.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>';
+                    } else {
+                        eye.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>';
+                    }
                 }
             }
-        };
+            if (typeof showTacticalAlert === 'function') {
+                showTacticalAlert(flightTrackVisible ? "FLIGHT TRACK: ENABLED" : "FLIGHT TRACK: DISABLED", 1400);
+            }
+        }
+        window.toggleFlightTrack = toggleFlightTrack;
+        if (btnToggleTrace) {
+            btnToggleTrace.onclick = toggleFlightTrack;
+        }
 
         const btnClearCoverage = document.getElementById('btn-clear-coverage');
         if (btnClearCoverage) {
@@ -5566,7 +5583,7 @@
         // Dedicated Waypoints Visibility Toggle (Toolbar Button & Hotkey 'W')
         function toggleWaypoints() {
             waypointsVisible = !waypointsVisible;
-            if (typeof waypointGroup !== 'undefined') {
+            if (typeof waypointGroup !== 'undefined' && waypointGroup) {
                 waypointGroup.visible = waypointsVisible;
             }
             if (btnToggleWaypoints) {
@@ -5576,13 +5593,24 @@
                 if (typeof renderWaypoints3D === 'function') {
                     renderWaypoints3D();
                 }
-                if (ws && ws.readyState === WebSocket.OPEN) {
-                    requestWaypoints(false);
-                } else if (!vehicleConnected && (!missionWaypoints || missionWaypoints.length === 0) && typeof loadDefaultWaypoints === 'function') {
-                    loadDefaultWaypoints();
+                if (!window.isLogReplayActive) {
+                    if (ws && ws.readyState === WebSocket.OPEN) {
+                        requestWaypoints(false);
+                    } else if (!vehicleConnected && (!missionWaypoints || missionWaypoints.length === 0) && typeof loadDefaultWaypoints === 'function') {
+                        loadDefaultWaypoints();
+                    }
+                }
+                const count = (Array.isArray(missionWaypoints) ? missionWaypoints.length : 0);
+                if (typeof showTacticalAlert === 'function') {
+                    showTacticalAlert(count > 0 ? `WAYPOINTS: VISIBLE (${count} WP)` : "NO FLIGHT WAYPOINTS IN LOG", 1400);
+                }
+            } else {
+                if (typeof showTacticalAlert === 'function') {
+                    showTacticalAlert("WAYPOINTS: HIDDEN", 1200);
                 }
             }
         }
+        window.toggleWaypoints = toggleWaypoints;
         if (btnToggleWaypoints) {
             btnToggleWaypoints.onclick = toggleWaypoints;
             btnToggleWaypoints.ondblclick = (e) => {
@@ -9408,6 +9436,8 @@
                 toggleDeadReckoningSim();
             } else if (e.key === 'w' || e.key === 'W') {
                 toggleWaypoints();
+            } else if (e.key === 't' || e.key === 'T') {
+                toggleFlightTrack();
             } else if (e.key === 'm' || e.key === 'M') {
                 toggleMessagesTab();
             } else if (e.key === 'u' || e.key === 'U') {
@@ -11396,7 +11426,8 @@
             const sceneX = (dLon * mPerDegLon);
             const sceneZ = -(dLat * mPerDegLat);
             const groundY = (typeof getTerrainElevationAt === 'function') ? getTerrainElevationAt(sceneX, sceneZ) : 0;
-            const sceneY = Math.max(groundY + 3.0, Number(alt) || 30.0);
+            const relAlt = Number(alt) || 30.0;
+            const sceneY = Math.max(groundY + 2.0, (window.isLogReplayActive ? (groundY + relAlt) : (Number(alt) || 30.0)));
 
             return new THREE.Vector3(sceneX, sceneY, sceneZ);
         }
@@ -11465,7 +11496,7 @@
                 waypointGroup.remove(c);
             });
 
-            const validWps = (Array.isArray(missionWaypoints) ? missionWaypoints : []).filter(w => w && Math.abs(w.lat) > 0.001 && Math.abs(w.lon) > 0.001);
+            const validWps = (Array.isArray(missionWaypoints) ? missionWaypoints : []).filter(w => w && Math.abs(w.lat) > 0.001 && Math.abs(w.lng || w.lon || 0) > 0.001);
             if (validWps.length === 0) return;
 
             // Live streaming strictly follows aircraft current location.
@@ -11474,7 +11505,7 @@
             const allPts = [];
 
             validWps.forEach((wp) => {
-                const pos = latLonToScene(wp.lat, wp.lon, wp.alt);
+                const pos = latLonToScene(wp.lat, (wp.lng !== undefined ? wp.lng : wp.lon), wp.alt);
                 wp._scenePos = pos;
                 allPts.push(pos);
 
@@ -14650,6 +14681,7 @@
             homeMesh.position.set(rawPoints[0].x, 0.15, rawPoints[0].z);
             window.logCorridorGroup.add(homeMesh);
 
+            window.logCorridorGroup.visible = flightTrackVisible;
             scene.add(window.logCorridorGroup);
         }
 
@@ -15096,7 +15128,7 @@
         window.loadFlightLogTrajectory = function(traj) {
             window.isLogReplayActive = true;
             window.flightTrajectory = traj;
-            if (typeof waypointGroup !== 'undefined' && waypointGroup) waypointGroup.visible = false;
+            if (typeof waypointGroup !== 'undefined' && waypointGroup) waypointGroup.visible = waypointsVisible;
             if (typeof flightCoverageGroup !== 'undefined' && flightCoverageGroup) flightCoverageGroup.visible = false;
             if (typeof trailLine !== 'undefined' && trailLine) {
                 trailLine.visible = false;
@@ -15119,6 +15151,9 @@
             }
             detectAirspeedAliveWindow(traj);
             renderLogFlightCorridor(traj);
+            if (window.logCorridorGroup) {
+                window.logCorridorGroup.visible = flightTrackVisible;
+            }
             if (traj && traj.length > 0) {
                 const firstPt = traj.find(p => typeof p.wind_spd === 'number') || traj[0];
                 if (firstPt && typeof firstPt.wind_spd === 'number') {
@@ -15146,6 +15181,37 @@
             }
             if (typeof updateEisInstrument === 'function') {
                 updateEisInstrument();
+            }
+        };
+        window.loadFlightLogWaypoints = function(wps) {
+            if (!Array.isArray(wps) || wps.length === 0) {
+                missionWaypoints = [];
+                if (typeof waypointGroup !== 'undefined' && waypointGroup) {
+                    const toRemove = [...waypointGroup.children];
+                    toRemove.forEach(c => {
+                        if (c.geometry) c.geometry.dispose();
+                        if (c.material) {
+                            if (c.material.map) c.material.map.dispose();
+                            c.material.dispose();
+                        }
+                        waypointGroup.remove(c);
+                    });
+                }
+                const countEl = document.getElementById('mission-wpt-count-text');
+                if (countEl) countEl.innerText = '0 WP';
+                return;
+            }
+            missionWaypoints = wps;
+            try {
+                localStorage.setItem('sharkee_mission_waypoints', JSON.stringify(missionWaypoints));
+            } catch(e) {}
+            const countEl = document.getElementById('mission-wpt-count-text');
+            if (countEl) countEl.innerText = `${missionWaypoints.length} WP`;
+            if (typeof renderWaypoints3D === 'function') {
+                renderWaypoints3D();
+            }
+            if (typeof waypointGroup !== 'undefined' && waypointGroup) {
+                waypointGroup.visible = waypointsVisible;
             }
         };
         window.loadFlightLogMessages = function(msgs) {
@@ -15186,8 +15252,8 @@
                     wsReconnectTimer = null;
                 }
 
-                // Hide default survey grid lines and coverage swath so only real log trajectory is displayed
-                if (typeof waypointGroup !== 'undefined' && waypointGroup) waypointGroup.visible = false;
+                // Sync display groups
+                if (typeof waypointGroup !== 'undefined' && waypointGroup) waypointGroup.visible = waypointsVisible;
                 if (typeof flightCoverageGroup !== 'undefined' && flightCoverageGroup) flightCoverageGroup.visible = false;
                 if (typeof trailLine !== 'undefined' && trailLine) trailLine.visible = false;
 
@@ -15195,6 +15261,12 @@
                 if (!traj || traj.length === 0) return;
                 window.flightTrajectory = traj;
                 detectAirspeedAliveWindow(traj);
+
+                // Populate Autonomous Mission Waypoints if available in flight log
+                const wps = event.data.waypoints || [];
+                if (typeof window.loadFlightLogWaypoints === 'function') {
+                    window.loadFlightLogWaypoints(wps);
+                }
 
                 // Populate Autopilot Messages Log if available in flight log
                 const msgs = event.data.messages || [];
@@ -15244,6 +15316,9 @@
 
                 // Render 3D Flight Corridor Ribbon across the sky
                 renderLogFlightCorridor(traj);
+                if (window.logCorridorGroup) {
+                    window.logCorridorGroup.visible = flightTrackVisible;
+                }
 
                 // Compute atmospheric and environmental flight statistics
                 if (typeof computeEnvironmentStats === 'function') {

@@ -5529,7 +5529,7 @@
             <div id="lower-viewports-wrapper" class="fullscreen" style="flex: 1; position: relative; width: 100%; height: 100%; min-height: 0;">
                 <!-- 3D Flight Visualizer View (3D Terrain + PFD Horizon + NAV Compass + Atmosphere Panel) -->
                 <div id="sitl-pane" style="width: 100%; height: 100%; position: absolute; top: 0; left: 0; right: 0; bottom: 0;">
-                    <iframe id="sitl-viewer-frame" src="sharkee_hud.html?v=20261120_SMOOTH_CURVE_CLEAN_v6" style="width: 100%; height: 100%; border: none; display: block;" onload="onSitlIframeLoaded()"></iframe>
+                    <iframe id="sitl-viewer-frame" src="sharkee_hud.html?v=20261120_WP_TRACK_TOGGLE_v8" style="width: 100%; height: 100%; border: none; display: block;" onload="onSitlIframeLoaded()"></iframe>
                 </div>
 
                 <!-- 2D Leaflet Satellite Map View -->
@@ -5726,6 +5726,7 @@
         let currentTimeCursor = 0;
         let currentTrajectory = [];
         let currentFlightMessages = [];
+        let currentFlightWaypoints = [];
         let isPlotVisible = false;
         let currentDrawerSearch = '';
         let currentDrawerSeverity = 'all';
@@ -8155,7 +8156,8 @@
                     iframe.contentWindow.postMessage({
                         type: 'LOAD_FLIGHT_LOG',
                         trajectory: hudTraj,
-                        messages: currentFlightMessages
+                        messages: currentFlightMessages,
+                        waypoints: currentFlightWaypoints
                     }, '*');
                     const firstValid = hudTraj.find(p => p.lat && p.lng && Math.abs(p.lat) > 0.001) || hudTraj[0];
                     if (firstValid) {
@@ -8173,6 +8175,9 @@
                         }
                         if (typeof iframe.contentWindow.loadFlightLogMessages === 'function') {
                             iframe.contentWindow.loadFlightLogMessages(currentFlightMessages);
+                        }
+                        if (typeof iframe.contentWindow.loadFlightLogWaypoints === 'function') {
+                            iframe.contentWindow.loadFlightLogWaypoints(currentFlightWaypoints);
                         }
                         if (typeof iframe.contentWindow.applyFlightLogTelemetry === 'function' && firstValid) {
                             iframe.contentWindow.applyFlightLogTelemetry(firstValid, true);
@@ -8329,8 +8334,9 @@
             const presetSel = document.getElementById('preset-select');
             if (presetSel) presetSel.value = '';
 
-            // Extract & load Autopilot Messages
+            // Extract & load Autopilot Messages & Mission Waypoints
             currentFlightMessages = data.messages || [];
+            currentFlightWaypoints = data.waypoints || [];
 
             onSitlIframeLoaded();
             setTimeout(onSitlIframeLoaded, 400);

@@ -257,6 +257,7 @@ def parse_flight_telemetry(file_path, target_samples=8000):
     parameters = {}
     raw_records = []
     flight_messages = []
+    cmds_by_seq = {}
     current_state = {}
 
     cur_mode = 'MANUAL'
@@ -328,6 +329,34 @@ def parse_flight_telemetry(file_path, target_samples=8000):
                 elif any(w in txt_lower for w in ['calibrat', 'init', 'arm', 'mode', 'ready', 'complete', 'active']):
                     sev = 5
                 flight_messages.append({'time': round(t_s, 2), 'text': txt, 'severity': sev})
+            continue
+
+        elif mtype == 'CMD':
+            c_num = getattr(msg, 'CNum', None)
+            if c_num is not None:
+                c_id = getattr(msg, 'CId', 16)
+                lat_cmd = getattr(msg, 'Lat', 0.0)
+                lng_cmd = getattr(msg, 'Lng', 0.0)
+                alt_cmd = getattr(msg, 'Alt', 0.0)
+                frame_cmd = getattr(msg, 'Frame', 3)
+                prm1 = getattr(msg, 'Prm1', 0.0)
+                prm2 = getattr(msg, 'Prm2', 0.0)
+                prm3 = getattr(msg, 'Prm3', 0.0)
+                prm4 = getattr(msg, 'Prm4', 0.0)
+                if abs(lat_cmd) > 0.001 and abs(lng_cmd) > 0.001:
+                    cmds_by_seq[int(c_num)] = {
+                        'seq': int(c_num),
+                        'id': int(c_id),
+                        'lat': round(float(lat_cmd), 7),
+                        'lng': round(float(lng_cmd), 7),
+                        'lon': round(float(lng_cmd), 7),
+                        'alt': round(float(alt_cmd), 2),
+                        'frame': int(frame_cmd),
+                        'prm1': float(prm1),
+                        'prm2': float(prm2),
+                        'prm3': float(prm3),
+                        'prm4': float(prm4)
+                    }
             continue
 
         t_us = getattr(msg, 'TimeUS', None)
@@ -718,6 +747,7 @@ def parse_flight_telemetry(file_path, target_samples=8000):
         'parameters': parameters,
         'telemetry': downsampled,
         'messages': flight_messages,
+        'waypoints': [cmds_by_seq[k] for k in sorted(cmds_by_seq.keys())],
         'mode_segments': mode_segments,
         'speed_steps': speed_steps
     }
