@@ -5226,6 +5226,19 @@
             if (typeof renderAtisCharts === 'function' && typeof atisGlobalData !== 'undefined' && atisGlobalData) {
                 renderAtisCharts();
             }
+            var sitlIframe = document.getElementById('sitl-viewer-frame');
+            if (sitlIframe && sitlIframe.contentWindow) {
+                try {
+                    if (typeof sitlIframe.contentWindow.applyTheme === 'function') {
+                        sitlIframe.contentWindow.applyTheme(themeName !== 'light-clean');
+                    } else {
+                        sitlIframe.contentWindow.postMessage({
+                            type: 'SET_THEME',
+                            isDark: themeName !== 'light-clean'
+                        }, '*');
+                    }
+                } catch(e) {}
+            }
         }
 
         (function initWorkstationTheme() {
@@ -8259,6 +8272,15 @@
         }
 
         function onSitlIframeLoaded() {
+            var currentTheme = document.documentElement.getAttribute('data-theme') || 'uav-official';
+            var sitlIframe = document.getElementById('sitl-viewer-frame');
+            if (sitlIframe && sitlIframe.contentWindow) {
+                try {
+                    if (typeof sitlIframe.contentWindow.applyTheme === 'function') {
+                        sitlIframe.contentWindow.applyTheme(currentTheme !== 'light-clean');
+                    }
+                } catch(e) {}
+            }
             if (currentTrajectory && currentTrajectory.length > 0) {
                 const iframe = document.getElementById('sitl-viewer-frame');
                 if (iframe && iframe.contentWindow) {

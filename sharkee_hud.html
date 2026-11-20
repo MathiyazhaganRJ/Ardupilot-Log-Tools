@@ -5061,6 +5061,7 @@
         var corvModeActive = false;
         var planeClimbRate = 0.0;
         var homeElevationMSL = null;
+        var am32Telemetry = undefined;
         window.homeLat = null;
         window.homeLon = null;
         window.missionAnchorLat = null;
@@ -5076,25 +5077,38 @@
         const applyTheme = (isDark) => {
             if (isDark) {
                 document.body.classList.add('dark-mode');
-                themeToggle.innerHTML = SVG_SUN;
+                if (themeToggle) themeToggle.innerHTML = SVG_SUN;
                 localStorage.setItem('app_theme', 'dark');
             } else {
                 document.body.classList.remove('dark-mode');
-                themeToggle.innerHTML = SVG_MOON;
+                if (themeToggle) themeToggle.innerHTML = SVG_MOON;
                 localStorage.setItem('app_theme', 'light');
             }
             if (typeof updateSceneTheme === 'function') updateSceneTheme();
-            if (typeof updateMissionPlannerBatteryUI === 'function') updateMissionPlannerBatteryUI();
         };
+        window.applyTheme = applyTheme;
 
-        themeToggle.onclick = () => {
-            applyTheme(!document.body.classList.contains('dark-mode'));
-        };
-
-        const savedAppTheme = localStorage.getItem('app_theme');
-        if (new URLSearchParams(window.location.search).get('theme') === 'dark' || savedAppTheme === 'dark' || !savedAppTheme) {
-            applyTheme(true);
+        if (themeToggle) {
+            themeToggle.onclick = () => {
+                applyTheme(!document.body.classList.contains('dark-mode'));
+            };
         }
+
+        window.addEventListener('message', (event) => {
+            if (event.data && event.data.type === 'SET_THEME') {
+                applyTheme(event.data.isDark);
+            }
+        });
+
+        const savedWorkstationTheme = localStorage.getItem('sharkee_workstation_theme');
+        const savedAppTheme = localStorage.getItem('app_theme');
+        let initialDark = true;
+        if (savedWorkstationTheme) {
+            initialDark = (savedWorkstationTheme !== 'light-clean');
+        } else if (new URLSearchParams(window.location.search).get('theme') === 'light' || savedAppTheme === 'light') {
+            initialDark = false;
+        }
+        applyTheme(initialDark);
 
         // UI Panel Toggles
         const btnOpenCesium = document.getElementById('btn-open-cesium');
@@ -13829,7 +13843,7 @@
         }
 
         // AM32 ESC Telemetry State (Hardware buffers or Simulated)
-        const am32Telemetry = {
+        am32Telemetry = {
             hasHardwareTelem: false,
             lastTelemTime: 0,
             rpm: [0, 0, 0, 0, 0, 0, 0, 0],
