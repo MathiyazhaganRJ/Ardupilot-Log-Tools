@@ -1383,92 +1383,96 @@
         /* PRECISION TIMELINE RANGESLIDER & GUTTER SEPARATION       */
         /* ========================================================= */
 
-        /* Elevated rangeslider container frame with separation shadow */
+        /* Precision timeline rangeslider container frame - clean, matte aesthetic */
         #main-plot .rangeslider-container {
-            filter: drop-shadow(0 -3px 8px rgba(0, 0, 0, 0.45));
+            filter: none !important;
         }
         [data-theme="light-clean"] #main-plot .rangeslider-container {
-            filter: drop-shadow(0 -2px 6px rgba(0, 0, 0, 0.12));
+            filter: none !important;
         }
 
         /* Rangeslider background tray (bezel) */
         #main-plot .rangeslider-bg {
-            fill: #0b0c10 !important;
+            fill: #0c0e12 !important;
             stroke: #262c36 !important;
-            stroke-width: 1.5px !important;
-            rx: 6px !important;
+            stroke-width: 1px !important;
+            rx: 4px !important;
         }
         [data-theme="light-clean"] #main-plot .rangeslider-bg {
-            fill: #f1f5f9 !important;
+            fill: #f8fafc !important;
             stroke: #cbd5e1 !important;
-            stroke-width: 1.5px !important;
-            rx: 6px !important;
+            stroke-width: 1px !important;
+            rx: 4px !important;
         }
 
         /* Dimmed inactive regions outside selection */
         #main-plot .rangeslider-mask-min,
         #main-plot .rangeslider-mask-max {
-            fill: #020305 !important;
-            fill-opacity: 0.82 !important;
+            fill: #000000 !important;
+            fill-opacity: 0.70 !important;
         }
         [data-theme="light-clean"] #main-plot .rangeslider-mask-min,
         [data-theme="light-clean"] #main-plot .rangeslider-mask-max {
             fill: #475569 !important;
-            fill-opacity: 0.40 !important;
+            fill-opacity: 0.30 !important;
         }
 
-        /* Active selected window (slidebox) with crisp luminescent frame */
+        /* Active selected window (slidebox) with clean, subtle boundary */
         #main-plot .rangeslider-slidebox {
-            fill: rgba(56, 189, 248, 0.12) !important;
-            stroke: #38bdf8 !important;
-            stroke-width: 1.5px !important;
+            fill: rgba(56, 189, 248, 0.05) !important;
+            stroke: rgba(56, 189, 248, 0.50) !important;
+            stroke-width: 1px !important;
             cursor: grab !important;
         }
         #main-plot .rangeslider-slidebox:active {
-            fill: rgba(56, 189, 248, 0.22) !important;
+            fill: rgba(56, 189, 248, 0.12) !important;
+            stroke: #38bdf8 !important;
             cursor: grabbing !important;
         }
         [data-theme="light-clean"] #main-plot .rangeslider-slidebox {
-            fill: rgba(2, 132, 199, 0.10) !important;
-            stroke: #0284c7 !important;
-            stroke-width: 1.5px !important;
+            fill: rgba(2, 132, 199, 0.04) !important;
+            stroke: rgba(2, 132, 199, 0.45) !important;
+            stroke-width: 1px !important;
             cursor: grab !important;
         }
         [data-theme="light-clean"] #main-plot .rangeslider-slidebox:active {
-            fill: rgba(2, 132, 199, 0.20) !important;
+            fill: rgba(2, 132, 199, 0.10) !important;
+            stroke: #0284c7 !important;
             cursor: grabbing !important;
         }
 
-        /* High-contrast tactile grab handles (Left & Right) */
+        /* High-contrast tactile grab handles (Left & Right) - matte aluminum finish, no glow */
         #main-plot .rangeslider-handle-min,
         #main-plot .rangeslider-handle-max {
-            fill: #ffffff !important;
+            fill: #e2e8f0 !important;
             stroke: #38bdf8 !important;
-            stroke-width: 2.5px !important;
-            rx: 3px !important;
+            stroke-width: 1.5px !important;
+            rx: 2px !important;
             cursor: ew-resize !important;
-            filter: drop-shadow(0 0 5px rgba(56, 189, 248, 0.9)) !important;
-            transition: filter 0.15s ease, stroke 0.15s ease;
+            filter: none !important;
+            transition: fill 0.15s ease, stroke 0.15s ease;
         }
         #main-plot .rangeslider-handle-min:hover,
         #main-plot .rangeslider-handle-max:hover {
+            fill: #ffffff !important;
             stroke: #7dd3fc !important;
-            filter: drop-shadow(0 0 8px rgba(56, 189, 248, 1)) !important;
+            filter: none !important;
         }
         [data-theme="light-clean"] #main-plot .rangeslider-handle-min,
         [data-theme="light-clean"] #main-plot .rangeslider-handle-max {
             fill: #ffffff !important;
-            stroke: #0284c7 !important;
-            stroke-width: 2.5px !important;
-            rx: 3px !important;
+            stroke: #64748b !important;
+            stroke-width: 1.5px !important;
+            rx: 2px !important;
             cursor: ew-resize !important;
-            filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.4)) !important;
-            transition: filter 0.15s ease, stroke 0.15s ease;
+            filter: none !important;
+            transition: fill 0.15s ease, stroke 0.15s ease;
         }
         [data-theme="light-clean"] #main-plot .rangeslider-handle-min:hover,
         [data-theme="light-clean"] #main-plot .rangeslider-handle-max:hover {
-            stroke: #0369a1 !important;
-            filter: drop-shadow(0 0 6px rgba(2, 132, 199, 0.8)) !important;
+            stroke: #0284c7 !important;
+            fill: #f8fafc !important;
+            filter: none !important;
         }
 
         /* Grab Area Hover Cursor */
