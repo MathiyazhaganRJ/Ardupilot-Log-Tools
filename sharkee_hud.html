@@ -5062,6 +5062,9 @@
         var planeClimbRate = 0.0;
         var homeElevationMSL = null;
         var am32Telemetry = undefined;
+        var batteryCapacityMah = parseInt(localStorage.getItem('eis_battery_cap') || '6000', 10);
+        var eisEngineMode = (new URLSearchParams(window.location.search)).get('eis_mode') || localStorage.getItem('eis_engine_mode') || 'single';
+        var manualCellCount = parseInt(localStorage.getItem('eis_battery_cells') || '0', 10);
         window.homeLat = null;
         window.homeLon = null;
         window.missionAnchorLat = null;
@@ -13751,18 +13754,18 @@
         var eisWidgetVisible = true;
         let eisIsFullscreen = localStorage.getItem('eis_fullscreen') !== '0'; // default true (fullscreen)
         const eisUrlParams = new URLSearchParams(window.location.search);
-        let eisEngineMode = eisUrlParams.get('eis_mode') || localStorage.getItem('eis_engine_mode') || 'single'; // 'single' | 'twin'
+        eisEngineMode = eisUrlParams.get('eis_mode') || localStorage.getItem('eis_engine_mode') || eisEngineMode || 'single'; // 'single' | 'twin'
         let eisSingleChannel = parseInt(eisUrlParams.get('esc') || localStorage.getItem('eis_single_ch') || '1', 10);
         let eisTwinLeftCh = parseInt(eisUrlParams.get('left') || localStorage.getItem('eis_twin_left_ch') || '1', 10);
         let eisTwinRightCh = parseInt(eisUrlParams.get('right') || localStorage.getItem('eis_twin_right_ch') || '2', 10);
-        let batteryCapacityMah = parseInt(localStorage.getItem('eis_battery_cap') || '6000', 10);
+        batteryCapacityMah = batteryCapacityMah || parseInt(localStorage.getItem('eis_battery_cap') || '6000', 10);
         const urlCells = parseInt(eisUrlParams.get('cells') || '0', 10);
-        let manualCellCount = (urlCells > 0) ? urlCells : parseInt(localStorage.getItem('eis_battery_cells') || '0', 10);
+        manualCellCount = (urlCells > 0) ? urlCells : (manualCellCount || parseInt(localStorage.getItem('eis_battery_cells') || '0', 10));
 
         function getBatteryCellCount(packVolt) {
-            if (manualCellCount > 0) return manualCellCount;
-            if (am32Telemetry.cell_count > 0) return am32Telemetry.cell_count;
-            if (Array.isArray(am32Telemetry.cell_voltages)) {
+            if (typeof manualCellCount !== 'undefined' && manualCellCount > 0) return manualCellCount;
+            if (typeof am32Telemetry !== 'undefined' && am32Telemetry && am32Telemetry.cell_count > 0) return am32Telemetry.cell_count;
+            if (typeof am32Telemetry !== 'undefined' && am32Telemetry && Array.isArray(am32Telemetry.cell_voltages)) {
                 const subCells = am32Telemetry.cell_voltages.filter(v => v >= 2.5 && v <= 4.5);
                 if (subCells.length > 1) return subCells.length;
             }

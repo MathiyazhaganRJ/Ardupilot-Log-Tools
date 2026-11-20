@@ -5273,8 +5273,10 @@
             newCap = parseInt(newCap, 10);
             if (isNaN(newCap) || newCap < 100 || newCap > 200000) return;
             activeBatteryCapacityMah = newCap;
-            if (currentFlightParameters) {
+            if (typeof currentFlightParameters !== 'undefined' && currentFlightParameters) {
                 currentFlightParameters['BATT_CAPACITY'] = newCap;
+            } else if (window.currentFlightParameters) {
+                window.currentFlightParameters['BATT_CAPACITY'] = newCap;
             }
             const fname = document.getElementById('loaded-log-name')?.textContent || 'flight.bin';
             try {
@@ -5919,6 +5921,14 @@
         // State & Configuration
         // ---------------------------------------------------------------------------
         let currentFlightData = null;
+        let currentFlightParameters = window.currentFlightParameters = {};
+        let flightMaxTime = 0;
+        let isReplaying = false;
+        let replaySpeed = 1.0;
+        let lastReplayTimestamp = 0;
+        let basePlotShapes = [];
+        let lastCursorRelayout = 0;
+        let logLoadingProgressTimer = null;
         let activeFields = [];
         let testTableRows = [];
         let currentTimeCursor = 0;
@@ -8555,7 +8565,7 @@
             updateMapTrajectory(currentTrajectory);
 
             // Store & build vehicle parameters catalog
-            currentFlightParameters = data.parameters || {};
+            currentFlightParameters = window.currentFlightParameters = data.parameters || {};
             const paramsBadge = document.getElementById('vehicle-params-count');
             if (paramsBadge) paramsBadge.textContent = Object.keys(currentFlightParameters).length;
             renderParametersList('');
@@ -8596,7 +8606,6 @@
         }
 
         // Mid-Screen Log Loading Progress Indicator Management
-        let logLoadingProgressTimer = null;
 
         function showLogLoadingProgress(filename, customStatus) {
             const overlay = document.getElementById('log-loading-overlay');
@@ -9007,7 +9016,6 @@
             }
         }
 
-        let currentFlightParameters = {};
         let activeSidebarTreeTab = 'telemetry';
 
         // Canonical ArduPilot Servo & Output Functions Lookup
@@ -10248,12 +10256,6 @@
         // ---------------------------------------------------------------------------
         // Flight Telemetry Replay Engine (Play / Pause / Scrub / Multiplier)
         // ---------------------------------------------------------------------------
-        let isReplaying = false;
-        let replaySpeed = 1.0;
-        let lastReplayTimestamp = 0;
-        let flightMaxTime = 0;
-        let basePlotShapes = [];
-        let lastCursorRelayout = 0;
 
         function toggleReplayPlayback() {
             if (!currentTrajectory || currentTrajectory.length === 0) return;
