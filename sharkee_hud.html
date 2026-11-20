@@ -14514,61 +14514,168 @@
             };
             const defaultModeColor = new THREE.Color(0x30d158).convertSRGBToLinear();
 
-            const N = rawPoints.length;
-            const lineVertices = new Float32Array(N * 3);
-            const lineColors = new Float32Array(N * 3);
-
-            for (let i = 0; i < N; i++) {
-                const p = rawPoints[i];
+            // Build initial mode colors per raw point
+            const rawColors = [];
+            for (let i = 0; i < rawPoints.length; i++) {
                 const mode = pointModes[i] || 'MANUAL';
                 const col = MODE_THREE_COLORS[mode] || defaultModeColor;
-
-                lineVertices[i * 3] = p.x;
-                lineVertices[i * 3 + 1] = p.y;
-                lineVertices[i * 3 + 2] = p.z;
-                lineColors[i * 3] = col.r;
-                lineColors[i * 3 + 1] = col.g;
-                lineColors[i * 3 + 2] = col.b;
+                rawColors.push(col.clone());
             }
 
-            // Generate silky-smooth continuous 3D aerodynamic flight corridor curve
-            let curvePoints = rawPoints;
-            let curveColors = lineColors;
-            if (rawPoints.length >= 4) {
-                try {
-                    const spline = new THREE.CatmullRomCurve3(rawPoints, false, 'centripetal', 0.5);
-                    const sampleCount = Math.min(8000, Math.max(rawPoints.length * 2, 800));
-                    curvePoints = spline.getPoints(sampleCount);
+            // Chaikin Quadratic B-Spline Subdivision (Curvature-Continuous Flight Track)
+            // Progressively cuts all sharp angular polygon chords into a silky-smooth continuous curve
+            let smoothPoints = rawPoints;
+            let smoothColors = rawColors;
+            let smoothModes = pointModes;
 
-                    curveColors = new Float32Array(curvePoints.length * 3);
-                    const sN = curvePoints.length;
-                    for (let j = 0; j < sN; j++) {
-                        const tFraction = j / (sN - 1);
-                        const origIdx = Math.min(rawPoints.length - 1, Math.floor(tFraction * (rawPoints.length - 1)));
-                        const m = pointModes[origIdx] || 'MANUAL';
-                        const c = MODE_THREE_COLORS[m] || defaultModeColor;
-                        curveColors[j * 3] = c.r;
-                        curveColors[j * 3 + 1] = c.g;
-                        curveColors[j * 3 + 2] = c.b;
-                    }
-                } catch (e) {
-                    curvePoints = rawPoints;
-                    curveColors = lineColors;
+            const iterations = (rawPoints.length < 500) ? 4 : ((rawPoints.length < 2000) ? 3 : 2);
+            for (let it = 0; it < iterations; it++) {
+                if (smoothPoints.length > 30000) break;
+                const nextPts = [smoothPoints[0]];
+                const nextCols = [smoothColors[0]];
+                const nextModes = [smoothModes[0]];
+
+                for (let i = 0; i < smoothPoints.length - 1; i++) {
+                    const p0 = smoothPoints[i];
+                    const p1 = smoothPoints[i + 1];
+                    const c0 = smoothColors[i];
+                    const c1 = smoothColors[i + 1];
+                    const m0 = smoothModes[i];
+                    const m1 = smoothModes[i + 1];
+
+                    // Chaikin corner-cutting weights: 75%/25% and 25%/75%
+                    const q = new THREE.Vector3(
+                        0.75 * p0.x + 0.25 * p1.x,
+                        0.75 * p0.y + 0.25 * p1.y,
+                        0.75 * p0.z + 0.25 * p1.z
+                    );
+                    const r = new THREE.Vector3(
+                        0.25 * p0.x + 0.75 * p1.x,
+                        0.25 * p0.y + 0.75 * p1.y,
+                        0.25 * p0.z + 0.75 * p1.z
+                    );
+
+                    const cq = new THREE.Color(
+                        0.75 * c0.r + 0.25 * c1.r,
+                        0.75 * c0.g + 0.25 * c1.g,
+                        0.75 * c0.b + 0.25 * c1.b
+                    );
+                    const cr = new THREE.Color(
+                        0.25 * c0.r + 0.75 * c1.r,
+                        0.25 * c0.g + 0.75 * c1.g,
+                        0.25 * c0.b + 0.75 * c1.b
+                    );
+
+                    nextPts.push(q, r);
+                    nextCols.push(cq, cr);
+                    nextModes.push(m0, m1);
+                }
+
+                nextPts.push(smoothPoints[smoothPoints.length - 1]);
+                nextCols.push(smoothColors[smoothColors.length - 1]);
+                nextModes.push(smoothModes[smoothModes.length - 1]);
+
+                smoothPoints = nextPts;
+                smoothColors = nextCols;
+                smoothModes = nextModes;
+            }
+
+            // 1. Aerodynamic 3D Volumetric Flight Ribbon Strip (Eliminates 1px WebGL aliasing)
+            const ribbonWidth = 0.85;
+            const rN = smoothPoints.length;
+            const ribbonVerts = new Float32Array(rN * 2 * 3);
+            const ribbonColors = new Float32Array(rN * 2 * 3);
+            const ribbonIndices = new Uint32Array((rN - 1) * 6);
+            const upVec = new THREE.Vector3(0, 1, 0);
+
+            let vIdx = 0;
+            let cIdx = 0;
+            let iIdx = 0;
+
+            for (let i = 0; i < rN; i++) {
+                const pt = smoothPoints[i];
+                const col = smoothColors[i];
+
+                let dir;
+                if (i === 0) {
+                    dir = new THREE.Vector3().subVectors(smoothPoints[1], smoothPoints[0]);
+                } else if (i === rN - 1) {
+                    dir = new THREE.Vector3().subVectors(smoothPoints[rN - 1], smoothPoints[rN - 2]);
+                } else {
+                    dir = new THREE.Vector3().subVectors(smoothPoints[i + 1], smoothPoints[i - 1]);
+                }
+
+                let norm = new THREE.Vector3().crossVectors(dir, upVec);
+                if (norm.lengthSq() > 1e-6) {
+                    norm.normalize();
+                } else {
+                    norm.set(1, 0, 0);
+                }
+
+                const halfW = ribbonWidth * 0.5;
+                ribbonVerts[vIdx++] = pt.x - norm.x * halfW;
+                ribbonVerts[vIdx++] = pt.y - norm.y * halfW;
+                ribbonVerts[vIdx++] = pt.z - norm.z * halfW;
+
+                ribbonVerts[vIdx++] = pt.x + norm.x * halfW;
+                ribbonVerts[vIdx++] = pt.y + norm.y * halfW;
+                ribbonVerts[vIdx++] = pt.z + norm.z * halfW;
+
+                ribbonColors[cIdx++] = col.r;
+                ribbonColors[cIdx++] = col.g;
+                ribbonColors[cIdx++] = col.b;
+
+                ribbonColors[cIdx++] = col.r;
+                ribbonColors[cIdx++] = col.g;
+                ribbonColors[cIdx++] = col.b;
+
+                if (i < rN - 1) {
+                    const base = i * 2;
+                    ribbonIndices[iIdx++] = base;
+                    ribbonIndices[iIdx++] = base + 1;
+                    ribbonIndices[iIdx++] = base + 2;
+
+                    ribbonIndices[iIdx++] = base + 2;
+                    ribbonIndices[iIdx++] = base + 1;
+                    ribbonIndices[iIdx++] = base + 3;
                 }
             }
 
-            const cN = curvePoints.length;
-            const smoothVerts = new Float32Array(cN * 3);
-            for (let i = 0; i < cN; i++) {
-                smoothVerts[i * 3] = curvePoints[i].x;
-                smoothVerts[i * 3 + 1] = curvePoints[i].y;
-                smoothVerts[i * 3 + 2] = curvePoints[i].z;
+            const ribbonGeo = new THREE.BufferGeometry();
+            ribbonGeo.setAttribute('position', new THREE.BufferAttribute(ribbonVerts, 3));
+            ribbonGeo.setAttribute('color', new THREE.BufferAttribute(ribbonColors, 3));
+            ribbonGeo.setIndex(new THREE.BufferAttribute(ribbonIndices, 1));
+
+            const ribbonMat = new THREE.MeshBasicMaterial({
+                vertexColors: true,
+                side: THREE.DoubleSide,
+                transparent: true,
+                opacity: 0.85,
+                depthWrite: false,
+                depthTest: false
+            });
+            const ribbonMesh = new THREE.Mesh(ribbonGeo, ribbonMat);
+            ribbonMesh.renderOrder = 8985;
+            ribbonMesh.frustumCulled = false;
+            window.logCorridorGroup.add(ribbonMesh);
+
+            // 2. High-Contrast Centerline Spine Vector (Silky-smooth C1 curve)
+            const sN = smoothPoints.length;
+            const lineVerts = new Float32Array(sN * 3);
+            const lineColArray = new Float32Array(sN * 3);
+            for (let i = 0; i < sN; i++) {
+                lineVerts[i * 3] = smoothPoints[i].x;
+                lineVerts[i * 3 + 1] = smoothPoints[i].y;
+                lineVerts[i * 3 + 2] = smoothPoints[i].z;
+
+                lineColArray[i * 3] = smoothColors[i].r;
+                lineColArray[i * 3 + 1] = smoothColors[i].g;
+                lineColArray[i * 3 + 2] = smoothColors[i].b;
             }
 
-            // 1. High-Visibility Flight Mode Color-Coded Path Line (Smooth aerodynamic continuous curve)
             const lineGeo = new THREE.BufferGeometry();
-            lineGeo.setAttribute('position', new THREE.BufferAttribute(smoothVerts, 3));
-            lineGeo.setAttribute('color', new THREE.BufferAttribute(curveColors, 3));
+            lineGeo.setAttribute('position', new THREE.BufferAttribute(lineVerts, 3));
+            lineGeo.setAttribute('color', new THREE.BufferAttribute(lineColArray, 3));
             const lineMat = new THREE.LineBasicMaterial({
                 vertexColors: true,
                 linewidth: 2,
@@ -14583,8 +14690,8 @@
             window.logCorridorGroup.add(flightLine);
 
             // 3. Periodic vertical drop pins colored by active flight mode
-            const dropStep = Math.max(25, Math.floor(N / 50));
-            for (let i = 0; i < N; i += dropStep) {
+            const dropStep = Math.max(25, Math.floor(rawPoints.length / 50));
+            for (let i = 0; i < rawPoints.length; i += dropStep) {
                 const pt = rawPoints[i];
                 const m = pointModes[i] || 'MANUAL';
                 const c = MODE_THREE_COLORS[m] || defaultModeColor;
