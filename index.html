@@ -1391,30 +1391,36 @@
             filter: none !important;
         }
 
-        /* Rangeslider background tray (bezel) */
+        /* Rangeslider background tray (bezel) - flush precision rectangle, eliminates corner protrusion */
         #main-plot .rangeslider-bg {
             fill: #0c0e12 !important;
             stroke: #262c36 !important;
             stroke-width: 1px !important;
-            rx: 4px !important;
+            rx: 0 !important;
+            ry: 0 !important;
         }
         [data-theme="light-clean"] #main-plot .rangeslider-bg {
             fill: #f8fafc !important;
             stroke: #cbd5e1 !important;
             stroke-width: 1px !important;
-            rx: 4px !important;
+            rx: 0 !important;
+            ry: 0 !important;
         }
 
-        /* Dimmed inactive regions outside selection */
+        /* Dimmed inactive regions outside selection - flush rectilinear alignment */
         #main-plot .rangeslider-mask-min,
         #main-plot .rangeslider-mask-max {
             fill: #000000 !important;
             fill-opacity: 0.70 !important;
+            rx: 0 !important;
+            ry: 0 !important;
         }
         [data-theme="light-clean"] #main-plot .rangeslider-mask-min,
         [data-theme="light-clean"] #main-plot .rangeslider-mask-max {
             fill: #475569 !important;
             fill-opacity: 0.30 !important;
+            rx: 0 !important;
+            ry: 0 !important;
         }
 
         /* Active selected window (slidebox) with clean light white / light grey boundary */
@@ -1422,6 +1428,8 @@
             fill: rgba(255, 255, 255, 0.04) !important;
             stroke: rgba(226, 232, 240, 0.60) !important;
             stroke-width: 1px !important;
+            rx: 0 !important;
+            ry: 0 !important;
             cursor: grab !important;
         }
         #main-plot .rangeslider-slidebox:active {
