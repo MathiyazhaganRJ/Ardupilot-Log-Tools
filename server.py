@@ -337,7 +337,8 @@ class LogViewerHandler(SimpleHTTPRequestHandler):
         # 6. API: Flight Logbook & Meteorological Telemetry Database
         elif path in ('/api/historical_logbook', '/api/historical_atis'):
             target_folder = query.get('folder', [None])[0]
-            force_refresh = query.get('force', ['false'])[0].lower() in ('true', '1')
+            force_param = query.get('force', ['false'])[0].lower()
+            rescan = query.get('rescan', ['false'])[0].lower() in ('true', '1')
             max_logs_param = query.get('max_logs', [None])[0]
             max_logs = int(max_logs_param) if max_logs_param and max_logs_param.isdigit() else None
             if not target_folder:
@@ -345,7 +346,9 @@ class LogViewerHandler(SimpleHTTPRequestHandler):
                 if not os.path.exists(target_folder):
                     target_folder = os.path.join(BASE_DIR, 'uploads')
             try:
-                data = parser.get_historical_flight_logbook(target_folder, force_refresh=force_refresh, max_logs=max_logs)
+                # Force is only a full purge if explicitly 'full' or 'rebuild'; otherwise rescan is incremental
+                force_mode = 'full' if force_param in ('full', 'deep', 'rebuild') else False
+                data = parser.get_historical_flight_logbook(target_folder, force_refresh=force_mode, max_logs=max_logs)
                 self._send_json(data)
             except Exception as e:
                 self._send_json({'success': False, 'error': str(e)})

@@ -1108,10 +1108,12 @@ if os.path.exists(r"C:\Users\KARSHAK_Tamal\Desktop\Logs"):
 
 def get_bird_names_file(folder_path=None):
     base_dir = folder_path or get_default_logs_dir()
-    return os.path.join(base_dir, '.bird_names.json')
+    p_vis = os.path.join(base_dir, 'bird_names.json')
+    p_dot = os.path.join(base_dir, '.bird_names.json')
+    return p_vis if os.path.exists(p_vis) else p_dot
 
 def get_bird_names_map(folder_path=None):
-    """Loads custom bird names mapping from .bird_names.json."""
+    """Loads custom bird names mapping from bird_names.json or .bird_names.json."""
     bf = get_bird_names_file(folder_path)
     if os.path.exists(bf):
         try:
@@ -1133,9 +1135,15 @@ def get_bird_names_map(folder_path=None):
     }
 
 def save_bird_names_map(bird_map, folder_path=None):
-    """Saves custom bird names mapping to .bird_names.json."""
-    bf = get_bird_names_file(folder_path)
-    _atomic_write_json(bf, bird_map)
+    """Saves custom bird names mapping to both .bird_names.json and bird_names.json."""
+    base_dir = folder_path or get_default_logs_dir()
+    p_dot = os.path.join(base_dir, '.bird_names.json')
+    p_vis = os.path.join(base_dir, 'bird_names.json')
+    _atomic_write_json(p_dot, bird_map)
+    try:
+        _atomic_write_json(p_vis, bird_map)
+    except Exception:
+        pass
 
 def resolve_bird_name(rel_path, fc_name, bird_map=None, folder_path=None):
     """Resolves human-readable bird name from path, folder, FC name, or defaults."""
@@ -1200,10 +1208,12 @@ def get_flight_notes_file(folder_path=None):
     base_dir = folder_path or get_default_logs_dir()
     if not os.path.exists(base_dir):
         base_dir = get_default_logs_dir()
-    return os.path.join(os.path.normpath(base_dir), '.flight_notes.json')
+    p_vis = os.path.join(os.path.normpath(base_dir), 'flight_notes.json')
+    p_dot = os.path.join(os.path.normpath(base_dir), '.flight_notes.json')
+    return p_vis if os.path.exists(p_vis) else p_dot
 
 def get_flight_notes_map(folder_path=None):
-    """Loads flight notes mapping from .flight_notes.json."""
+    """Loads flight notes mapping from flight_notes.json or .flight_notes.json."""
     nf = get_flight_notes_file(folder_path)
     if os.path.exists(nf):
         try:
@@ -1216,9 +1226,15 @@ def get_flight_notes_map(folder_path=None):
     return {}
 
 def save_flight_notes_map(notes_map, folder_path=None):
-    """Saves flight notes mapping to .flight_notes.json."""
-    nf = get_flight_notes_file(folder_path)
-    _atomic_write_json(nf, notes_map)
+    """Saves flight notes mapping to both .flight_notes.json and flight_notes.json."""
+    base_dir = folder_path or get_default_logs_dir()
+    p_dot = os.path.join(os.path.normpath(base_dir), '.flight_notes.json')
+    p_vis = os.path.join(os.path.normpath(base_dir), 'flight_notes.json')
+    _atomic_write_json(p_dot, notes_map)
+    try:
+        _atomic_write_json(p_vis, notes_map)
+    except Exception:
+        pass
 
 def get_flight_notes_for_path(rel_path, notes_map=None, folder_path=None):
     """Retrieves flight notes for a specific log path or basename."""
@@ -1256,7 +1272,9 @@ def save_flight_notes_for_path(path, notes_dict, folder_path=None):
 
 def get_flight_specs_file(folder_path=None):
     base_dir = folder_path or get_default_logs_dir()
-    return os.path.join(base_dir, '.flight_specs.json')
+    p_vis = os.path.join(base_dir, 'flight_specs.json')
+    p_dot = os.path.join(base_dir, '.flight_specs.json')
+    return p_vis if os.path.exists(p_vis) else p_dot
 
 def get_flight_specs_map(folder_path=None):
     sf = get_flight_specs_file(folder_path)
@@ -1271,8 +1289,15 @@ def get_flight_specs_map(folder_path=None):
     return {'by_path': {}, 'by_bird': {}, 'by_fc': {}}
 
 def save_flight_specs_map(specs_map, folder_path=None):
-    sf = get_flight_specs_file(folder_path)
-    _atomic_write_json(sf, specs_map)
+    """Saves flight specs mapping to both .flight_specs.json and flight_specs.json."""
+    base_dir = folder_path or get_default_logs_dir()
+    p_dot = os.path.join(base_dir, '.flight_specs.json')
+    p_vis = os.path.join(base_dir, 'flight_specs.json')
+    _atomic_write_json(p_dot, specs_map)
+    try:
+        _atomic_write_json(p_vis, specs_map)
+    except Exception:
+        pass
 
 def extract_battery_from_notes(notes):
     if not notes or not isinstance(notes, dict):
@@ -1368,12 +1393,20 @@ def get_historical_flight_logbook(folder_path=None, force_refresh=False, max_log
     
     folder_path = os.path.normpath(folder_path)
     cache_file = os.path.join(folder_path, '.flight_logbook_cache.json')
+    vis_cache_file = os.path.join(folder_path, 'flight_logbook_cache.json')
     legacy_cache_file = os.path.join(folder_path, '.atis_flight_cache.json')
     
     cache_data = {'version': 3, 'files': {}}
-    target_cache_file = cache_file if os.path.exists(cache_file) else (legacy_cache_file if os.path.exists(legacy_cache_file) else cache_file)
+    target_cache_file = None
+    for cand in [vis_cache_file, cache_file, legacy_cache_file]:
+        if os.path.exists(cand):
+            target_cache_file = cand
+            break
+    if not target_cache_file:
+        target_cache_file = cache_file
 
-    if not force_refresh and os.path.exists(target_cache_file):
+    full_rebuild = (force_refresh in ('full', 'deep', 'rebuild'))
+    if not full_rebuild and os.path.exists(target_cache_file):
         try:
             with open(target_cache_file, 'r', encoding='utf-8') as f:
                 loaded = json.load(f)
@@ -1468,11 +1501,15 @@ def get_historical_flight_logbook(folder_path=None, force_refresh=False, max_log
             del cached_files[k]
         updated = True
 
-    if updated or not os.path.exists(cache_file):
+    if updated or not os.path.exists(cache_file) or not os.path.exists(vis_cache_file):
         cache_data['version'] = 3
         cache_data['last_updated_utc'] = datetime.datetime.now(datetime.timezone.utc).isoformat()
         cache_data['total_logs'] = len(flights)
         _atomic_write_json(cache_file, cache_data)
+        try:
+            _atomic_write_json(vis_cache_file, cache_data)
+        except Exception:
+            pass
 
     # Filter to retain ONLY valid airborne flights actually flown by the user:
     # 1. Genuine airborne flight time (flight_time_s >= 20s or has_valid_flight)
@@ -1656,7 +1693,10 @@ def get_historical_flight_logbook(folder_path=None, force_refresh=False, max_log
         'folder': folder_path,
         'summary': summary,
         'flights': valid_flights,
-        'monthly_groups': monthly_groups
+        'monthly_groups': monthly_groups,
+        'new_logs_found': len(uncached_items),
+        'scanned_total': len(found_paths),
+        'total_logs': len(valid_flights)
     }
 
 # Backwards compatibility aliases

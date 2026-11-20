@@ -2822,6 +2822,152 @@
             color: #ffffff !important;
         }
 
+        /* Real-Time Scanning Slider & Repository Progress HUD */
+        .atis-scan-slider-container {
+            margin: 8px 0 12px 0;
+            padding: 9px 14px;
+            background: linear-gradient(135deg, rgba(16, 28, 48, 0.95), rgba(11, 20, 36, 0.98));
+            border: 1px solid rgba(56, 189, 248, 0.28);
+            border-radius: 8px;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45);
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+
+        [data-theme="light-clean"] .atis-scan-slider-container {
+            background: #f8fafc;
+            border: 1px solid #94a3b8;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .atis-scan-slider-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 7px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .atis-scan-label-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .atis-scan-pulse-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #10b981;
+            display: inline-block;
+            box-shadow: 0 0 8px #10b981;
+            animation: atisPulseRadar 1.2s infinite ease-in-out;
+        }
+
+        @keyframes atisPulseRadar {
+            0% { opacity: 0.35; transform: scale(0.85); box-shadow: 0 0 4px #10b981; }
+            50% { opacity: 1; transform: scale(1.15); box-shadow: 0 0 10px #10b981; }
+            100% { opacity: 0.35; transform: scale(0.85); box-shadow: 0 0 4px #10b981; }
+        }
+
+        .atis-scan-slider-status {
+            font-family: 'JetBrains Mono', 'B612 Mono', monospace;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.4px;
+            color: #38bdf8;
+        }
+
+        [data-theme="light-clean"] .atis-scan-slider-status {
+            color: #0369a1;
+        }
+
+        .atis-scan-metrics-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .atis-scan-files-counter {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            font-weight: 600;
+            color: #94a3b8;
+        }
+
+        [data-theme="light-clean"] .atis-scan-files-counter {
+            color: #475569;
+        }
+
+        .atis-scan-slider-pct {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            font-weight: 800;
+            color: #34d399;
+            min-width: 40px;
+            text-align: right;
+        }
+
+        [data-theme="light-clean"] .atis-scan-slider-pct {
+            color: #15803d;
+        }
+
+        .atis-scan-slider-track {
+            width: 100%;
+            height: 7px;
+            background: rgba(15, 23, 42, 0.8);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        [data-theme="light-clean"] .atis-scan-slider-track {
+            background: #e2e8f0;
+            border-color: #cbd5e1;
+        }
+
+        .atis-scan-slider-bar {
+            height: 100%;
+            border-radius: 4px;
+            background: linear-gradient(90deg, #16a34a, #22c55e, #4ade80);
+            width: 0%;
+            transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
+        }
+
+        .atis-scan-slider-glow {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 60px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.75), transparent);
+            animation: atisScanGlow 1.4s infinite linear;
+        }
+
+        @keyframes atisScanGlow {
+            0% { left: -60px; }
+            100% { left: 100%; }
+        }
+
+        .rescan-spinner-icon {
+            display: inline-block;
+            width: 11px;
+            height: 11px;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            border-top-color: #ffffff;
+            border-radius: 50%;
+            animation: atisSpin 0.7s linear infinite;
+            margin-right: 5px;
+            vertical-align: -1px;
+        }
+
+        @keyframes atisSpin {
+            to { transform: rotate(360deg); }
+        }
+
         .atis-input-search {
             background: #05080c;
             border: 1px solid rgba(255, 255, 255, 0.12);
@@ -5380,6 +5526,25 @@
                         </div>
                     </div>
 
+                    <!-- Real-Time Directory Scanning & Telemetry Synchronization Slider -->
+                    <div id="atis-scan-slider-container" class="atis-scan-slider-container atis-no-print" style="display: none;">
+                        <div class="atis-scan-slider-meta">
+                            <div class="atis-scan-label-group">
+                                <span class="atis-scan-pulse-dot"></span>
+                                <span id="atis-scan-slider-status" class="atis-scan-slider-status">INSPECTING LOGS REPOSITORY DIRECTORY...</span>
+                            </div>
+                            <div class="atis-scan-metrics-group">
+                                <span id="atis-scan-files-counter" class="atis-scan-files-counter">INITIALIZING SCAN...</span>
+                                <span id="atis-scan-slider-pct" class="atis-scan-slider-pct">0%</span>
+                            </div>
+                        </div>
+                        <div class="atis-scan-slider-track">
+                            <div id="atis-scan-slider-bar" class="atis-scan-slider-bar" style="width: 0%;">
+                                <div class="atis-scan-slider-glow"></div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Flight Logbook & Meteorology Dispatch Card (Hidden as requested: unnecessary banner) -->
                     <div class="atis-terminal-card" id="atis-terminal-card" style="display: none !important;">
                         <div class="terminal-body" id="atis-terminal-text" style="display: none !important;"></div>
@@ -6446,7 +6611,10 @@
                 let url = '/api/historical_logbook';
                 const params = [];
                 if (savedFolder) params.push(`folder=${encodeURIComponent(savedFolder)}`);
-                if (force) params.push('force=1');
+                if (force) {
+                    params.push('rescan=1');
+                    if (force === 'full') params.push('force=full');
+                }
                 if (params.length > 0) url += '?' + params.join('&');
 
                 let res = await fetch(url);
@@ -6809,6 +6977,92 @@
             setViewMode('sitl');
         }
 
+        let atisScanProgressTimer = null;
+        let atisScanHideTimer = null;
+
+        function showAtisScanSlider(statusText = 'INSPECTING LOGS REPOSITORY DIRECTORY...', initialPct = 15, counterText = 'INITIALIZING...') {
+            const container = document.getElementById('atis-scan-slider-container');
+            const bar = document.getElementById('atis-scan-slider-bar');
+            const statusEl = document.getElementById('atis-scan-slider-status');
+            const pctEl = document.getElementById('atis-scan-slider-pct');
+            const counterEl = document.getElementById('atis-scan-files-counter');
+
+            if (atisScanHideTimer) {
+                clearTimeout(atisScanHideTimer);
+                atisScanHideTimer = null;
+            }
+            if (atisScanProgressTimer) {
+                clearInterval(atisScanProgressTimer);
+                atisScanProgressTimer = null;
+            }
+
+            if (container) {
+                container.style.display = 'block';
+                container.style.opacity = '1';
+                container.style.transform = 'translateY(0)';
+            }
+            if (bar) {
+                bar.style.width = `${initialPct}%`;
+                bar.style.background = 'linear-gradient(90deg, #16a34a, #22c55e, #4ade80)';
+            }
+            if (statusEl) statusEl.textContent = statusText;
+            if (pctEl) pctEl.textContent = `${Math.round(initialPct)}%`;
+            if (counterEl) counterEl.textContent = counterText;
+
+            let currentPct = initialPct;
+            atisScanProgressTimer = setInterval(() => {
+                if (currentPct < 88) {
+                    currentPct += (88 - currentPct) * 0.18 + Math.random() * 2;
+                    if (currentPct > 90) currentPct = 90;
+                    if (bar) bar.style.width = `${Math.round(currentPct)}%`;
+                    if (pctEl) pctEl.textContent = `${Math.round(currentPct)}%`;
+                    if (currentPct > 35 && currentPct <= 65) {
+                        if (statusEl) statusEl.textContent = 'SCANNING .BIN TELEMETRY FILES & LOG DIRECTORIES...';
+                        if (counterEl) counterEl.textContent = 'EVALUATING CHECKSUMS...';
+                    } else if (currentPct > 65) {
+                        if (statusEl) statusEl.textContent = 'SYNCHRONIZING BIRD NAMES, SPECS & PILOT DEBRIEF NOTES...';
+                        if (counterEl) counterEl.textContent = 'UPDATING METRICS...';
+                    }
+                }
+            }, 120);
+        }
+
+        function completeAtisScanSlider(success, summaryText, counterText = '') {
+            if (atisScanProgressTimer) {
+                clearInterval(atisScanProgressTimer);
+                atisScanProgressTimer = null;
+            }
+            const container = document.getElementById('atis-scan-slider-container');
+            const bar = document.getElementById('atis-scan-slider-bar');
+            const statusEl = document.getElementById('atis-scan-slider-status');
+            const pctEl = document.getElementById('atis-scan-slider-pct');
+            const counterEl = document.getElementById('atis-scan-files-counter');
+
+            if (bar) {
+                bar.style.width = '100%';
+                if (success) {
+                    bar.style.background = 'linear-gradient(90deg, #15803d, #16a34a, #30d158)';
+                } else {
+                    bar.style.background = 'linear-gradient(90deg, #dc2626, #ef4444)';
+                }
+            }
+            if (pctEl) pctEl.textContent = success ? '100%' : 'ERR';
+            if (statusEl) statusEl.textContent = summaryText;
+            if (counterEl && counterText) counterEl.textContent = counterText;
+
+            atisScanHideTimer = setTimeout(() => {
+                if (container) {
+                    container.style.opacity = '0';
+                    container.style.transform = 'translateY(-4px)';
+                    setTimeout(() => {
+                        if (container && container.style.opacity === '0') {
+                            container.style.display = 'none';
+                        }
+                    }, 400);
+                }
+            }, 2800);
+        }
+
         async function browseAtisFolder() {
             try {
                 const currentFolder = localStorage.getItem('sharkee_atis_folder') || '';
@@ -6821,15 +7075,46 @@
                     if (folderInput) folderInput.value = data.path;
                     const sFolderInput = document.getElementById('sidebar-atis-folder-input');
                     if (sFolderInput) sFolderInput.value = data.path;
-                    loadHistoricalAtisData(true);
+                    showAtisScanSlider(`SWITCHING REPOSITORY TO: ${data.path}`, 20, 'READING REPOSITORY...');
+                    await loadHistoricalAtisData(true);
+                    const count = atisGlobalData?.summary?.valid_flights_count || atisGlobalData?.summary?.total_logs || 0;
+                    completeAtisScanSlider(true, `REPOSITORY LOADED: ${count} FLIGHTS INDEXED`, `FOLDER: ${data.path}`);
                 }
             } catch (e) {
                 console.error("Browse Folder Error:", e);
+                completeAtisScanSlider(false, `FAILED TO LOAD REPOSITORY: ${e.message}`);
             }
         }
 
-        function rescanAtisDatabase(force = true) {
-            loadHistoricalAtisData(force);
+        async function rescanAtisDatabase(force = false) {
+            const btnRescan = document.getElementById('btn-rescan-atis');
+            const originalHtml = btnRescan ? btnRescan.innerHTML : 'RESCAN LOGS';
+            if (btnRescan) {
+                btnRescan.disabled = true;
+                btnRescan.innerHTML = '<span class="rescan-spinner-icon"></span> SCANNING...';
+            }
+
+            showAtisScanSlider('SCANNING LOGS REPOSITORY DIRECTORY & DETECTING NEW FLIGHTS...', 18, 'DISCOVERING LOGS...');
+
+            try {
+                await loadHistoricalAtisData(force || true);
+                const count = atisGlobalData?.summary?.valid_flights_count || atisGlobalData?.summary?.total_logs || 0;
+                const newLogs = atisGlobalData?.new_logs_found || 0;
+                const scanned = atisGlobalData?.scanned_total || count;
+                completeAtisScanSlider(
+                    true,
+                    `REPOSITORY SYNCHRONIZED: ${count} FLIGHTS INDEXED · METADATA UP TO DATE`,
+                    newLogs > 0 ? `${newLogs} NEW LOGS DETECTED (${scanned} SCANNED)` : `ALL ${count} LOGS UP TO DATE`
+                );
+            } catch (err) {
+                console.error("Rescan Error:", err);
+                completeAtisScanSlider(false, `SCAN FAILED: ${err.message || 'Error scanning repository'}`);
+            } finally {
+                if (btnRescan) {
+                    btnRescan.disabled = false;
+                    btnRescan.innerHTML = originalHtml;
+                }
+            }
         }
 
         function printAtisReport() {
