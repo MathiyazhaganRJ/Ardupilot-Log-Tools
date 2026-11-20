@@ -5471,8 +5471,14 @@
                     if (valSubBatt) valSubBatt.textContent = `${batteryCapacityMah} mAh`;
                     const unitBox4 = document.getElementById('gi-unit-box4');
                     if (unitBox4 && typeof eisEngineMode !== 'undefined' && eisEngineMode === 'single') unitBox4.textContent = `/ ${batteryCapacityMah}`;
+                    if (typeof am32Telemetry !== 'undefined' && typeof am32Telemetry.consumed_mah === 'number') {
+                        am32Telemetry.battery_remaining_pct = Math.max(0, Math.min(100, Math.round(((batteryCapacityMah - am32Telemetry.consumed_mah) / batteryCapacityMah) * 100)));
+                    }
                     if (typeof updateMissionPlannerBatteryUI === 'function') {
                         updateMissionPlannerBatteryUI();
+                    }
+                    if (typeof renderEisGauges === 'function') {
+                        renderEisGauges();
                     }
                     if (typeof addAutopilotMessage === 'function') {
                         addAutopilotMessage({ text: `Battery Pack Capacity configured to ${batteryCapacityMah} mAh`, severity: 6 });
@@ -10189,6 +10195,17 @@
             if (!params) return;
             currentVehicleParameters = params;
             updateActuatorLabelsFromParameters();
+
+            // Synchronize battery pack capacity from vehicle log parameters (BATT_CAPACITY)
+            const battCap = params['BATT_CAPACITY'] || params['BATT_CAPACITY_1'] || params['BATT_ARM_MAH'];
+            if (typeof battCap === 'number' && battCap >= 500 && battCap <= 100000) {
+                batteryCapacityMah = Math.round(battCap);
+                try { localStorage.setItem('eis_battery_cap', batteryCapacityMah); } catch(e) {}
+                const valSubBatt = document.getElementById('gi-sub-batt');
+                if (valSubBatt) valSubBatt.textContent = `${batteryCapacityMah} mAh`;
+                const unitBox4 = document.getElementById('gi-unit-box4');
+                if (unitBox4 && typeof eisEngineMode !== 'undefined' && eisEngineMode === 'single') unitBox4.textContent = `/ ${batteryCapacityMah}`;
+            }
         }
         window.loadFlightLogParameters = loadFlightLogParameters;
 
@@ -13851,6 +13868,11 @@
                         if (valSubBatt) valSubBatt.textContent = `${batteryCapacityMah} mAh`;
                         const unitBox4 = document.getElementById('gi-unit-box4');
                         if (unitBox4 && eisEngineMode === 'single') unitBox4.textContent = `/ ${batteryCapacityMah}`;
+                        if (typeof am32Telemetry !== 'undefined' && typeof am32Telemetry.consumed_mah === 'number') {
+                            am32Telemetry.battery_remaining_pct = Math.max(0, Math.min(100, Math.round(((batteryCapacityMah - am32Telemetry.consumed_mah) / batteryCapacityMah) * 100)));
+                        }
+                        if (typeof updateMissionPlannerBatteryUI === 'function') updateMissionPlannerBatteryUI();
+                        if (typeof renderEisGauges === 'function') renderEisGauges();
                         addAutopilotMessage({ text: `Battery Pack Capacity updated to ${batteryCapacityMah} mAh`, severity: 6 });
                     }
                 }
@@ -15665,7 +15687,10 @@
             const currVal = (typeof pt.curr === 'number') ? Math.max(0, pt.curr) : 0.0;
             const thoVal = (typeof pt.tho === 'number') ? pt.tho : 0.0;
             const mahVal = (typeof pt.consumed_mah === 'number') ? pt.consumed_mah : (typeof pt.currtot === 'number' ? pt.currtot : 0.0);
-            const remVal = (typeof pt.rem_pct === 'number') ? pt.rem_pct : Math.max(0, Math.round(100 - (mahVal / 6000.0) * 100));
+            const cap = (typeof batteryCapacityMah === 'number' && batteryCapacityMah > 0) ? batteryCapacityMah : 6000;
+            const remVal = (cap > 0)
+                ? Math.max(0, Math.min(100, Math.round(((cap - mahVal) / cap) * 100)))
+                : ((typeof pt.rem_pct === 'number') ? pt.rem_pct : 100);
             const tempVal = (typeof pt.temp === 'number') ? pt.temp : 32.0;
 
             am32Telemetry.hasHardwareTelem = true;
