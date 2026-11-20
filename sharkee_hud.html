@@ -13,10 +13,13 @@
     <link rel="apple-touch-icon" href="app_icon.png?v=4">
     <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=B612:ital,wght@0,400;0,700;1,400;1,700&family=B612+Mono:ital,wght@0,400;0,700;1,400;1,700&family=Share+Tech+Mono&display=swap" media="print" onload="this.media='all'">
-    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=B612:ital,wght@0,400;0,700;1,400;1,700&family=B612+Mono:ital,wght@0,400;0,700;1,400;1,700&family=Share+Tech+Mono&display=swap"></noscript>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'"></noscript>
     <style>
         :root {
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --font-mono: 'JetBrains Mono', "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+
             --bg-color: #f5f5f7;
             --panel-bg: rgba(255, 255, 255, 0.75);
             --text-primary: #1d1d1f;
@@ -67,7 +70,11 @@
             overflow: hidden;
             background-color: var(--bg-color);
             color: var(--text-primary);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: var(--font-sans);
+            font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            letter-spacing: -0.01em;
             transition: background-color 0.3s ease;
         }
 
@@ -101,7 +108,7 @@
             box-shadow: var(--shadow);
             z-index: 10;
             transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
-            font-family: 'B612', sans-serif;
+            font-family: var(--font-sans);
         }
 
         #ui-panel.collapsed {
@@ -198,7 +205,7 @@
             min-width: 14px;
             height: 14px;
             border-radius: 7px;
-            font-family: 'B612 Mono', monospace;
+            font-family: var(--font-mono);
             box-sizing: border-box;
             line-height: 1;
             box-shadow: 0 1px 3px rgba(255, 59, 48, 0.5);
@@ -327,7 +334,7 @@
             max-height: 340px;
             overflow-y: auto;
             overflow-x: hidden;
-            font-family: 'B612 Mono', monospace;
+            font-family: var(--font-mono);
             font-size: 10px;
             display: flex;
             flex-direction: column;
@@ -493,7 +500,7 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            font-family: 'B612 Mono', monospace;
+            font-family: var(--font-mono);
         }
 
         .toast-hint {
@@ -511,7 +518,7 @@
             margin-bottom: 12px;
         }
         .panel-brand-title {
-            font-family: 'B612', sans-serif;
+            font-family: var(--font-sans);
             font-weight: 700;
             font-size: 13px;
             letter-spacing: 0.3px;
@@ -521,7 +528,7 @@
 
         h3 {
             margin: 0;
-            font-family: 'B612', sans-serif;
+            font-family: var(--font-sans);
             font-weight: 700;
             font-size: 14px;
             letter-spacing: 0.3px;
@@ -551,7 +558,7 @@
             border-radius: 12px;
             padding: 10px 12px;
             margin-bottom: 10px;
-            font-family: 'B612', sans-serif;
+            font-family: var(--font-sans);
         }
 
         .data-row {
@@ -569,26 +576,27 @@
 
         .data-label {
             color: var(--text-secondary);
-            font-family: 'B612', sans-serif;
-            font-size: 11.5px;
-            font-weight: 700;
-            letter-spacing: 0.4px;
+            font-family: var(--font-sans);
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 0.1px;
             white-space: nowrap;
             flex-shrink: 0;
         }
 
         .data-val {
-            font-family: 'B612 Mono', monospace;
-            font-size: 12px;
-            font-weight: 700;
-            letter-spacing: 0.2px;
+            font-family: var(--font-mono);
+            font-size: 11.5px;
+            font-weight: 600;
+            letter-spacing: 0;
             font-variant-numeric: tabular-nums;
+            font-feature-settings: 'tnum';
             text-align: right;
             white-space: nowrap;
         }
 
         .section-title {
-            font-family: 'B612', sans-serif;
+            font-family: var(--font-sans);
             font-weight: 700;
             font-size: 11px;
             color: var(--text-secondary);
@@ -603,7 +611,7 @@
             border: 1px solid var(--border-color);
             border-radius: 6px;
             padding: 5px 8px;
-            font-family: 'B612', sans-serif;
+            font-family: var(--font-sans);
             font-size: 12px;
             font-weight: 600;
             outline: none;
@@ -613,7 +621,7 @@
         option {
             background-color: var(--option-bg);
             color: var(--option-text);
-            font-family: 'B612', sans-serif;
+            font-family: var(--font-sans);
             font-weight: 600;
         }
 
@@ -622,13 +630,13 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 8px;
-            font-family: 'B612', sans-serif;
+            font-family: var(--font-sans);
             font-size: 12px;
             font-weight: 600;
         }
 
         .map-row select {
-            font-family: 'B612 Mono', monospace;
+            font-family: var(--font-mono);
             font-size: 11.5px;
             font-weight: 700;
             letter-spacing: 0.3px;
@@ -649,7 +657,7 @@
         }
 
         .pwm-label {
-            font-family: 'B612 Mono', monospace;
+            font-family: var(--font-mono);
             font-size: 9px;
             color: var(--text-secondary);
             font-weight: 700;
@@ -675,7 +683,7 @@
         }
 
         .motor-label {
-            font-family: 'B612 Mono', monospace;
+            font-family: var(--font-mono);
             font-size: 10.5px;
             color: var(--text-secondary);
             font-weight: 700;
@@ -696,7 +704,7 @@
             border: none;
             border-radius: 6px;
             cursor: pointer;
-            font-family: 'B612', sans-serif;
+            font-family: var(--font-sans);
             font-weight: 700;
             font-size: 12px;
             letter-spacing: 0.5px;
@@ -1058,7 +1066,7 @@
             flex-direction: column;
             justify-content: space-between;
             overflow: hidden;
-            font-family: 'B612', 'B612 Mono', monospace;
+            font-family: var(--font-mono);
         }
 
         .lxnav-header {
@@ -1089,7 +1097,7 @@
             letter-spacing: 0.05em;
             text-transform: uppercase;
             color: var(--text-secondary);
-            font-family: 'B612 Mono', monospace;
+            font-family: var(--font-mono);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -1134,7 +1142,7 @@
             color: var(--accent);
             cursor: pointer;
             letter-spacing: 0.03em;
-            font-family: 'B612 Mono', monospace;
+            font-family: var(--font-mono);
             white-space: nowrap;
             flex-shrink: 0;
             display: inline-flex;
@@ -1432,7 +1440,7 @@
             padding: 12px 10px 14px 10px;
             box-shadow: 0 25px 70px rgba(0, 0, 0, 0.9), inset 0 1px 1px rgba(255, 255, 255, 0.2), inset 0 -2px 4px rgba(0, 0, 0, 0.8);
             z-index: 155;
-            font-family: 'B612 Mono', 'SF Mono', Consolas, monospace;
+            font-family: var(--font-mono);
             color: #d1d7e0;
             user-select: none;
             box-sizing: border-box;
@@ -1859,7 +1867,7 @@
             flex-direction: column;
             justify-content: space-between;
             overflow: hidden;
-            font-family: 'B612', 'B612 Mono', monospace;
+            font-family: var(--font-mono);
         }
 
         #eis-widget,
@@ -1893,7 +1901,7 @@
         .gi-top-bar:active { cursor: grabbing; }
 
         .gi-inst-title {
-            font-family: 'B612', 'B612 Mono', monospace;
+            font-family: var(--font-mono);
             font-size: 9.5px;
             font-weight: 700;
             letter-spacing: 1.5px;
@@ -1916,7 +1924,7 @@
             font-weight: 800;
             color: #94a3b8;
             cursor: pointer;
-            font-family: 'B612 Mono', monospace;
+            font-family: var(--font-mono);
             transition: all 0.15s ease;
         }
         .gi-mode-btn:hover {
@@ -1956,11 +1964,11 @@
             font-weight: 700;
             color: #ffffff;
             line-height: 1.1;
-            font-family: 'B612 Mono', monospace;
+            font-family: var(--font-mono);
             letter-spacing: -0.5px;
         }
         .gi-capsule-sub {
-            font-family: 'B612', sans-serif;
+            font-family: var(--font-sans);
             font-size: 7.5px;
             font-weight: 700;
             color: #8a9bb2;
@@ -2007,7 +2015,7 @@
             font-weight: 700;
             color: #ffffff;
             line-height: 1.1;
-            font-family: 'B612 Mono', monospace;
+            font-family: var(--font-mono);
             letter-spacing: -0.5px;
         }
 
@@ -2048,7 +2056,7 @@
             width: 100%;
         }
         .gi-cell-tag {
-            font-family: 'B612', sans-serif;
+            font-family: var(--font-sans);
             font-size: 9.5px;
             font-weight: 700;
             color: #8a9bb2;
@@ -2061,7 +2069,7 @@
             color: #55667a;
             letter-spacing: 0.5px;
             text-transform: uppercase;
-            font-family: 'B612 Mono', monospace;
+            font-family: var(--font-mono);
         }
 
         /* Large Centered Number for Pure Digital Readout */
@@ -2076,7 +2084,7 @@
             font-size: 26px;
             font-weight: 700;
             color: #ffffff;
-            font-family: 'B612 Mono', monospace;
+            font-family: var(--font-mono);
             letter-spacing: -0.5px;
             line-height: 1;
             transition: color 0.15s ease;
@@ -2181,7 +2189,7 @@
             align-items: baseline;
         }
         .gi-elec-label {
-            font-family: 'B612', sans-serif;
+            font-family: var(--font-sans);
             font-size: 10px;
             font-weight: 700;
             color: #8a9bb2;
@@ -2197,7 +2205,7 @@
             font-size: 18px;
             font-weight: 700;
             color: #38bdf8;
-            font-family: 'B612 Mono', monospace;
+            font-family: var(--font-mono);
             line-height: 1;
             transition: color 0.15s ease;
         }
@@ -2205,7 +2213,7 @@
             font-size: 10px;
             font-weight: 700;
             color: #64748b;
-            font-family: 'B612 Mono', monospace;
+            font-family: var(--font-mono);
         }
 
         /* Bottom Avionics Status Strip - Discrete Structured Multi-Column Layout */
@@ -2219,7 +2227,7 @@
             justify-content: space-around;
             flex-shrink: 0;
             box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5);
-            font-family: 'B612 Mono', monospace;
+            font-family: var(--font-mono);
         }
         .gi-status-col {
             display: flex;
@@ -2227,7 +2235,7 @@
             gap: 4px;
         }
         .gi-stat-lbl {
-            font-family: 'B612', sans-serif;
+            font-family: var(--font-sans);
             font-size: 8px;
             font-weight: 700;
             color: #8a9bb2;
@@ -2265,7 +2273,7 @@
             display: flex;
             flex-direction: column;
             user-select: none;
-            font-family: 'B612', -apple-system, sans-serif;
+            font-family: var(--font-sans);
             color: #ffffff;
             overflow: hidden;
             transition: opacity 0.2s ease, transform 0.2s ease;
@@ -2476,7 +2484,7 @@
         .sp-vbar-val {
             font-size: 10px;
             font-weight: 700;
-            font-family: 'B612 Mono', monospace;
+            font-family: var(--font-mono);
             color: #ffffff;
         }
 
@@ -2488,7 +2496,7 @@
             font-size: 11px;
             font-weight: 800;
             color: #ffd60a;
-            font-family: 'B612 Mono', monospace;
+            font-family: var(--font-mono);
             background: rgba(255, 214, 10, 0.08);
             margin-bottom: 2px;
         }
@@ -2496,7 +2504,7 @@
         .sp-flaps-ticks {
             font-size: 8px;
             color: #64748b;
-            font-family: 'B612 Mono', monospace;
+            font-family: var(--font-mono);
             display: flex;
             flex-direction: column;
             gap: 1px;
@@ -2539,7 +2547,7 @@
             font-size: 11px;
             font-weight: 800;
             letter-spacing: 0.8px;
-            font-family: 'B612 Mono', monospace;
+            font-family: var(--font-mono);
             text-transform: uppercase;
             box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.7);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -2594,7 +2602,7 @@
             padding: 5px 8px;
             font-size: 10px;
             font-weight: 700;
-            font-family: 'B612 Mono', monospace;
+            font-family: var(--font-mono);
             color: #e2e8f0;
             text-align: center;
             letter-spacing: 0.5px;
@@ -2648,7 +2656,7 @@
             height: 100vh;
             pointer-events: none;
             z-index: 990;
-            font-family: 'B612', 'Share Tech Mono', sans-serif;
+            font-family: var(--font-sans);
             user-select: none;
         }
 
@@ -2675,7 +2683,7 @@
         }
 
         .corv-brand-title {
-            font-family: 'B612', sans-serif;
+            font-family: var(--font-sans);
             font-size: 14px;
             font-weight: 800;
             color: #00e5ff;
@@ -2693,7 +2701,7 @@
             background: transparent;
             border: none;
             color: #8e9ca8;
-            font-family: 'B612', sans-serif;
+            font-family: var(--font-sans);
             font-size: 11px;
             font-weight: 700;
             letter-spacing: 1px;
@@ -2721,7 +2729,7 @@
             border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 3px;
             color: #d1d8e0;
-            font-family: 'B612 Mono', monospace;
+            font-family: var(--font-mono);
             font-size: 10px;
             font-weight: 700;
             padding: 3px 8px;
@@ -2756,7 +2764,7 @@
         }
 
         .corv-fps-badge {
-            font-family: 'B612 Mono', monospace;
+            font-family: var(--font-mono);
             font-size: 10.5px;
             font-weight: 700;
             color: #8e9ca8;
@@ -2776,7 +2784,7 @@
         }
 
         .corv-metric-label {
-            font-family: 'B612', sans-serif;
+            font-family: var(--font-sans);
             font-size: 10px;
             font-weight: 700;
             letter-spacing: 1.5px;
@@ -2786,7 +2794,7 @@
         }
 
         .corv-metric-primary {
-            font-family: 'B612', 'B612 Mono', sans-serif;
+            font-family: var(--font-sans);
             font-size: 38px;
             font-weight: 800;
             color: #ffffff;
@@ -2815,7 +2823,7 @@
         }
 
         .corv-metric-label-sub {
-            font-family: 'B612', sans-serif;
+            font-family: var(--font-sans);
             font-size: 9.5px;
             font-weight: 700;
             letter-spacing: 1.2px;
@@ -2825,7 +2833,7 @@
         }
 
         .corv-metric-secondary {
-            font-family: 'B612', 'B612 Mono', sans-serif;
+            font-family: var(--font-sans);
             font-size: 22px;
             font-weight: 700;
             color: #ffffff;
@@ -2840,7 +2848,7 @@
         }
 
         .corv-metric-gload {
-            font-family: 'B612', 'B612 Mono', sans-serif;
+            font-family: var(--font-sans);
             font-size: 19px;
             font-weight: 800;
             color: #30d158;
@@ -2858,7 +2866,7 @@
         .corv-lq-meta {
             display: flex;
             flex-direction: column;
-            font-family: 'B612 Mono', monospace;
+            font-family: var(--font-mono);
             line-height: 1.1;
         }
 
@@ -2888,7 +2896,7 @@
         }
 
         .corv-batt-label {
-            font-family: 'B612 Mono', monospace;
+            font-family: var(--font-mono);
             font-size: 11.5px;
             font-weight: 800;
             color: #ffd60a;
@@ -2915,7 +2923,7 @@
         }
 
         .corv-rotor-label {
-            font-family: 'B612', sans-serif;
+            font-family: var(--font-sans);
             font-size: 9.5px;
             font-weight: 700;
             letter-spacing: 1.5px;
@@ -2924,7 +2932,7 @@
         }
 
         .corv-throttle-center-text {
-            font-family: 'B612 Mono', monospace;
+            font-family: var(--font-mono);
             font-size: 14px;
             font-weight: 800;
             fill: #ff9f0a;
@@ -2954,7 +2962,7 @@
             display: flex;
             justify-content: space-between;
             gap: 16px;
-            font-family: 'B612 Mono', monospace;
+            font-family: var(--font-mono);
             font-size: 11px;
             line-height: 1.4;
         }
@@ -2982,7 +2990,7 @@
         .corv-traffic-tbl {
             width: 100%;
             border-collapse: collapse;
-            font-family: 'B612 Mono', monospace;
+            font-family: var(--font-mono);
             font-size: 10.5px;
         }
 
@@ -3026,7 +3034,7 @@
             align-items: center;
             justify-content: space-between;
             padding: 0 6px;
-            font-family: 'B612 Mono', monospace;
+            font-family: var(--font-mono);
             font-size: 9px;
             font-weight: 700;
             color: #00e5ff;
@@ -3081,7 +3089,7 @@
             padding: 0 16px;
             pointer-events: auto;
             z-index: 10;
-            font-family: 'B612 Mono', monospace;
+            font-family: var(--font-mono);
             font-size: 11px;
         }
 
@@ -3131,7 +3139,7 @@
             border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 3px;
             color: #ffffff;
-            font-family: 'B612', sans-serif;
+            font-family: var(--font-sans);
             font-size: 10px;
             font-weight: 700;
             letter-spacing: 0.5px;
@@ -3517,7 +3525,7 @@
         <div id="panel-view-telemetry">
             <div class="data-card">
                 <div class="data-row"><span class="data-label">Firmware</span><span id="firmware" class="data-val"
-                        style="color: #f0f6fc; font-family: 'B612 Mono', monospace; font-weight: 700;">ArduPlane</span></div>
+                        style="color: #f0f6fc; font-family: var(--font-mono); font-weight: 700;">ArduPlane</span></div>
                 <div class="data-row"><span class="data-label">Flight Mode</span><span id="f_mode" class="data-val"
                         style="color: var(--accent);">UNKNOWN</span></div>
                 <div class="data-row"><span class="data-label">Altitude</span><span id="alt" class="data-val">0.0 m</span>
@@ -3555,12 +3563,12 @@
                 <div class="map-row" style="margin: 0;">
                     <span>Model Scale</span>
                     <input type="number" id="scale_input" value="1.0" step="0.1"
-                        style="width: 60px; background: var(--panel-bg); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 4px; padding: 4px; font-size: 12px; font-family: 'B612 Mono', monospace; font-weight: 700; outline: none; text-align: center;">
+                        style="width: 60px; background: var(--panel-bg); color: var(--text-primary); border: 1px solid var(--border-color); border-radius: 4px; padding: 4px; font-size: 12px; font-family: var(--font-mono); font-weight: 700; outline: none; text-align: center;">
                 </div>
             </div>
 
             <div class="data-card">
-                <h3 style="margin: 0 0 10px 0; font-family: 'B612', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-secondary);">Motor Mapping</h3>
+                <h3 style="margin: 0 0 10px 0; font-family: var(--font-sans); font-size: 12px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-secondary);">Motor Mapping</h3>
                 <div id="map-vtol">
                     <div class="map-row">Motor 1 (FR) <select id="m_fr"></select></div>
                     <div class="map-row">Motor 2 (BL) <select id="m_bl"></select></div>
@@ -3586,7 +3594,7 @@
             <!-- Battery Card matching exact layout of Motor Mapping & Data Cards -->
             <div id="mp-battery-card" class="data-card" style="margin-top: 10px; cursor: pointer;" onclick="switchPanelTab('battery')" title="Open Battery & Power Details">
                 <div style="margin-bottom: 8px;">
-                    <h3 style="margin: 0; font-family: 'B612', sans-serif; font-size: 11.5px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-primary);">BATTERY &amp; POWER</h3>
+                    <h3 style="margin: 0; font-family: var(--font-sans); font-size: 11.5px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-primary);">BATTERY &amp; POWER</h3>
                 </div>
 
                 <!-- Sunken Black Backdrop Box for Battery Symbol & HUD Metrics -->
@@ -3605,22 +3613,22 @@
                     <!-- Mission Planner HUD Text Lines -->
                     <div style="display: flex; flex-direction: column; justify-content: center; gap: 2px; overflow: hidden; flex: 1;">
                         <div style="display: flex; align-items: baseline; gap: 6px;">
-                            <span id="mp-card-fc-vcc" style="font-family: 'B612', 'Segoe UI', sans-serif; font-size: 14.5px; font-weight: 700; color: #ffffff; letter-spacing: 0.2px;">5.44v</span>
-                            <span style="font-size: 9px; color: #94a3b8; font-family: 'B612', sans-serif; font-weight: 600;">FC VCC</span>
+                            <span id="mp-card-fc-vcc" style="font-family: var(--font-mono); font-size: 14.5px; font-weight: 700; color: #ffffff; letter-spacing: 0.2px;">5.44v</span>
+                            <span style="font-size: 9px; color: #94a3b8; font-family: var(--font-sans); font-weight: 600;">FC VCC</span>
                         </div>
                         <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                            <span id="mp-card-batt-line" style="font-family: 'B612', 'Segoe UI', sans-serif; font-size: 14.5px; font-weight: 700; color: #ffffff; letter-spacing: 0.3px;">21.75v 20.2 A 94%</span>
+                            <span id="mp-card-batt-line" style="font-family: var(--font-mono); font-size: 14.5px; font-weight: 700; color: #ffffff; letter-spacing: 0.3px;">21.75v 20.2 A 94%</span>
                         </div>
                     </div>
                 </div>
 
                 <!-- Footer Summary Row (High Visibility Used mAh and Watts) -->
                 <div style="display: flex; align-items: center; justify-content: space-between; padding: 2px 1px;">
-                    <span id="mp-card-sub-info" style="font-family: 'B612', sans-serif; font-size: 11px; font-weight: 600; color: #f1f5f9; letter-spacing: 0.3px;">Used: 0 mAh | 0 W</span>
+                    <span id="mp-card-sub-info" style="font-family: var(--font-sans); font-size: 11px; font-weight: 600; color: #f1f5f9; letter-spacing: 0.3px;">Used: 0 mAh | 0 W</span>
                 </div>
             </div>
 
-            <div style="margin-top: 24px; text-align: center; font-size: 10px; color: var(--text-secondary); opacity: 0.6; font-family: 'B612', sans-serif; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase;">
+            <div style="margin-top: 24px; text-align: center; font-size: 10px; color: var(--text-secondary); opacity: 0.6; font-family: var(--font-sans); font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase;">
                 Designed by RJ
             </div>
 
@@ -3636,7 +3644,7 @@
             <!-- Mission Planner Hero HUD Box -->
             <div class="data-card" style="margin-bottom: 10px;">
                 <div style="margin-bottom: 8px;">
-                    <h3 style="margin: 0; font-family: 'B612', sans-serif; font-size: 11.5px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-primary);">BATTERY &amp; POWER</h3>
+                    <h3 style="margin: 0; font-family: var(--font-sans); font-size: 11.5px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-primary);">BATTERY &amp; POWER</h3>
                 </div>
 
                 <!-- Sunken Black Backdrop Box for Battery Symbol & HUD Metrics -->
@@ -3654,24 +3662,24 @@
                     <!-- Right HUD Readouts -->
                     <div style="display: flex; flex-direction: column; justify-content: center; gap: 2px; overflow: hidden; flex: 1;">
                         <div style="display: flex; align-items: baseline; gap: 6px;">
-                            <span id="mp-view-fc-vcc" style="font-family: 'B612', 'Segoe UI', sans-serif; font-size: 14.5px; font-weight: 700; color: #ffffff; letter-spacing: 0.2px;">5.44v</span>
-                            <span style="font-size: 9px; color: #94a3b8; font-family: 'B612', sans-serif; font-weight: 600;">FC VCC</span>
+                            <span id="mp-view-fc-vcc" style="font-family: var(--font-mono); font-size: 14.5px; font-weight: 700; color: #ffffff; letter-spacing: 0.2px;">5.44v</span>
+                            <span style="font-size: 9px; color: #94a3b8; font-family: var(--font-sans); font-weight: 600;">FC VCC</span>
                         </div>
                         <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                            <span id="mp-view-batt-line" style="font-family: 'B612', 'Segoe UI', sans-serif; font-size: 14.5px; font-weight: 700; color: #ffffff; letter-spacing: 0.3px;">21.75v 20.2 A 94%</span>
+                            <span id="mp-view-batt-line" style="font-family: var(--font-mono); font-size: 14.5px; font-weight: 700; color: #ffffff; letter-spacing: 0.3px;">21.75v 20.2 A 94%</span>
                         </div>
                     </div>
                 </div>
 
                 <!-- Footer Summary Row (High Visibility Used mAh and Watts) -->
                 <div style="display: flex; align-items: center; justify-content: space-between; padding: 2px 1px;">
-                    <span id="mp-view-sub-info" style="font-family: 'B612', sans-serif; font-size: 11px; font-weight: 600; color: #f1f5f9; letter-spacing: 0.3px;">Used: 0 mAh | 0 W</span>
+                    <span id="mp-view-sub-info" style="font-family: var(--font-sans); font-size: 11px; font-weight: 600; color: #f1f5f9; letter-spacing: 0.3px;">Used: 0 mAh | 0 W</span>
                 </div>
             </div>
 
             <!-- Electrical Metrics Grid as standard data-rows -->
             <div class="data-card" style="margin-bottom: 10px;">
-                <h3 style="margin: 0 0 10px 0; font-family: 'B612', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-secondary);">ELECTRICAL PARAMETERS</h3>
+                <h3 style="margin: 0 0 10px 0; font-family: var(--font-sans); font-size: 12px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-secondary);">ELECTRICAL PARAMETERS</h3>
                 <div class="data-row"><span class="data-label">Pack Voltage</span><span id="mp-stat-pack-volts" class="data-val">21.75 V</span></div>
                 <div class="data-row"><span class="data-label">Cell Config</span><span id="mp-stat-cell-config" class="data-val">6S (3.63 V/cell)</span></div>
                 <div class="data-row"><span class="data-label">Current Draw</span><span id="mp-stat-pack-amps" class="data-val">20.2 A</span></div>
@@ -3685,7 +3693,7 @@
             <!-- Per-Cell Balance Breakdown Matrix -->
             <div class="data-card" style="margin-bottom: 10px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <h3 style="margin: 0; font-family: 'B612', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-secondary);">CELL BALANCE</h3>
+                    <h3 style="margin: 0; font-family: var(--font-sans); font-size: 12px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-secondary);">CELL BALANCE</h3>
                     <span id="mp-cell-delta-badge" class="data-val" style="font-size: 10px; color: var(--text-secondary);">Δ 0.02 V</span>
                 </div>
                 <div id="mp-cell-bars-container" style="display: flex; flex-direction: column; gap: 6px;">
@@ -4014,7 +4022,7 @@
 
             <!-- Console Footer -->
             <div class="msg-footer-bar">
-                <div id="msg-count-label" style="font-size: 9.5px; color: var(--text-secondary); font-family: 'B612 Mono', monospace;">
+                <div id="msg-count-label" style="font-size: 9.5px; color: var(--text-secondary); font-family: var(--font-mono);">
                     0 msgs
                 </div>
                 <label style="display: flex; align-items: center; gap: 4px; font-size: 9.5px; cursor: pointer; color: var(--text-secondary);">
@@ -4209,30 +4217,30 @@
                         <line x1="-100" y1="100" x2="300" y2="100" stroke="#ffffff" stroke-width="1.8" />
                         <!-- Pitch ladder (Airbus B612 Aviation Font) -->
                         <line x1="82" y1="40" x2="118" y2="40" stroke="#ffffff" stroke-width="1.4" />
-                        <text x="76" y="43" fill="#ffffff" font-family="'B612', monospace" font-size="8" text-anchor="end">30</text>
-                        <text x="124" y="43" fill="#ffffff" font-family="'B612', monospace" font-size="8">30</text>
+                        <text x="76" y="43" fill="#ffffff" font-family="'JetBrains Mono', monospace" font-size="8" text-anchor="end">30</text>
+                        <text x="124" y="43" fill="#ffffff" font-family="'JetBrains Mono', monospace" font-size="8">30</text>
                         <line x1="78" y1="60" x2="122" y2="60" stroke="#ffffff" stroke-width="1.4" />
-                        <text x="72" y="63" fill="#ffffff" font-family="'B612', monospace" font-size="8" text-anchor="end">20</text>
-                        <text x="128" y="63" fill="#ffffff" font-family="'B612', monospace" font-size="8">20</text>
+                        <text x="72" y="63" fill="#ffffff" font-family="'JetBrains Mono', monospace" font-size="8" text-anchor="end">20</text>
+                        <text x="128" y="63" fill="#ffffff" font-family="'JetBrains Mono', monospace" font-size="8">20</text>
                         <line x1="84" y1="80" x2="116" y2="80" stroke="#ffffff" stroke-width="1.4" />
-                        <text x="78" y="83" fill="#ffffff" font-family="'B612', monospace" font-size="8" text-anchor="end">10</text>
-                        <text x="122" y="83" fill="#ffffff" font-family="'B612', monospace" font-size="8">10</text>
+                        <text x="78" y="83" fill="#ffffff" font-family="'JetBrains Mono', monospace" font-size="8" text-anchor="end">10</text>
+                        <text x="122" y="83" fill="#ffffff" font-family="'JetBrains Mono', monospace" font-size="8">10</text>
                         <!-- Ground ladder -->
                         <line x1="84" y1="120" x2="116" y2="120" stroke="#ffffff" stroke-width="1.4" stroke-dasharray="4,3" />
-                        <text x="78" y="123" fill="#ffffff" font-family="'B612', monospace" font-size="8" text-anchor="end">10</text>
-                        <text x="122" y="123" fill="#ffffff" font-family="'B612', monospace" font-size="8">10</text>
+                        <text x="78" y="123" fill="#ffffff" font-family="'JetBrains Mono', monospace" font-size="8" text-anchor="end">10</text>
+                        <text x="122" y="123" fill="#ffffff" font-family="'JetBrains Mono', monospace" font-size="8">10</text>
                         <line x1="78" y1="140" x2="122" y2="140" stroke="#ffffff" stroke-width="1.4" stroke-dasharray="4,3" />
-                        <text x="72" y="143" fill="#ffffff" font-family="'B612', monospace" font-size="8" text-anchor="end">20</text>
-                        <text x="128" y="143" fill="#ffffff" font-family="'B612', monospace" font-size="8">20</text>
+                        <text x="72" y="143" fill="#ffffff" font-family="'JetBrains Mono', monospace" font-size="8" text-anchor="end">20</text>
+                        <text x="128" y="143" fill="#ffffff" font-family="'JetBrains Mono', monospace" font-size="8">20</text>
                     </g>
 
                     <!-- Roll Bank Arc -->
                     <path d="M40,55 A80,80 0 0,1 160,55" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="1.5" />
                     <polygon points="100,22 96,28 104,28" fill="#ffffff" />
                     <line x1="58" y1="36" x2="62" y2="42" stroke="#ffffff" stroke-width="2" />
-                    <text x="54" y="32" fill="#ffffff" font-family="'B612', monospace" font-size="8" font-weight="700">30°</text>
+                    <text x="54" y="32" fill="#ffffff" font-family="'JetBrains Mono', monospace" font-size="8" font-weight="700">30°</text>
                     <line x1="142" y1="36" x2="138" y2="42" stroke="#ffffff" stroke-width="2" />
-                    <text x="146" y="32" fill="#ffffff" font-family="'B612', monospace" font-size="8" font-weight="700">30°</text>
+                    <text x="146" y="32" fill="#ffffff" font-family="'JetBrains Mono', monospace" font-size="8" font-weight="700">30°</text>
 
                     <!-- Aircraft Reference Reticle -->
                     <circle cx="100" cy="100" r="3.5" fill="#ffcc00" />
@@ -4241,21 +4249,21 @@
 
                     <!-- Speed & Altitude Boxes -->
                     <rect x="4" y="86" width="32" height="28" rx="3" fill="#000000" stroke="rgba(255,255,255,0.4)" stroke-width="1" />
-                    <text id="lxnav-pfd-speed" x="20" y="104" fill="#ffffff" font-family="'B612 Mono', monospace" font-size="12" font-weight="700" text-anchor="middle">0</text>
+                    <text id="lxnav-pfd-speed" x="20" y="104" fill="#ffffff" font-family="'JetBrains Mono', monospace" font-size="12" font-weight="700" text-anchor="middle">0</text>
                     <rect x="158" y="86" width="38" height="28" rx="3" fill="#000000" stroke="rgba(255,255,255,0.4)" stroke-width="1" />
-                    <text id="lxnav-pfd-alt" x="177" y="104" fill="#ffffff" font-family="'B612 Mono', monospace" font-size="11.5" font-weight="700" text-anchor="middle">0</text>
+                    <text id="lxnav-pfd-alt" x="177" y="104" fill="#ffffff" font-family="'JetBrains Mono', monospace" font-size="11.5" font-weight="700" text-anchor="middle">0</text>
 
                     <!-- QNH Barometric Altimeter Setting -->
                     <g id="lxnav-pfd-qnh-box" style="cursor: pointer;" onclick="togglePfdQnhUnit(event)" title="Barometric QNH Setting (Click to toggle hPa / inHg)">
                         <rect x="146" y="117" width="38" height="17" rx="3" fill="#06090e" stroke="rgba(0, 229, 255, 0.55)" stroke-width="1" />
-                        <text id="lxnav-pfd-qnh-lbl" x="165" y="123.5" fill="#8a9bb2" font-family="'B612', sans-serif" font-size="5.5" font-weight="700" letter-spacing="0.5" text-anchor="middle">QNH</text>
-                        <text id="lxnav-pfd-qnh" x="165" y="131" fill="#00e5ff" font-family="'B612 Mono', monospace" font-size="7.5" font-weight="700" text-anchor="middle">1013</text>
+                        <text id="lxnav-pfd-qnh-lbl" x="165" y="123.5" fill="#8a9bb2" font-family="'Inter', sans-serif" font-size="5.5" font-weight="700" letter-spacing="0.5" text-anchor="middle">QNH</text>
+                        <text id="lxnav-pfd-qnh" x="165" y="131" fill="#00e5ff" font-family="'JetBrains Mono', monospace" font-size="7.5" font-weight="700" text-anchor="middle">1013</text>
                     </g>
                     
                     <!-- Bottom Status Tag (Flight Mode / HUD Annunciator in Aviation Green) -->
                     <g transform="translate(64, 168)">
                         <rect id="lxnav-pfd-mode-box" x="0" y="0" width="72" height="18" rx="4" fill="#0d1410" stroke="rgba(48, 209, 88, 0.65)" stroke-width="1.3" />
-                        <text id="lxnav-pfd-mode-text" x="36" y="12.5" fill="#30d158" font-family="'B612 Mono', monospace" font-size="9.5" font-weight="700" text-anchor="middle">AUTO</text>
+                        <text id="lxnav-pfd-mode-text" x="36" y="12.5" fill="#30d158" font-family="'JetBrains Mono', monospace" font-size="9.5" font-weight="700" text-anchor="middle">AUTO</text>
                     </g>
                 </g>
 
@@ -4282,14 +4290,14 @@
                     </g>
 
                     <!-- Top Wind Readout -->
-                    <text id="lxnav-vario-wind" x="100" y="48" fill="#ff9500" font-family="'B612 Mono', monospace" font-size="9" font-weight="700" text-anchor="middle">---° / 0km/h</text>
+                    <text id="lxnav-vario-wind" x="100" y="48" fill="#ff9500" font-family="'JetBrains Mono', monospace" font-size="9" font-weight="700" text-anchor="middle">---° / 0km/h</text>
 
                     <!-- Center Bold Netto Readout -->
-                    <text id="lxnav-vario-netto" x="100" y="86" fill="#30d158" font-family="'B612 Mono', monospace" font-size="24" font-weight="700" text-anchor="middle">+0.0</text>
+                    <text id="lxnav-vario-netto" x="100" y="86" fill="#30d158" font-family="'JetBrains Mono', monospace" font-size="24" font-weight="700" text-anchor="middle">+0.0</text>
                     <text x="100" y="98" fill="#8e9297" font-family="'Inter', sans-serif" font-size="8" font-weight="600" text-anchor="middle">Netto m/s</text>
 
                     <!-- Secondary Vario Readout -->
-                    <text id="lxnav-vario-vera" x="100" y="128" fill="#30d158" font-family="'B612 Mono', monospace" font-size="18" font-weight="700" text-anchor="middle">+0.0</text>
+                    <text id="lxnav-vario-vera" x="100" y="128" fill="#30d158" font-family="'JetBrains Mono', monospace" font-size="18" font-weight="700" text-anchor="middle">+0.0</text>
                     <text x="100" y="138" fill="#8e9297" font-family="'Inter', sans-serif" font-size="8" font-weight="600" text-anchor="middle">VarA m/s</text>
 
                     <!-- Pointer Needle -->
@@ -4687,27 +4695,27 @@
 
     <!-- Garmin Atmospheric & Environmental Telemetry Panel -->
     <div id="terrain-graph-container" class="env-telemetry-panel"
-        style="position: absolute; bottom: 10px; right: 20px; width: min(580px, calc(100vw - 360px)); height: 172px; box-sizing: border-box; overflow: hidden; background: #0f1013; border-radius: 12px; border: 1.5px solid #24262c; padding: 7px 10px; display: none; flex-direction: column; justify-content: space-between; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.75), inset 0 1px 1px rgba(255, 255, 255, 0.05); z-index: 90; pointer-events: auto; font-family: 'B612', 'B612 Mono', 'JetBrains Mono', monospace; user-select: none;">
+        style="position: absolute; bottom: 10px; right: 20px; width: min(580px, calc(100vw - 360px)); height: 172px; box-sizing: border-box; overflow: hidden; background: #0f1013; border-radius: 12px; border: 1.5px solid #24262c; padding: 7px 10px; display: none; flex-direction: column; justify-content: space-between; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.75), inset 0 1px 1px rgba(255, 255, 255, 0.05); z-index: 90; pointer-events: auto; font-family: var(--font-mono); user-select: none;">
         
         <!-- Garmin Top Bar -->
         <div style="display: flex; justify-content: space-between; align-items: center; padding: 0 2px 4px 2px; flex-shrink: 0; border-bottom: 1px solid #1e2026; cursor: grab;">
             <div style="display: flex; align-items: center; gap: 7px; white-space: nowrap;">
                 <span style="width: 7px; height: 7px; border-radius: 50%; background: #94a3b8; box-shadow: 0 0 6px rgba(148, 163, 184, 0.4);"></span>
-                <span style="font-family: 'B612', sans-serif; font-size: 10px; font-weight: 800; letter-spacing: 1.5px; color: #8a9bb2; text-transform: uppercase;">ATMOSPHERE & ENVIRONMENT</span>
+                <span style="font-family: var(--font-sans); font-size: 10px; font-weight: 800; letter-spacing: 1.5px; color: #8a9bb2; text-transform: uppercase;">ATMOSPHERE & ENVIRONMENT</span>
             </div>
             <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0; white-space: nowrap;">
                 <!-- Field Elevation Badge -->
-                <div style="background: #18191d; border: 1px solid #24262c; border-radius: 4px; padding: 1px 7px; font-family: 'B612 Mono', monospace; font-size: 9.5px; font-weight: 700;">
+                <div style="background: #18191d; border: 1px solid #24262c; border-radius: 4px; padding: 1px 7px; font-family: var(--font-mono); font-size: 9.5px; font-weight: 700;">
                     <span style="color: #8a9bb2; font-size: 8.5px; margin-right: 4px; letter-spacing: 0.5px;">ELEV</span>
                     <span id="env-field-elev-val" style="color: #e2e8f0;">-- m</span>
                 </div>
                 <!-- AMSL Badge -->
-                <div style="background: #18191d; border: 1px solid #24262c; border-radius: 4px; padding: 1px 7px; font-family: 'B612 Mono', monospace; font-size: 9.5px; font-weight: 700;">
+                <div style="background: #18191d; border: 1px solid #24262c; border-radius: 4px; padding: 1px 7px; font-family: var(--font-mono); font-size: 9.5px; font-weight: 700;">
                     <span style="color: #94a3b8; font-size: 8.5px; margin-right: 4px; letter-spacing: 0.5px;">AMSL</span>
                     <span id="env-amsl-val" style="color: #ffffff;">-- m</span>
                 </div>
                 <!-- AGL Badge -->
-                <div style="background: #18191d; border: 1px solid #24262c; border-radius: 4px; padding: 1px 7px; font-family: 'B612 Mono', monospace; font-size: 9.5px; font-weight: 700;">
+                <div style="background: #18191d; border: 1px solid #24262c; border-radius: 4px; padding: 1px 7px; font-family: var(--font-mono); font-size: 9.5px; font-weight: 700;">
                     <span style="color: #94a3b8; font-size: 8.5px; margin-right: 4px; letter-spacing: 0.5px;">AGL</span>
                     <span id="terrain-alt-text" style="color: #ffffff;">0.0 m</span>
                 </div>
@@ -4722,14 +4730,14 @@
             <!-- Cell 1: BARO TEMP -->
             <div style="background: #0f1013; padding: 5px 8px; display: flex; flex-direction: column; justify-content: space-between;">
                 <div style="display: flex; justify-content: space-between; align-items: center; white-space: nowrap;">
-                    <span style="font-family: 'B612', sans-serif; font-size: 9px; font-weight: 700; color: #8a9bb2; letter-spacing: 0.8px; text-transform: uppercase;">BARO TEMP</span>
-                    <span style="font-family: 'B612 Mono', monospace; font-size: 8px; font-weight: 700; color: #64748b; text-transform: uppercase;">FC SENSOR</span>
+                    <span style="font-family: var(--font-sans); font-size: 9px; font-weight: 700; color: #8a9bb2; letter-spacing: 0.8px; text-transform: uppercase;">BARO TEMP</span>
+                    <span style="font-family: var(--font-mono); font-size: 8px; font-weight: 700; color: #64748b; text-transform: uppercase;">FC SENSOR</span>
                 </div>
                 <div style="display: flex; align-items: baseline; justify-content: space-between; margin: 0; white-space: nowrap;">
-                    <span id="env-baro-temp-val" style="color: #38bdf8; font-size: 18px; font-weight: 700; font-family: 'B612 Mono', monospace; letter-spacing: -0.5px;">--</span>
-                    <span style="color: #38bdf8; font-size: 10px; font-weight: 700; font-family: 'B612 Mono', monospace;">°C</span>
+                    <span id="env-baro-temp-val" style="color: #38bdf8; font-size: 18px; font-weight: 700; font-family: var(--font-mono); letter-spacing: -0.5px;">--</span>
+                    <span style="color: #38bdf8; font-size: 10px; font-weight: 700; font-family: var(--font-mono);">°C</span>
                 </div>
-                <div style="display: flex; justify-content: space-between; align-items: center; background: #141519; border: 1px solid #1e2026; border-radius: 3px; padding: 2px 5px; font-family: 'B612 Mono', monospace; font-size: 8px; white-space: nowrap;">
+                <div style="display: flex; justify-content: space-between; align-items: center; background: #141519; border: 1px solid #1e2026; border-radius: 3px; padding: 2px 5px; font-family: var(--font-mono); font-size: 8px; white-space: nowrap;">
                     <span><span style="color: #64748b; font-weight: 700;">MIN</span> <b id="env-baro-min" style="color: #cbd5e1; font-weight: 700;">--</b></span>
                     <span><span style="color: #64748b; font-weight: 700;">MAX</span> <b id="env-baro-max" style="color: #cbd5e1; font-weight: 700;">--</b></span>
                     <span><span style="color: #64748b; font-weight: 700;">AVG</span> <b id="env-baro-avg" style="color: #ffffff; font-weight: 700;">--</b></span>
@@ -4739,14 +4747,14 @@
             <!-- Cell 2: ARSP TEMP -->
             <div style="background: #0f1013; padding: 5px 8px; display: flex; flex-direction: column; justify-content: space-between;">
                 <div style="display: flex; justify-content: space-between; align-items: center; white-space: nowrap;">
-                    <span style="font-family: 'B612', sans-serif; font-size: 9px; font-weight: 700; color: #8a9bb2; letter-spacing: 0.8px; text-transform: uppercase;">ARSP TEMP</span>
-                    <span style="font-family: 'B612 Mono', monospace; font-size: 8px; font-weight: 700; color: #64748b; text-transform: uppercase;">PITOT OAT</span>
+                    <span style="font-family: var(--font-sans); font-size: 9px; font-weight: 700; color: #8a9bb2; letter-spacing: 0.8px; text-transform: uppercase;">ARSP TEMP</span>
+                    <span style="font-family: var(--font-mono); font-size: 8px; font-weight: 700; color: #64748b; text-transform: uppercase;">PITOT OAT</span>
                 </div>
                 <div style="display: flex; align-items: baseline; justify-content: space-between; margin: 0; white-space: nowrap;">
-                    <span id="env-arsp-temp-val" style="color: #38bdf8; font-size: 18px; font-weight: 700; font-family: 'B612 Mono', monospace; letter-spacing: -0.5px;">--</span>
-                    <span style="color: #38bdf8; font-size: 10px; font-weight: 700; font-family: 'B612 Mono', monospace;">°C</span>
+                    <span id="env-arsp-temp-val" style="color: #38bdf8; font-size: 18px; font-weight: 700; font-family: var(--font-mono); letter-spacing: -0.5px;">--</span>
+                    <span style="color: #38bdf8; font-size: 10px; font-weight: 700; font-family: var(--font-mono);">°C</span>
                 </div>
-                <div style="display: flex; justify-content: space-between; align-items: center; background: #141519; border: 1px solid #1e2026; border-radius: 3px; padding: 2px 5px; font-family: 'B612 Mono', monospace; font-size: 8px; white-space: nowrap;">
+                <div style="display: flex; justify-content: space-between; align-items: center; background: #141519; border: 1px solid #1e2026; border-radius: 3px; padding: 2px 5px; font-family: var(--font-mono); font-size: 8px; white-space: nowrap;">
                     <span><span style="color: #64748b; font-weight: 700;">MIN</span> <b id="env-arsp-min" style="color: #cbd5e1; font-weight: 700;">--</b></span>
                     <span><span style="color: #64748b; font-weight: 700;">MAX</span> <b id="env-arsp-max" style="color: #cbd5e1; font-weight: 700;">--</b></span>
                     <span><span style="color: #64748b; font-weight: 700;">AVG</span> <b id="env-arsp-avg" style="color: #ffffff; font-weight: 700;">--</b></span>
@@ -4756,14 +4764,14 @@
             <!-- Cell 3: QNH ALTIMETER -->
             <div style="background: #0f1013; padding: 5px 8px; display: flex; flex-direction: column; justify-content: space-between;">
                 <div style="display: flex; justify-content: space-between; align-items: center; white-space: nowrap;">
-                    <span style="font-family: 'B612', sans-serif; font-size: 9px; font-weight: 700; color: #8a9bb2; letter-spacing: 0.8px; text-transform: uppercase;">QNH BARO</span>
-                    <span style="font-family: 'B612 Mono', monospace; font-size: 8px; font-weight: 700; color: #64748b; text-transform: uppercase;">SEA LEVEL</span>
+                    <span style="font-family: var(--font-sans); font-size: 9px; font-weight: 700; color: #8a9bb2; letter-spacing: 0.8px; text-transform: uppercase;">QNH BARO</span>
+                    <span style="font-family: var(--font-mono); font-size: 8px; font-weight: 700; color: #64748b; text-transform: uppercase;">SEA LEVEL</span>
                 </div>
                 <div style="display: flex; align-items: baseline; justify-content: space-between; margin: 0; white-space: nowrap;">
-                    <span id="env-qnh-val" style="color: #ffb300; font-size: 18px; font-weight: 700; font-family: 'B612 Mono', monospace; letter-spacing: -0.5px;">--</span>
-                    <span style="color: #ffb300; font-size: 10px; font-weight: 700; font-family: 'B612 Mono', monospace;">hPa</span>
+                    <span id="env-qnh-val" style="color: #ffb300; font-size: 18px; font-weight: 700; font-family: var(--font-mono); letter-spacing: -0.5px;">--</span>
+                    <span style="color: #ffb300; font-size: 10px; font-weight: 700; font-family: var(--font-mono);">hPa</span>
                 </div>
-                <div style="display: flex; justify-content: space-between; align-items: center; background: #141519; border: 1px solid #1e2026; border-radius: 3px; padding: 2px 5px; font-family: 'B612 Mono', monospace; font-size: 8px; white-space: nowrap;">
+                <div style="display: flex; justify-content: space-between; align-items: center; background: #141519; border: 1px solid #1e2026; border-radius: 3px; padding: 2px 5px; font-family: var(--font-mono); font-size: 8px; white-space: nowrap;">
                     <span><span style="color: #64748b; font-weight: 700;">MIN</span> <b id="env-qnh-min" style="color: #cbd5e1; font-weight: 700;">--</b></span>
                     <span><span style="color: #64748b; font-weight: 700;">MAX</span> <b id="env-qnh-max" style="color: #cbd5e1; font-weight: 700;">--</b></span>
                     <span><span style="color: #64748b; font-weight: 700;">AVG</span> <b id="env-qnh-avg" style="color: #ffffff; font-weight: 700;">--</b></span>
@@ -4773,14 +4781,14 @@
             <!-- Cell 4: STATION PRESS -->
             <div style="background: #0f1013; padding: 5px 8px; display: flex; flex-direction: column; justify-content: space-between;">
                 <div style="display: flex; justify-content: space-between; align-items: center; white-space: nowrap;">
-                    <span style="font-family: 'B612', sans-serif; font-size: 9px; font-weight: 700; color: #8a9bb2; letter-spacing: 0.8px; text-transform: uppercase;">STATION PRESS</span>
-                    <span style="font-family: 'B612 Mono', monospace; font-size: 8px; font-weight: 700; color: #64748b; text-transform: uppercase;">STATIC</span>
+                    <span style="font-family: var(--font-sans); font-size: 9px; font-weight: 700; color: #8a9bb2; letter-spacing: 0.8px; text-transform: uppercase;">STATION PRESS</span>
+                    <span style="font-family: var(--font-mono); font-size: 8px; font-weight: 700; color: #64748b; text-transform: uppercase;">STATIC</span>
                 </div>
                 <div style="display: flex; align-items: baseline; justify-content: space-between; margin: 0; white-space: nowrap;">
-                    <span id="env-press-val" style="color: #ffb300; font-size: 18px; font-weight: 700; font-family: 'B612 Mono', monospace; letter-spacing: -0.5px;">--</span>
-                    <span style="color: #ffb300; font-size: 10px; font-weight: 700; font-family: 'B612 Mono', monospace;">hPa</span>
+                    <span id="env-press-val" style="color: #ffb300; font-size: 18px; font-weight: 700; font-family: var(--font-mono); letter-spacing: -0.5px;">--</span>
+                    <span style="color: #ffb300; font-size: 10px; font-weight: 700; font-family: var(--font-mono);">hPa</span>
                 </div>
-                <div style="display: flex; justify-content: space-between; align-items: center; background: #141519; border: 1px solid #1e2026; border-radius: 3px; padding: 2px 5px; font-family: 'B612 Mono', monospace; font-size: 8px; white-space: nowrap;">
+                <div style="display: flex; justify-content: space-between; align-items: center; background: #141519; border: 1px solid #1e2026; border-radius: 3px; padding: 2px 5px; font-family: var(--font-mono); font-size: 8px; white-space: nowrap;">
                     <span><span style="color: #64748b; font-weight: 700;">MIN</span> <b id="env-press-min" style="color: #cbd5e1; font-weight: 700;">--</b></span>
                     <span><span style="color: #64748b; font-weight: 700;">MAX</span> <b id="env-press-max" style="color: #cbd5e1; font-weight: 700;">--</b></span>
                     <span><span style="color: #64748b; font-weight: 700;">AVG</span> <b id="env-press-avg" style="color: #ffffff; font-weight: 700;">--</b></span>
@@ -4790,14 +4798,14 @@
             <!-- Cell 5: AIR DENSITY (rho) -->
             <div style="background: #0f1013; padding: 5px 8px; display: flex; flex-direction: column; justify-content: space-between;">
                 <div style="display: flex; justify-content: space-between; align-items: center; white-space: nowrap;">
-                    <span style="font-family: 'B612', sans-serif; font-size: 9px; font-weight: 700; color: #8a9bb2; letter-spacing: 0.8px; text-transform: uppercase;">AIR DENSITY (ρ)</span>
-                    <span style="font-family: 'B612 Mono', monospace; font-size: 8px; font-weight: 700; color: #64748b; text-transform: uppercase;">P / RT</span>
+                    <span style="font-family: var(--font-sans); font-size: 9px; font-weight: 700; color: #8a9bb2; letter-spacing: 0.8px; text-transform: uppercase;">AIR DENSITY (ρ)</span>
+                    <span style="font-family: var(--font-mono); font-size: 8px; font-weight: 700; color: #64748b; text-transform: uppercase;">P / RT</span>
                 </div>
                 <div style="display: flex; align-items: baseline; gap: 4px; margin: 0; white-space: nowrap;">
-                    <span id="env-density-val" style="color: #c084fc; font-size: 18px; font-weight: 700; font-family: 'B612 Mono', monospace; letter-spacing: -0.5px;">--</span>
-                    <span style="color: #c084fc; font-size: 10px; font-weight: 700; font-family: 'B612 Mono', monospace; white-space: nowrap;">kg/m³</span>
+                    <span id="env-density-val" style="color: #c084fc; font-size: 18px; font-weight: 700; font-family: var(--font-mono); letter-spacing: -0.5px;">--</span>
+                    <span style="color: #c084fc; font-size: 10px; font-weight: 700; font-family: var(--font-mono); white-space: nowrap;">kg/m³</span>
                 </div>
-                <div style="display: flex; justify-content: space-between; align-items: center; background: #141519; border: 1px solid #1e2026; border-radius: 3px; padding: 2px 5px; font-family: 'B612 Mono', monospace; font-size: 8px; white-space: nowrap;">
+                <div style="display: flex; justify-content: space-between; align-items: center; background: #141519; border: 1px solid #1e2026; border-radius: 3px; padding: 2px 5px; font-family: var(--font-mono); font-size: 8px; white-space: nowrap;">
                     <span><span style="color: #64748b; font-weight: 700;">MIN</span> <b id="env-density-min" style="color: #cbd5e1; font-weight: 700;">--</b></span>
                     <span><span style="color: #64748b; font-weight: 700;">MAX</span> <b id="env-density-max" style="color: #cbd5e1; font-weight: 700;">--</b></span>
                     <span><span style="color: #64748b; font-weight: 700;">AVG</span> <b id="env-density-avg" style="color: #ffffff; font-weight: 700;">--</b></span>
@@ -4807,15 +4815,15 @@
             <!-- Cell 6: WIND VECTOR -->
             <div style="background: #0f1013; padding: 5px 8px; display: flex; flex-direction: column; justify-content: space-between;">
                 <div style="display: flex; justify-content: space-between; align-items: center; white-space: nowrap;">
-                    <span style="font-family: 'B612', sans-serif; font-size: 9px; font-weight: 700; color: #8a9bb2; letter-spacing: 0.8px; text-transform: uppercase;">WIND VECTOR</span>
-                    <span id="env-wind-comps" style="color: #30d158; font-size: 8.5px; font-weight: 700; font-family: 'B612 Mono', monospace; white-space: nowrap;">HW: -- XW: --</span>
+                    <span style="font-family: var(--font-sans); font-size: 9px; font-weight: 700; color: #8a9bb2; letter-spacing: 0.8px; text-transform: uppercase;">WIND VECTOR</span>
+                    <span id="env-wind-comps" style="color: #30d158; font-size: 8.5px; font-weight: 700; font-family: var(--font-mono); white-space: nowrap;">HW: -- XW: --</span>
                 </div>
                 <div style="display: flex; align-items: baseline; gap: 4px; margin: 0; white-space: nowrap;">
-                    <span id="env-wind-val" style="color: #30d158; font-size: 18px; font-weight: 700; font-family: 'B612 Mono', monospace; letter-spacing: -0.5px;">--</span>
-                    <span style="color: #30d158; font-size: 9.5px; font-weight: 700; font-family: 'B612 Mono', monospace;">m/s</span>
-                    <span id="env-wind-dir" style="color: #72e38c; font-size: 12px; font-weight: 700; font-family: 'B612 Mono', monospace; margin-left: 2px;">--°</span>
+                    <span id="env-wind-val" style="color: #30d158; font-size: 18px; font-weight: 700; font-family: var(--font-mono); letter-spacing: -0.5px;">--</span>
+                    <span style="color: #30d158; font-size: 9.5px; font-weight: 700; font-family: var(--font-mono);">m/s</span>
+                    <span id="env-wind-dir" style="color: #72e38c; font-size: 12px; font-weight: 700; font-family: var(--font-mono); margin-left: 2px;">--°</span>
                 </div>
-                <div style="display: flex; justify-content: space-between; align-items: center; background: #141519; border: 1px solid #1e2026; border-radius: 3px; padding: 2px 5px; font-family: 'B612 Mono', monospace; font-size: 8px; white-space: nowrap;">
+                <div style="display: flex; justify-content: space-between; align-items: center; background: #141519; border: 1px solid #1e2026; border-radius: 3px; padding: 2px 5px; font-family: var(--font-mono); font-size: 8px; white-space: nowrap;">
                     <span><span style="color: #64748b; font-weight: 700;">MAX</span> <b id="env-wind-max" style="color: #cbd5e1; font-weight: 700;">--</b></span>
                     <span><span style="color: #64748b; font-weight: 700;">AVG</span> <b id="env-wind-avg" style="color: #cbd5e1; font-weight: 700;">--</b></span>
                     <span><span style="color: #64748b; font-weight: 700;">DIR</span> <b id="env-wind-main-dir" style="color: #ffffff; font-weight: 700;">--</b></span>
@@ -4827,13 +4835,13 @@
 
     <!-- Assigned Actuator & Servo Outputs Matrix (ArduPilot Canonical Mapping) -->
     <div id="actuators-panel-container" class="actuators-matrix-panel"
-        style="position: absolute; bottom: 20px; left: 345px; width: fit-content; min-width: 360px; max-width: min(780px, calc(100vw - 370px)); height: 234px; box-sizing: border-box; overflow: hidden; background: #0f1013; border-radius: 12px; border: 1.5px solid #24262c; padding: 8px 10px 10px 10px; display: none; flex-direction: column; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.75), inset 0 1px 1px rgba(255, 255, 255, 0.05); z-index: 1000; pointer-events: auto; font-family: 'B612', 'B612 Mono', 'JetBrains Mono', monospace; user-select: none;">
+        style="position: absolute; bottom: 20px; left: 345px; width: fit-content; min-width: 360px; max-width: min(780px, calc(100vw - 370px)); height: 234px; box-sizing: border-box; overflow: hidden; background: #0f1013; border-radius: 12px; border: 1.5px solid #24262c; padding: 8px 10px 10px 10px; display: none; flex-direction: column; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.75), inset 0 1px 1px rgba(255, 255, 255, 0.05); z-index: 1000; pointer-events: auto; font-family: var(--font-mono); user-select: none;">
         
         <!-- Top Header Bar -->
         <div class="actuators-header" style="display: flex; justify-content: space-between; align-items: center; padding: 0 2px 6px 2px; flex-shrink: 0; border-bottom: 1px solid #1e2026; cursor: grab;">
             <div style="display: flex; align-items: center; gap: 8px; white-space: nowrap;">
                 <span style="width: 7px; height: 7px; border-radius: 50%; background: #30d158; box-shadow: 0 0 6px rgba(48, 209, 88, 0.5);"></span>
-                <span style="font-family: 'B612', sans-serif; font-size: 10.5px; font-weight: 800; letter-spacing: 1.5px; color: #8a9bb2; text-transform: uppercase;">ACTUATOR &amp; SERVO OUTPUTS</span>
+                <span style="font-family: var(--font-sans); font-size: 10.5px; font-weight: 800; letter-spacing: 1.5px; color: #8a9bb2; text-transform: uppercase;">ACTUATOR &amp; SERVO OUTPUTS</span>
                 <span id="actuators-status-badge" style="background: rgba(48, 209, 88, 0.12); border: 1px solid rgba(48, 209, 88, 0.25); color: #30d158; font-size: 9px; font-weight: 700; padding: 1px 7px; border-radius: 3px; letter-spacing: 0.5px;">ASSIGNED ONLY</span>
             </div>
             
@@ -5535,7 +5543,7 @@
             const elCardBadge = document.getElementById('mp-card-cell-badge');
             if (elCardBadge) elCardBadge.textContent = `${cellCount}S PACK`;
 
-            const formattedSubInfo = `<span style="color: #94a3b8; font-weight: 600;">Used:</span> <span style="color: #ffffff; font-weight: 700;">${Math.round(consumedMah)} mAh</span> <span style="color: #475569; margin: 0 4px;">|</span> <span style="color: #38bdf8; font-weight: 700;">${Math.round(watts)} W</span>`;
+            const formattedSubInfo = `<span style="color: #94a3b8; font-weight: 500;">Used:</span> <span style="font-family: var(--font-mono); color: #ffffff; font-weight: 700;">${Math.round(consumedMah)} mAh</span> <span style="color: #475569; margin: 0 4px;">|</span> <span style="font-family: var(--font-mono); color: #38bdf8; font-weight: 700;">${Math.round(watts)} W</span>`;
 
             const elCardSub = document.getElementById('mp-card-sub-info');
             if (elCardSub) elCardSub.innerHTML = formattedSubInfo;
@@ -5622,7 +5630,7 @@
                     cellContainer.innerHTML = '';
                     for (let c = 1; c <= cellCount; c++) {
                         const cellRow = document.createElement('div');
-                        cellRow.style.cssText = 'display: flex; align-items: center; justify-content: space-between; gap: 8px; font-family: "B612 Mono", monospace; font-size: 10px;';
+                        cellRow.style.cssText = 'display: flex; align-items: center; justify-content: space-between; gap: 8px; font-family: var(--font-mono); font-size: 10px;';
                         cellRow.innerHTML = `
                             <span style="width: 22px; color: var(--text-secondary); font-weight: 700;">C${c}</span>
                             <div style="flex: 1; height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden; position: relative;">
@@ -9337,7 +9345,7 @@
         }
         tbCtx.fill();
         tbCtx.lineWidth = 2.0; tbCtx.strokeStyle = '#00e5ff'; tbCtx.stroke();
-        tbCtx.font = 'bold 20px "B612 Mono", monospace';
+        tbCtx.font = 'bold 20px "JetBrains Mono", monospace';
         tbCtx.fillStyle = '#00e5ff';
         tbCtx.textAlign = 'center'; tbCtx.textBaseline = 'middle';
         tbCtx.fillText('● ACTUAL (TRUTH)', 120, 30);
@@ -9975,7 +9983,7 @@
 
                     const pwmEl = document.createElement('div');
                     pwmEl.className = 'actuator-pwm-val';
-                    pwmEl.style.cssText = "font-family: 'B612 Mono', monospace; font-size: 10px; font-weight: 700; color: #f1f5f9; text-align: center; margin-bottom: 2px;";
+                    pwmEl.style.cssText = "font-family: var(--font-mono); font-size: 10.5px; font-weight: 700; font-feature-settings: 'tnum'; color: #f1f5f9; text-align: center; margin-bottom: 2px;";
                     pwmEl.textContent = '1000';
 
                     const barBg = document.createElement('div');
@@ -9991,11 +9999,11 @@
                     barBg.appendChild(midTick);
 
                     const chLabel = document.createElement('div');
-                    chLabel.style.cssText = "font-family: 'B612 Mono', monospace; font-size: 8.5px; font-weight: 800; color: #8a9bb2; text-align: center; margin-top: 3px;";
+                    chLabel.style.cssText = "font-family: var(--font-mono); font-size: 9px; font-weight: 700; color: #8a9bb2; text-align: center; margin-top: 3px;";
                     chLabel.textContent = `C${ch}`;
 
                     const fnLabel = document.createElement('div');
-                    fnLabel.style.cssText = "font-family: 'B612', sans-serif; font-size: 9px; font-weight: 700; color: #e2e8f0; text-align: center; line-height: 1.15; word-break: break-word; min-height: 22px; width: 100%; display: flex; align-items: center; justify-content: center; letter-spacing: -0.2px; margin-top: 2px;";
+                    fnLabel.style.cssText = "font-family: var(--font-sans); font-size: 9.5px; font-weight: 600; color: #e2e8f0; text-align: center; line-height: 1.15; word-break: break-word; min-height: 22px; width: 100%; display: flex; align-items: center; justify-content: center; letter-spacing: -0.1px; margin-top: 2px;";
                     fnLabel.textContent = info.name;
                     fnLabel.title = `CH ${ch}: ${info.name}`;
 
@@ -10019,11 +10027,11 @@
                     leftWrap.style.cssText = 'display: flex; align-items: center; gap: 6px; min-width: 0; flex: 1;';
 
                     const chBadge = document.createElement('span');
-                    chBadge.style.cssText = "font-family: 'B612 Mono', monospace; font-size: 9px; font-weight: 800; color: #8a9bb2; flex-shrink: 0; width: 28px;";
+                    chBadge.style.cssText = "font-family: var(--font-mono); font-size: 9px; font-weight: 800; color: #8a9bb2; flex-shrink: 0; width: 28px;";
                     chBadge.textContent = `C${ch}`;
 
                     const fnName = document.createElement('span');
-                    fnName.style.cssText = "font-family: 'B612', sans-serif; font-size: 10px; font-weight: 700; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;";
+                    fnName.style.cssText = "font-family: var(--font-sans); font-size: 10px; font-weight: 700; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;";
                     fnName.textContent = info.name;
                     fnName.title = `CH ${ch}: ${info.name}`;
 
@@ -10041,7 +10049,7 @@
                     miniBarBg.appendChild(miniBarFill);
 
                     const pwmVal = document.createElement('span');
-                    pwmVal.style.cssText = "font-family: 'B612 Mono', monospace; font-size: 9.5px; font-weight: 700; color: #cbd5e1; width: 44px; text-align: right;";
+                    pwmVal.style.cssText = "font-family: var(--font-mono); font-size: 9.5px; font-weight: 700; color: #cbd5e1; width: 44px; text-align: right;";
                     pwmVal.textContent = '1000 µs';
 
                     rightWrap.appendChild(miniBarBg);
@@ -12220,7 +12228,7 @@
             ctx.strokeStyle = strokeColor;
             ctx.stroke();
 
-            ctx.font = 'bold 22px "B612 Mono", monospace';
+            ctx.font = 'bold 22px "JetBrains Mono", monospace';
             ctx.fillStyle = strokeColor;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
@@ -12614,7 +12622,7 @@
             const formatted = formatFcBoardName(hardwareName);
             currentFcHardwareName = formatted;
             fcEl.innerText = formatted;
-            fcEl.style.fontFamily = "'B612 Mono', monospace";
+            fcEl.style.fontFamily = "'JetBrains Mono', monospace";
             fcEl.style.fontWeight = "700";
             if (formatted.toUpperCase() === 'SITL') {
                 fcEl.style.color = '#00e5ff'; // Aviation Cyan for SITL
@@ -12630,7 +12638,7 @@
             if (!fwEl || !firmwareStr || firmwareStr.startsWith('Type ') || firmwareStr === '---') return;
             fwEl.innerText = firmwareStr;
             fwEl.style.color = '#f0f6fc'; // High-contrast Aviation White
-            fwEl.style.fontFamily = "'B612 Mono', monospace";
+            fwEl.style.fontFamily = "'JetBrains Mono', monospace";
             fwEl.style.fontWeight = "700";
         }
 
