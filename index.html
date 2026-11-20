@@ -5254,6 +5254,81 @@
                 }
             });
         })();
+
+        // ==========================================
+        // TWO-WAY BATTERY PACK CAPACITY SYNCHRONIZER
+        // ==========================================
+        let activeBatteryCapacityMah = 0;
+
+        function updateBatteryCapacityUI(cap) {
+            activeBatteryCapacityMah = cap;
+            const metaBatt = document.getElementById('meta-batt-capacity');
+            if (metaBatt) {
+                metaBatt.textContent = cap > 0 ? `BATT: ${cap} mAh` : 'BATT: ---';
+                metaBatt.title = `Battery Pack Capacity: ${cap} mAh (Click to edit or sync with log)`;
+            }
+        }
+
+        function setWorkstationBatteryCapacity(newCap, broadcastToIframe) {
+            newCap = parseInt(newCap, 10);
+            if (isNaN(newCap) || newCap < 100 || newCap > 200000) return;
+            activeBatteryCapacityMah = newCap;
+            if (currentFlightParameters) {
+                currentFlightParameters['BATT_CAPACITY'] = newCap;
+            }
+            const fname = document.getElementById('loaded-log-name')?.textContent || 'flight.bin';
+            try {
+                localStorage.setItem('override_batt_cap_' + fname, String(newCap));
+            } catch(e) {}
+            updateBatteryCapacityUI(newCap);
+
+            // Also update ATIS active flight entry in-memory if available
+            if (typeof atisGlobalData !== 'undefined' && atisGlobalData && Array.isArray(atisGlobalData.flights)) {
+                atisGlobalData.flights.forEach(f => {
+                    if (f.filename === fname || (f.filepath && f.filepath.endsWith(fname))) {
+                        f.battery = `${newCap} mAh`;
+                    }
+                });
+                if (typeof renderAtisTable === 'function') renderAtisTable();
+            }
+
+            if (broadcastToIframe) {
+                const iframe = document.getElementById('sitl-viewer-frame');
+                if (iframe && iframe.contentWindow) {
+                    try {
+                        if (typeof iframe.contentWindow.setBatteryPackCapacity === 'function') {
+                            iframe.contentWindow.setBatteryPackCapacity(newCap, true);
+                        } else {
+                            iframe.contentWindow.postMessage({
+                                type: 'SYNC_BATTERY_CAPACITY',
+                                capacityMah: newCap,
+                                filename: fname
+                            }, '*');
+                        }
+                    } catch(e) {}
+                }
+            }
+        }
+
+        function promptEditBatteryCapacity() {
+            const cur = activeBatteryCapacityMah || 2000;
+            const input = prompt('Edit Battery Pack Capacity (mAh) for this flight log:\n(Syncs bidirectionally with the 3D HUD & Battery View)', cur);
+            if (input !== null) {
+                const val = parseInt(input.trim(), 10);
+                if (!isNaN(val) && val >= 100 && val <= 200000) {
+                    setWorkstationBatteryCapacity(val, true);
+                }
+            }
+        }
+
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'BATTERY_CAPACITY_CHANGED') {
+                const newCap = parseInt(event.data.capacityMah, 10);
+                if (!isNaN(newCap) && newCap > 0) {
+                    setWorkstationBatteryCapacity(newCap, false);
+                }
+            }
+        });
     </script>
 </head>
 <body>
@@ -5332,6 +5407,8 @@
                 <span id="meta-dur" class="aero-meta-item" title="Mission Elapsed Time (Total Session Duration)">MET: ---</span>
                 <span class="aero-meta-sep">|</span>
                 <span id="meta-flight-time" class="aero-meta-item" title="Airborne Flight Time (From Airspeed Alive to Touchdown)">FLT: ---</span>
+                <span class="aero-meta-sep">|</span>
+                <span id="meta-batt-capacity" class="aero-meta-item" style="cursor: pointer; transition: color 0.15s ease;" onclick="promptEditBatteryCapacity()" title="Click to view or edit Battery Pack Capacity (mAh) for this flight log">BATT: ---</span>
             </div>
         </div>
 
@@ -7778,6 +7855,16 @@
                     renderAtisCharts();
                 }
 
+                if (newBattery !== '') {
+                    const parsedCapMatch = newBattery.match(/(\d{3,6})\s*(?:mah)?/i);
+                    if (parsedCapMatch) {
+                        const capFromSpecs = parseInt(parsedCapMatch[1], 10);
+                        if (capFromSpecs >= 100 && capFromSpecs <= 200000) {
+                            setWorkstationBatteryCapacity(capFromSpecs, true);
+                        }
+                    }
+                }
+
                 closeSpecsModal();
             } catch (err) {
                 alert('Error saving flight specs: ' + err.message);
@@ -8281,6 +8368,21 @@
                     }
                 } catch(e) {}
             }
+            if (activeBatteryCapacityMah > 0) {
+                if (sitlIframe && sitlIframe.contentWindow) {
+                    try {
+                        if (typeof sitlIframe.contentWindow.setBatteryPackCapacity === 'function') {
+                            sitlIframe.contentWindow.setBatteryPackCapacity(activeBatteryCapacityMah, true);
+                        } else {
+                            sitlIframe.contentWindow.postMessage({
+                                type: 'SYNC_BATTERY_CAPACITY',
+                                capacityMah: activeBatteryCapacityMah,
+                                filename: document.getElementById('loaded-log-name')?.textContent || ''
+                            }, '*');
+                        }
+                    } catch(e) {}
+                }
+            }
             if (currentTrajectory && currentTrajectory.length > 0) {
                 const iframe = document.getElementById('sitl-viewer-frame');
                 if (iframe && iframe.contentWindow) {
@@ -8459,6 +8561,21 @@
             const paramsBadge = document.getElementById('vehicle-params-count');
             if (paramsBadge) paramsBadge.textContent = Object.keys(currentFlightParameters).length;
             renderParametersList('');
+
+            // Battery Pack Capacity (from local override cache or log parameters)
+            const overrideCap = localStorage.getItem('override_batt_cap_' + fname);
+            const logBattCap = (currentFlightParameters['BATT_CAPACITY'] || currentFlightParameters['BATT_CAPACITY_1'] || currentFlightParameters['BATT_ARM_MAH']);
+            let effectiveCap = 0;
+            if (overrideCap && parseInt(overrideCap, 10) > 0) {
+                effectiveCap = parseInt(overrideCap, 10);
+            } else if (typeof logBattCap === 'number' && logBattCap >= 100) {
+                effectiveCap = Math.round(logBattCap);
+            } else {
+                effectiveCap = 6000;
+            }
+            activeBatteryCapacityMah = effectiveCap;
+            currentFlightParameters['BATT_CAPACITY'] = effectiveCap;
+            updateBatteryCapacityUI(effectiveCap);
 
             // Build UAV Log Viewer message & field tree for plotting (enriched with ArduPilot parameter function names)
             buildMessageTree(data.formats || {});

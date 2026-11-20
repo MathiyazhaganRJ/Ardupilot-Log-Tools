@@ -3624,7 +3624,7 @@
 
                 <!-- Footer Summary Row (High Visibility Used mAh and Watts) -->
                 <div style="display: flex; align-items: center; justify-content: space-between; padding: 2px 1px;">
-                    <span id="mp-card-sub-info" style="font-family: var(--font-sans); font-size: 11px; font-weight: 600; color: var(--text-primary); letter-spacing: 0.3px;">Used: 0 mAh | 0 W</span>
+                    <span id="mp-card-sub-info" style="font-family: var(--font-sans); font-size: 11px; font-weight: 600; color: var(--text-primary); letter-spacing: 0.3px;">Used: 0 / 6000 mAh | 0 W</span>
                 </div>
             </div>
 
@@ -3673,7 +3673,7 @@
 
                 <!-- Footer Summary Row (High Visibility Used mAh and Watts) -->
                 <div style="display: flex; align-items: center; justify-content: space-between; padding: 2px 1px;">
-                    <span id="mp-view-sub-info" style="font-family: var(--font-sans); font-size: 11px; font-weight: 600; color: var(--text-primary); letter-spacing: 0.3px;">Used: 0 mAh | 0 W</span>
+                    <span id="mp-view-sub-info" style="font-family: var(--font-sans); font-size: 11px; font-weight: 600; color: var(--text-primary); letter-spacing: 0.3px;">Used: 0 / 6000 mAh | 0 W</span>
                 </div>
             </div>
 
@@ -5097,6 +5097,10 @@
         window.addEventListener('message', (event) => {
             if (event.data && event.data.type === 'SET_THEME') {
                 applyTheme(event.data.isDark);
+            } else if (event.data && event.data.type === 'SYNC_BATTERY_CAPACITY') {
+                if (typeof setBatteryPackCapacity === 'function') {
+                    setBatteryPackCapacity(event.data.capacityMah, true);
+                }
             }
         });
 
@@ -5466,29 +5470,44 @@
         // =========================================================
         window.latestFcVcc = 5.44;
 
+        function setBatteryPackCapacity(val, fromParent) {
+            val = parseInt(val, 10);
+            if (isNaN(val) || val < 100 || val > 100000) return;
+            batteryCapacityMah = val;
+            try { localStorage.setItem('eis_battery_cap', val); } catch(e) {}
+            const valSubBatt = document.getElementById('gi-sub-batt');
+            if (valSubBatt) valSubBatt.textContent = `${batteryCapacityMah} mAh`;
+            const unitBox4 = document.getElementById('gi-unit-box4');
+            if (unitBox4 && typeof eisEngineMode !== 'undefined' && eisEngineMode === 'single') unitBox4.textContent = `/ ${batteryCapacityMah}`;
+            if (typeof am32Telemetry !== 'undefined' && typeof am32Telemetry.consumed_mah === 'number') {
+                am32Telemetry.battery_remaining_pct = Math.max(0, Math.min(100, Math.round(((batteryCapacityMah - am32Telemetry.consumed_mah) / batteryCapacityMah) * 100)));
+            }
+            if (typeof updateMissionPlannerBatteryUI === 'function') {
+                updateMissionPlannerBatteryUI();
+            }
+            if (typeof updateEisInstrument === 'function') {
+                updateEisInstrument();
+            }
+            if (!fromParent && window.parent && window.parent !== window) {
+                try {
+                    window.parent.postMessage({
+                        type: 'BATTERY_CAPACITY_CHANGED',
+                        capacityMah: batteryCapacityMah
+                    }, '*');
+                } catch(e) {}
+            }
+        }
+        window.setBatteryPackCapacity = setBatteryPackCapacity;
+
         function configureBatteryCapacityPrompt() {
             const currentCap = (typeof batteryCapacityMah === 'number') ? batteryCapacityMah : 6000;
             const input = prompt("Set Battery Pack Capacity (mAh):", currentCap);
-            if (input) {
-                const val = parseInt(input, 10);
-                if (!isNaN(val) && val >= 500 && val <= 50000) {
-                    batteryCapacityMah = val;
-                    try { localStorage.setItem('eis_battery_cap', val); } catch(e) {}
-                    const valSubBatt = document.getElementById('gi-sub-batt');
-                    if (valSubBatt) valSubBatt.textContent = `${batteryCapacityMah} mAh`;
-                    const unitBox4 = document.getElementById('gi-unit-box4');
-                    if (unitBox4 && typeof eisEngineMode !== 'undefined' && eisEngineMode === 'single') unitBox4.textContent = `/ ${batteryCapacityMah}`;
-                    if (typeof am32Telemetry !== 'undefined' && typeof am32Telemetry.consumed_mah === 'number') {
-                        am32Telemetry.battery_remaining_pct = Math.max(0, Math.min(100, Math.round(((batteryCapacityMah - am32Telemetry.consumed_mah) / batteryCapacityMah) * 100)));
-                    }
-                    if (typeof updateMissionPlannerBatteryUI === 'function') {
-                        updateMissionPlannerBatteryUI();
-                    }
-                    if (typeof updateEisInstrument === 'function') {
-                        updateEisInstrument();
-                    }
+            if (input !== null) {
+                const val = parseInt(input.trim(), 10);
+                if (!isNaN(val) && val >= 100 && val <= 100000) {
+                    setBatteryPackCapacity(val, false);
                     if (typeof addAutopilotMessage === 'function') {
-                        addAutopilotMessage({ text: `Battery Pack Capacity configured to ${batteryCapacityMah} mAh`, severity: 6 });
+                        addAutopilotMessage({ text: `Battery Pack Capacity configured to ${val} mAh`, severity: 6 });
                     }
                 }
             }
@@ -5556,7 +5575,7 @@
             const elCardBadge = document.getElementById('mp-card-cell-badge');
             if (elCardBadge) elCardBadge.textContent = `${cellCount}S PACK`;
 
-            const formattedSubInfo = `<span style="color: var(--text-secondary); font-weight: 500;">Used:</span> <span style="font-family: var(--font-mono); color: var(--text-primary); font-weight: 700;">${Math.round(consumedMah)} mAh</span> <span style="color: var(--text-secondary); opacity: 0.6; margin: 0 4px;">|</span> <span style="font-family: var(--font-mono); color: var(--accent-cyan); font-weight: 700;">${Math.round(watts)} W</span>`;
+            const formattedSubInfo = `<span style="color: var(--text-secondary); font-weight: 500;">Used:</span> <span style="font-family: var(--font-mono); color: var(--text-primary); font-weight: 700;">${Math.round(consumedMah)} / ${Math.round(packCap)} mAh</span> <span style="color: var(--text-secondary); opacity: 0.6; margin: 0 4px;">|</span> <span style="font-family: var(--font-mono); color: var(--accent-cyan); font-weight: 700;">${Math.round(watts)} W</span>`;
 
             const elCardSub = document.getElementById('mp-card-sub-info');
             if (elCardSub) elCardSub.innerHTML = formattedSubInfo;
@@ -10228,13 +10247,8 @@
 
             // Synchronize battery pack capacity from vehicle log parameters (BATT_CAPACITY)
             const battCap = params['BATT_CAPACITY'] || params['BATT_CAPACITY_1'] || params['BATT_ARM_MAH'];
-            if (typeof battCap === 'number' && battCap >= 500 && battCap <= 100000) {
-                batteryCapacityMah = Math.round(battCap);
-                try { localStorage.setItem('eis_battery_cap', batteryCapacityMah); } catch(e) {}
-                const valSubBatt = document.getElementById('gi-sub-batt');
-                if (valSubBatt) valSubBatt.textContent = `${batteryCapacityMah} mAh`;
-                const unitBox4 = document.getElementById('gi-unit-box4');
-                if (unitBox4 && typeof eisEngineMode !== 'undefined' && eisEngineMode === 'single') unitBox4.textContent = `/ ${batteryCapacityMah}`;
+            if (typeof battCap === 'number' && battCap >= 100 && battCap <= 100000) {
+                setBatteryPackCapacity(battCap, true);
             }
         }
         window.loadFlightLogParameters = loadFlightLogParameters;
@@ -13887,26 +13901,7 @@
 
         const capsuleBatt = document.getElementById('gi-capsule-batt');
         if (capsuleBatt) {
-            capsuleBatt.onclick = () => {
-                const input = prompt("Set Battery Capacity (mAh):", batteryCapacityMah);
-                if (input) {
-                    const val = parseInt(input, 10);
-                    if (!isNaN(val) && val >= 500 && val <= 50000) {
-                        batteryCapacityMah = val;
-                        localStorage.setItem('eis_battery_cap', val);
-                        const valSubBatt = document.getElementById('gi-sub-batt');
-                        if (valSubBatt) valSubBatt.textContent = `${batteryCapacityMah} mAh`;
-                        const unitBox4 = document.getElementById('gi-unit-box4');
-                        if (unitBox4 && eisEngineMode === 'single') unitBox4.textContent = `/ ${batteryCapacityMah}`;
-                        if (typeof am32Telemetry !== 'undefined' && typeof am32Telemetry.consumed_mah === 'number') {
-                            am32Telemetry.battery_remaining_pct = Math.max(0, Math.min(100, Math.round(((batteryCapacityMah - am32Telemetry.consumed_mah) / batteryCapacityMah) * 100)));
-                        }
-                        if (typeof updateMissionPlannerBatteryUI === 'function') updateMissionPlannerBatteryUI();
-                        if (typeof updateEisInstrument === 'function') updateEisInstrument();
-                        addAutopilotMessage({ text: `Battery Pack Capacity updated to ${batteryCapacityMah} mAh`, severity: 6 });
-                    }
-                }
-            };
+            capsuleBatt.onclick = () => configureBatteryCapacityPrompt();
         }
 
         if (localStorage.getItem('eis_widget_visible') === '0') {
