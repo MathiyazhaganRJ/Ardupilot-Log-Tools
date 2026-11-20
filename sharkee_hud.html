@@ -5478,8 +5478,8 @@
                     if (typeof updateMissionPlannerBatteryUI === 'function') {
                         updateMissionPlannerBatteryUI();
                     }
-                    if (typeof renderEisGauges === 'function') {
-                        renderEisGauges();
+                    if (typeof updateEisInstrument === 'function') {
+                        updateEisInstrument();
                     }
                     if (typeof addAutopilotMessage === 'function') {
                         addAutopilotMessage({ text: `Battery Pack Capacity configured to ${batteryCapacityMah} mAh`, severity: 6 });
@@ -13876,7 +13876,7 @@
                             am32Telemetry.battery_remaining_pct = Math.max(0, Math.min(100, Math.round(((batteryCapacityMah - am32Telemetry.consumed_mah) / batteryCapacityMah) * 100)));
                         }
                         if (typeof updateMissionPlannerBatteryUI === 'function') updateMissionPlannerBatteryUI();
-                        if (typeof renderEisGauges === 'function') renderEisGauges();
+                        if (typeof updateEisInstrument === 'function') updateEisInstrument();
                         addAutopilotMessage({ text: `Battery Pack Capacity updated to ${batteryCapacityMah} mAh`, severity: 6 });
                     }
                 }
