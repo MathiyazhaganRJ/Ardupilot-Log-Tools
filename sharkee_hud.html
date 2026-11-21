@@ -613,6 +613,72 @@
             border: 1px solid rgba(0, 0, 0, 0.08);
         }
 
+        /* High-Contrast Mission Planner Battery Readouts */
+        .mp-fc-vcc-val,
+        .mp-batt-line-val,
+        #mp-card-fc-vcc,
+        #mp-card-batt-line,
+        #mp-view-fc-vcc,
+        #mp-view-batt-line {
+            color: var(--text-primary);
+        }
+        .mp-vcc-sub {
+            color: var(--text-secondary);
+        }
+        body:not(.dark-mode) .mp-fc-vcc-val,
+        body:not(.dark-mode) .mp-batt-line-val,
+        body:not(.dark-mode) #mp-card-fc-vcc,
+        body:not(.dark-mode) #mp-card-batt-line,
+        body:not(.dark-mode) #mp-view-fc-vcc,
+        body:not(.dark-mode) #mp-view-batt-line {
+            color: #0f172a !important;
+        }
+        body:not(.dark-mode) .mp-vcc-sub {
+            color: #475569 !important;
+        }
+        body.dark-mode .mp-fc-vcc-val,
+        body.dark-mode .mp-batt-line-val,
+        body.dark-mode #mp-card-fc-vcc,
+        body.dark-mode #mp-card-batt-line,
+        body.dark-mode #mp-view-fc-vcc,
+        body.dark-mode #mp-view-batt-line {
+            color: #f8fafc !important;
+        }
+        body.dark-mode .mp-vcc-sub {
+            color: #94a3b8 !important;
+        }
+
+        /* Per-Cell Balance Breakdown Typography */
+        .mp-cell-idx {
+            color: var(--text-secondary);
+        }
+        .mp-cell-track {
+            background: rgba(255, 255, 255, 0.06);
+        }
+        .mp-cell-volt-label {
+            color: var(--text-primary);
+        }
+        body:not(.dark-mode) .mp-cell-idx {
+            color: #475569 !important;
+        }
+        body:not(.dark-mode) .mp-cell-track {
+            background: rgba(15, 23, 42, 0.08) !important;
+        }
+        body:not(.dark-mode) .mp-cell-volt-label {
+            color: #0f172a !important;
+            font-weight: 700 !important;
+        }
+        body.dark-mode .mp-cell-idx {
+            color: #94a3b8 !important;
+        }
+        body.dark-mode .mp-cell-track {
+            background: rgba(255, 255, 255, 0.06) !important;
+        }
+        body.dark-mode .mp-cell-volt-label {
+            color: #f8fafc !important;
+            font-weight: 700 !important;
+        }
+
         .data-row {
             display: flex;
             justify-content: space-between;
@@ -2462,10 +2528,32 @@
             border-color: rgba(0, 0, 0, 0.07);
         }
         body:not(.dark-mode) .env-stat-tag {
-            color: #64748b;
+            color: #475569;
         }
         body:not(.dark-mode) .env-stat-num {
             color: #0f172a;
+        }
+        body:not(.dark-mode) #env-baro-temp-val,
+        body:not(.dark-mode) #env-arsp-temp-val,
+        body:not(.dark-mode) .env-grid-cell:nth-child(1) .env-cell-unit,
+        body:not(.dark-mode) .env-grid-cell:nth-child(2) .env-cell-unit {
+            color: #0369a1 !important; /* Deep Aviation Sky Blue */
+        }
+        body:not(.dark-mode) #env-qnh-val,
+        body:not(.dark-mode) #env-press-val,
+        body:not(.dark-mode) .env-grid-cell:nth-child(3) .env-cell-unit,
+        body:not(.dark-mode) .env-grid-cell:nth-child(4) .env-cell-unit {
+            color: #b45309 !important; /* Deep Aviation Amber / Bronze */
+        }
+        body:not(.dark-mode) #env-density-val,
+        body:not(.dark-mode) .env-grid-cell:nth-child(5) .env-cell-unit {
+            color: #6b21a8 !important; /* Deep Aviation Purple */
+        }
+        body:not(.dark-mode) #env-wind-val,
+        body:not(.dark-mode) #env-wind-comps,
+        body:not(.dark-mode) #env-wind-dir,
+        body:not(.dark-mode) .env-grid-cell:nth-child(6) .env-cell-unit {
+            color: #15803d !important; /* Deep Aviation Emerald Green */
         }
         body:not(.dark-mode) #env-baro-avg,
         body:not(.dark-mode) #env-arsp-avg,
@@ -4158,11 +4246,11 @@
                     <!-- Mission Planner HUD Text Lines -->
                     <div style="display: flex; flex-direction: column; justify-content: center; gap: 2px; overflow: hidden; flex: 1;">
                         <div style="display: flex; align-items: baseline; gap: 6px;">
-                            <span id="mp-card-fc-vcc" style="font-family: var(--font-mono); font-size: 14.5px; font-weight: 700; color: #ffffff; letter-spacing: 0.2px;">5.44v</span>
-                            <span style="font-size: 9px; color: #94a3b8; font-family: var(--font-sans); font-weight: 600;">FC VCC</span>
+                            <span id="mp-card-fc-vcc" class="mp-fc-vcc-val" style="font-family: var(--font-mono); font-size: 14.5px; font-weight: 700; letter-spacing: 0.2px;">5.44v</span>
+                            <span class="mp-vcc-sub" style="font-size: 9px; font-family: var(--font-sans); font-weight: 600;">FC VCC</span>
                         </div>
                         <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                            <span id="mp-card-batt-line" style="font-family: var(--font-mono); font-size: 14.5px; font-weight: 700; color: #ffffff; letter-spacing: 0.3px;">21.75v 20.2 A 94%</span>
+                            <span id="mp-card-batt-line" class="mp-batt-line-val" style="font-family: var(--font-mono); font-size: 14.5px; font-weight: 700; letter-spacing: 0.3px;">21.75v 20.2 A 94%</span>
                         </div>
                     </div>
                 </div>
@@ -4207,11 +4295,11 @@
                     <!-- Right HUD Readouts -->
                     <div style="display: flex; flex-direction: column; justify-content: center; gap: 2px; overflow: hidden; flex: 1;">
                         <div style="display: flex; align-items: baseline; gap: 6px;">
-                            <span id="mp-view-fc-vcc" style="font-family: var(--font-mono); font-size: 14.5px; font-weight: 700; color: #ffffff; letter-spacing: 0.2px;">5.44v</span>
-                            <span style="font-size: 9px; color: #94a3b8; font-family: var(--font-sans); font-weight: 600;">FC VCC</span>
+                            <span id="mp-view-fc-vcc" class="mp-fc-vcc-val" style="font-family: var(--font-mono); font-size: 14.5px; font-weight: 700; letter-spacing: 0.2px;">5.44v</span>
+                            <span class="mp-vcc-sub" style="font-size: 9px; font-family: var(--font-sans); font-weight: 600;">FC VCC</span>
                         </div>
                         <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                            <span id="mp-view-batt-line" style="font-family: var(--font-mono); font-size: 14.5px; font-weight: 700; color: #ffffff; letter-spacing: 0.3px;">21.75v 20.2 A 94%</span>
+                            <span id="mp-view-batt-line" class="mp-batt-line-val" style="font-family: var(--font-mono); font-size: 14.5px; font-weight: 700; letter-spacing: 0.3px;">21.75v 20.2 A 94%</span>
                         </div>
                     </div>
                 </div>
@@ -6063,6 +6151,7 @@
         window.configureBatteryCapacityPrompt = configureBatteryCapacityPrompt;
 
         function updateMissionPlannerBatteryUI() {
+            const isDark = document.body.classList.contains('dark-mode');
             const packVolt = (typeof am32Telemetry !== 'undefined' && typeof am32Telemetry.pack_voltage === 'number' && am32Telemetry.pack_voltage > 3.0) 
                 ? am32Telemetry.pack_voltage 
                 : 21.75;
@@ -6092,11 +6181,11 @@
             else if (remPct >= 25) activeBars = 2;
             else if (remPct > 0) activeBars = 1;
 
-            let barColor = '#00ff00'; // Mission Planner green
-            if (remPct < 15) barColor = '#ef4444'; // Red alert
-            else if (remPct < 25) barColor = '#facc15'; // Yellow caution
+            let barColor = isDark ? '#00ff00' : '#15803d'; // High contrast green
+            if (remPct < 15) barColor = isDark ? '#ef4444' : '#b91c1c'; // Red alert
+            else if (remPct < 25) barColor = isDark ? '#facc15' : '#b45309'; // Yellow caution
 
-            const inactiveBarColor = 'rgba(255, 255, 255, 0.06)';
+            const inactiveBarColor = isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(15, 23, 42, 0.08)';
 
             // Update Card Bars (Tab 1) & View Bars (Tab 2)
             for (let b = 1; b <= 4; b++) {
@@ -6123,7 +6212,10 @@
             const elCardBadge = document.getElementById('mp-card-cell-badge');
             if (elCardBadge) elCardBadge.textContent = `${cellCount}S PACK`;
 
-            const formattedSubInfo = `<span style="color: var(--text-secondary); font-weight: 500;">Used:</span> <span style="font-family: var(--font-mono); color: var(--text-primary); font-weight: 700;">${Math.round(consumedMah)} / ${Math.round(packCap)} mAh</span> <span style="color: var(--text-secondary); opacity: 0.6; margin: 0 4px;">|</span> <span style="font-family: var(--font-mono); color: var(--accent-cyan); font-weight: 700;">${Math.round(watts)} W</span>`;
+            const subLabelColor = isDark ? 'var(--text-secondary)' : '#475569';
+            const subValColor = isDark ? 'var(--text-primary)' : '#0f172a';
+            const wattColor = isDark ? 'var(--accent-cyan)' : '#0284c7';
+            const formattedSubInfo = `<span style="color: ${subLabelColor}; font-weight: 600;">Used:</span> <span style="font-family: var(--font-mono); color: ${subValColor}; font-weight: 700;">${Math.round(consumedMah)} / ${Math.round(packCap)} mAh</span> <span style="color: ${subLabelColor}; opacity: 0.6; margin: 0 4px;">|</span> <span style="font-family: var(--font-mono); color: ${wattColor}; font-weight: 700;">${Math.round(watts)} W</span>`;
 
             const elCardSub = document.getElementById('mp-card-sub-info');
             if (elCardSub) elCardSub.innerHTML = formattedSubInfo;
@@ -6172,19 +6264,19 @@
             if (elStatusBadge) {
                 if (remPct < 15) {
                     elStatusBadge.textContent = 'BATT CRITICAL';
-                    elStatusBadge.style.color = '#ef4444';
-                    elStatusBadge.style.background = 'rgba(239, 68, 68, 0.15)';
-                    elStatusBadge.style.borderColor = 'rgba(239, 68, 68, 0.35)';
+                    elStatusBadge.style.color = isDark ? '#ef4444' : '#b91c1c';
+                    elStatusBadge.style.background = isDark ? 'rgba(239, 68, 68, 0.15)' : 'rgba(185, 28, 28, 0.1)';
+                    elStatusBadge.style.borderColor = isDark ? 'rgba(239, 68, 68, 0.35)' : 'rgba(185, 28, 28, 0.25)';
                 } else if (remPct < 25) {
                     elStatusBadge.textContent = 'LOW BATTERY';
-                    elStatusBadge.style.color = '#facc15';
-                    elStatusBadge.style.background = 'rgba(250, 204, 21, 0.15)';
-                    elStatusBadge.style.borderColor = 'rgba(250, 204, 21, 0.35)';
+                    elStatusBadge.style.color = isDark ? '#facc15' : '#b45309';
+                    elStatusBadge.style.background = isDark ? 'rgba(250, 204, 21, 0.15)' : 'rgba(180, 83, 9, 0.1)';
+                    elStatusBadge.style.borderColor = isDark ? 'rgba(250, 204, 21, 0.35)' : 'rgba(180, 83, 9, 0.25)';
                 } else {
                     elStatusBadge.textContent = 'POWER NORMAL';
-                    elStatusBadge.style.color = '#22c55e';
-                    elStatusBadge.style.background = 'rgba(34, 197, 94, 0.12)';
-                    elStatusBadge.style.borderColor = 'rgba(34, 197, 94, 0.3)';
+                    elStatusBadge.style.color = isDark ? '#22c55e' : '#15803d';
+                    elStatusBadge.style.background = isDark ? 'rgba(34, 197, 94, 0.12)' : 'rgba(21, 128, 61, 0.1)';
+                    elStatusBadge.style.borderColor = isDark ? 'rgba(34, 197, 94, 0.3)' : 'rgba(21, 128, 61, 0.25)';
                 }
             }
 
@@ -6212,11 +6304,11 @@
                         const cellRow = document.createElement('div');
                         cellRow.style.cssText = 'display: flex; align-items: center; justify-content: space-between; gap: 8px; font-family: var(--font-mono); font-size: 10px;';
                         cellRow.innerHTML = `
-                            <span style="width: 22px; color: var(--text-secondary); font-weight: 700;">C${c}</span>
-                            <div style="flex: 1; height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden; position: relative;">
-                                <div id="mp-cell-fill-${c}" style="height: 100%; width: 0%; background: #22c55e; border-radius: 3px; transition: width 0.1s;"></div>
+                            <span class="mp-cell-idx" style="width: 22px; font-weight: 700;">C${c}</span>
+                            <div class="mp-cell-track" style="flex: 1; height: 6px; border-radius: 3px; overflow: hidden; position: relative;">
+                                <div id="mp-cell-fill-${c}" style="height: 100%; width: 0%; border-radius: 3px; transition: width 0.1s;"></div>
                             </div>
-                            <span id="mp-cell-volt-${c}" style="width: 48px; text-align: right; font-weight: 700; color: #f8fafc;">0.00 V</span>
+                            <span id="mp-cell-volt-${c}" class="mp-cell-volt-label" style="width: 48px; text-align: right; font-weight: 700;">0.00 V</span>
                         `;
                         cellContainer.appendChild(cellRow);
                     }
@@ -6241,7 +6333,10 @@
                     if (elFill) {
                         const pct = Math.max(0, Math.min(100, ((cv - 3.2) / (4.2 - 3.2)) * 100));
                         elFill.style.width = `${pct}%`;
-                        elFill.style.background = (cv >= 3.7) ? '#22c55e' : (cv >= 3.5 ? '#facc15' : '#ef4444');
+                        const greenCol = isDark ? '#22c55e' : '#15803d';
+                        const yellowCol = isDark ? '#facc15' : '#b45309';
+                        const redCol = isDark ? '#ef4444' : '#b91c1c';
+                        elFill.style.background = (cv >= 3.7) ? greenCol : (cv >= 3.5 ? yellowCol : redCol);
                     }
                 }
 
@@ -6249,7 +6344,10 @@
                 if (elDelta) {
                     const delta = Math.max(0, maxCv - minCv);
                     elDelta.textContent = `Δ ${delta.toFixed(2)} V`;
-                    elDelta.style.color = (delta <= 0.05) ? '#22c55e' : (delta <= 0.10 ? '#facc15' : '#ef4444');
+                    const deltaGreen = isDark ? '#22c55e' : '#15803d';
+                    const deltaYellow = isDark ? '#facc15' : '#b45309';
+                    const deltaRed = isDark ? '#ef4444' : '#b91c1c';
+                    elDelta.style.color = (delta <= 0.05) ? deltaGreen : (delta <= 0.10 ? deltaYellow : deltaRed);
                 }
             }
         }
@@ -15013,6 +15111,17 @@
             }
 
             // Extract metrics based on mode
+            const isDark = document.body.classList.contains('dark-mode');
+            const colGreen = isDark ? '#30d158' : '#15803d'; // High contrast green (aerospace emerald)
+            const colLime = isDark ? '#a3e635' : '#15803d';  // Efficiency: #15803d emerald in light mode (no washed out lime)
+            const colCyan = isDark ? '#38bdf8' : '#0369a1';  // Deep aviation cobalt in light mode
+            const colCyanBright = isDark ? '#22d3ee' : '#0284c7'; // Vivid cyan in dark / rich sky blue in light
+            const colAmber = isDark ? '#ffd60a' : '#b45309'; // Deep bronze amber in light mode
+            const colGold = isDark ? '#ff9f0a' : '#c2410c';  // Warm electric burnt orange
+            const colRed = isDark ? '#ff3b30' : '#b91c1c';   // Deep crimson red
+            const colMuted = isDark ? '#64748b' : '#475569';
+            const colText = isDark ? '#f8fafc' : '#0f172a';
+
             let activeRpm1 = 0, activeRpm2 = 0;
             let activeAmp1 = 0, activeAmp2 = 0;
             let activeTemp1 = 0, activeTemp2 = 0;
@@ -15069,16 +15178,16 @@
                 if (valBox1) {
                     valBox1.textContent = activeAmp1.toFixed(1);
                     if (activeAmp1 > 22.0) {
-                        valBox1.style.color = '#ff3b30'; // Redline
+                        valBox1.style.color = colRed; // Redline
                         valBox1.style.textShadow = 'none';
                     } else if (activeAmp1 > 15.0) {
-                        valBox1.style.color = '#ffd60a'; // Caution
+                        valBox1.style.color = colAmber; // Caution
                         valBox1.style.textShadow = 'none';
                     } else if (activeAmp1 >= 5.0 && activeAmp1 <= 12.0) {
-                        valBox1.style.color = '#30d158'; // Cruise Green Operating Zone
+                        valBox1.style.color = colGreen; // Cruise Green Operating Zone
                         valBox1.style.textShadow = 'none';
                     } else {
-                        valBox1.style.color = '#38bdf8'; // Normal idle / light draw cyan
+                        valBox1.style.color = colCyan; // Normal idle / light draw cyan
                         valBox1.style.textShadow = 'none';
                     }
                 }
@@ -15106,13 +15215,13 @@
                 if (valBox2) {
                     valBox2.textContent = Math.round(displayedTemp);
                     if (displayedTemp > 80) {
-                        valBox2.style.color = '#ff3b30';
+                        valBox2.style.color = colRed;
                         valBox2.style.textShadow = 'none';
                     } else if (displayedTemp > 65) {
-                        valBox2.style.color = '#ffd60a';
+                        valBox2.style.color = colAmber;
                         valBox2.style.textShadow = 'none';
                     } else {
-                        valBox2.style.color = '#38bdf8';
+                        valBox2.style.color = colCyan;
                         valBox2.style.textShadow = 'none';
                     }
                 }
@@ -15127,13 +15236,13 @@
                 if (valBox3) {
                     valBox3.textContent = Math.round(totWatt);
                     if (totWatt > 1000) {
-                        valBox3.style.color = '#ff3b30';
+                        valBox3.style.color = colRed;
                         valBox3.style.textShadow = 'none';
                     } else if (totWatt > 700) {
-                        valBox3.style.color = '#ffd60a';
+                        valBox3.style.color = colAmber;
                         valBox3.style.textShadow = 'none';
                     } else {
-                        valBox3.style.color = '#ff9f0a'; // Warm Electric Gold
+                        valBox3.style.color = colGold;
                         valBox3.style.textShadow = 'none';
                     }
                 }
@@ -15146,13 +15255,13 @@
                     valBox4.textContent = Math.round(consumedMah);
                     const usedRatio = consumedMah / batteryCapacityMah;
                     if (usedRatio > 0.90) {
-                        valBox4.style.color = '#ff3b30';
+                        valBox4.style.color = colRed;
                         valBox4.style.textShadow = 'none';
                     } else if (usedRatio > 0.75) {
-                        valBox4.style.color = '#ffd60a';
+                        valBox4.style.color = colAmber;
                         valBox4.style.textShadow = 'none';
                     } else {
-                        valBox4.style.color = '#22d3ee'; // Electric Cyan
+                        valBox4.style.color = colCyanBright;
                         valBox4.style.textShadow = 'none';
                     }
                 }
@@ -15171,10 +15280,10 @@
                 if (valBox5) {
                     valBox5.textContent = mahPerKmVal;
                     if (mahPerKmVal !== '---') {
-                        valBox5.style.color = '#a3e635'; // Vibrant Aerospace Lime Green
+                        valBox5.style.color = colLime; // Vibrant Aerospace Green in Dark / Deep Emerald in Light
                         valBox5.style.textShadow = 'none';
                     } else {
-                        valBox5.style.color = '#64748b'; // Muted dashes
+                        valBox5.style.color = colMuted; // Muted dashes
                         valBox5.style.textShadow = 'none';
                     }
                 }
@@ -15214,16 +15323,16 @@
                 if (valBox1) {
                     valBox1.textContent = activeAmp1.toFixed(1);
                     if (activeAmp1 > 22.0) {
-                        valBox1.style.color = '#ff3b30';
+                        valBox1.style.color = colRed;
                         valBox1.style.textShadow = 'none';
                     } else if (activeAmp1 > 15.0) {
-                        valBox1.style.color = '#ffd60a';
+                        valBox1.style.color = colAmber;
                         valBox1.style.textShadow = 'none';
                     } else if (activeAmp1 >= 5.0 && activeAmp1 <= 12.0) {
-                        valBox1.style.color = '#30d158';
+                        valBox1.style.color = colGreen;
                         valBox1.style.textShadow = 'none';
                     } else {
-                        valBox1.style.color = '#38bdf8';
+                        valBox1.style.color = colCyan;
                         valBox1.style.textShadow = 'none';
                     }
                 }
@@ -15233,16 +15342,16 @@
                 if (valBox2) {
                     valBox2.textContent = activeAmp2.toFixed(1);
                     if (activeAmp2 > 22.0) {
-                        valBox2.style.color = '#ff3b30';
+                        valBox2.style.color = colRed;
                         valBox2.style.textShadow = 'none';
                     } else if (activeAmp2 > 15.0) {
-                        valBox2.style.color = '#ffd60a';
+                        valBox2.style.color = colAmber;
                         valBox2.style.textShadow = 'none';
                     } else if (activeAmp2 >= 5.0 && activeAmp2 <= 12.0) {
-                        valBox2.style.color = '#30d158';
+                        valBox2.style.color = colGreen;
                         valBox2.style.textShadow = 'none';
                     } else {
-                        valBox2.style.color = '#38bdf8';
+                        valBox2.style.color = colCyan;
                         valBox2.style.textShadow = 'none';
                     }
                 }
@@ -15251,18 +15360,18 @@
                 const valBox3 = document.getElementById('gi-val-box3');
                 if (valBox3) {
                     valBox3.textContent = Math.round(activeTemp1);
-                    if (activeTemp1 > 80) valBox3.style.color = '#ff3b30';
-                    else if (activeTemp1 > 65) valBox3.style.color = '#ffd60a';
-                    else valBox3.style.color = '#ffffff';
+                    if (activeTemp1 > 80) valBox3.style.color = colRed;
+                    else if (activeTemp1 > 65) valBox3.style.color = colAmber;
+                    else valBox3.style.color = colText;
                 }
 
                 // Box 4: R ESC TEMP
                 const valBox4 = document.getElementById('gi-val-box4');
                 if (valBox4) {
                     valBox4.textContent = Math.round(activeTemp2);
-                    if (activeTemp2 > 80) valBox4.style.color = '#ff3b30';
-                    else if (activeTemp2 > 65) valBox4.style.color = '#ffd60a';
-                    else valBox4.style.color = '#ffffff';
+                    if (activeTemp2 > 80) valBox4.style.color = colRed;
+                    else if (activeTemp2 > 65) valBox4.style.color = colAmber;
+                    else valBox4.style.color = colText;
                 }
 
                 // Box 5: mAH / KM (Cruise Energy Efficiency)
@@ -15277,8 +15386,8 @@
                 const valBox5 = document.getElementById('gi-val-box5');
                 if (valBox5) {
                     valBox5.textContent = mahPerKmVal;
-                    if (mahPerKmVal !== '---') valBox5.style.color = '#00e5ff';
-                    else valBox5.style.color = '#55667a';
+                    if (mahPerKmVal !== '---') valBox5.style.color = colLime;
+                    else valBox5.style.color = colMuted;
                 }
             }
 
@@ -15288,14 +15397,14 @@
             const valSubBatt = document.getElementById('gi-sub-batt');
             if (valRem) {
                 valRem.textContent = `${pct}%`;
-                if (pct <= 15) valRem.style.color = '#ff3b30';
-                else if (pct <= 30) valRem.style.color = '#ffd60a';
-                else valRem.style.color = '#30d158';
+                if (pct <= 15) valRem.style.color = colRed;
+                else if (pct <= 30) valRem.style.color = colAmber;
+                else valRem.style.color = colGreen;
             }
             if (valSubBatt) valSubBatt.textContent = `${batteryCapacityMah} mAh`;
 
             const valPwrTop = document.getElementById('gi-num-pwr');
-            if (valPwrTop) valPwrTop.style.color = '#38bdf8';
+            if (valPwrTop) valPwrTop.style.color = colCyan;
 
             // Box 6: Batt Volts & Average Cell Voltage (voltage / cell count)
             const cellCount = getBatteryCellCount(packVolt);
@@ -15331,21 +15440,21 @@
             }
 
             // Universal per-cell health color coding (accurate across 1S to 12S packs)
-            let voltColor = '#38bdf8';
+            let voltColor = colCyan;
             let voltShadow = 'none';
 
             if (avgCellVolt > 0) {
                 if (avgCellVolt < 3.50) {
-                    voltColor = '#ff3b30'; // Critical red alert (< 3.50V per cell)
+                    voltColor = colRed; // Critical red alert (< 3.50V per cell)
                     voltShadow = 'none';
                 } else if (avgCellVolt < 3.70) {
-                    voltColor = '#ffd60a'; // Caution amber (3.50V - 3.70V per cell)
+                    voltColor = colAmber; // Caution amber (3.50V - 3.70V per cell)
                     voltShadow = 'none';
                 } else if (avgCellVolt >= 3.80) {
-                    voltColor = '#30d158'; // Healthy cruise / full green (>= 3.80V per cell)
+                    voltColor = colGreen; // Healthy cruise / full green (>= 3.80V per cell)
                     voltShadow = 'none';
                 } else {
-                    voltColor = '#38bdf8'; // Nominal cyan (3.70V - 3.80V per cell)
+                    voltColor = colCyan; // Nominal cyan (3.70V - 3.80V per cell)
                     voltShadow = 'none';
                 }
             }
@@ -15380,11 +15489,11 @@
 
             if (elFlightTime) {
                 elFlightTime.textContent = flightTimeStr;
-                elFlightTime.style.color = (currentFlightTimeSec > 0) ? '#38bdf8' : '#94a3b8';
+                elFlightTime.style.color = (currentFlightTimeSec > 0) ? colCyan : colMuted;
             }
             if (elMahConsumed) {
                 elMahConsumed.textContent = `${consumedMahVal} mAh`;
-                elMahConsumed.style.color = '#22d3ee';
+                elMahConsumed.style.color = colCyanBright;
             }
         }
 
