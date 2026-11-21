@@ -5729,7 +5729,7 @@
             <div id="lower-viewports-wrapper" class="fullscreen" style="flex: 1; position: relative; width: 100%; height: 100%; min-height: 0;">
                 <!-- 3D Flight Visualizer View (3D Terrain + PFD Horizon + NAV Compass + Atmosphere Panel) -->
                 <div id="sitl-pane" style="width: 100%; height: 100%; position: absolute; top: 0; left: 0; right: 0; bottom: 0;">
-                    <iframe id="sitl-viewer-frame" src="sharkee_hud.html?v=20261121_SPATIAL_TWIN_v15" style="width: 100%; height: 100%; border: none; display: block;" onload="onSitlIframeLoaded()"></iframe>
+                    <iframe id="sitl-viewer-frame" src="sharkee_hud.html?v=20261121_SPATIAL_TWIN_v16" style="width: 100%; height: 100%; border: none; display: block;" onload="onSitlIframeLoaded()"></iframe>
                 </div>
 
                 <!-- 2D Leaflet Satellite Map View -->
@@ -8382,6 +8382,7 @@
                 curr: p.curr,
                 power: p.power,
                 consumed_mah: p.consumed_mah,
+                cum_dist_km: p.cum_dist_km,
                 rem_pct: p.rem_pct,
                 tho: p.tho,
                 aoa: p.aoa,
@@ -8539,6 +8540,23 @@
 
             currentFlightData = data;
             currentTrajectory = data.telemetry || [];
+
+            // Precompute cumulative distance along flight trajectory for Trip Average Efficiency
+            let cumDistKm = 0, prevLat = null, prevLng = null;
+            for (let i = 0; i < currentTrajectory.length; i++) {
+                const p = currentTrajectory[i];
+                if (p.lat && p.lng && Math.abs(p.lat) > 0.001) {
+                    if (prevLat !== null && prevLng !== null) {
+                        const dLat = (p.lat - prevLat) * (Math.PI / 180.0);
+                        const dLng = (p.lng - prevLng) * (Math.PI / 180.0);
+                        const a = Math.sin(dLat / 2) ** 2 + Math.cos(prevLat * (Math.PI / 180.0)) * Math.cos(p.lat * (Math.PI / 180.0)) * Math.sin(dLng / 2) ** 2;
+                        const dKm = 6371.0 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+                        if (dKm > 0.0005) cumDistKm += dKm;
+                    }
+                    prevLat = p.lat; prevLng = p.lng;
+                }
+                p.cum_dist_km = cumDistKm;
+            }
 
             const metaDate = document.getElementById('meta-date');
             const metaBoard = document.getElementById('meta-board');
@@ -10205,6 +10223,7 @@
                 curr: p0.curr + (p1.curr - p0.curr) * alpha,
                 tho: p0.tho + (p1.tho - p0.tho) * alpha,
                 consumed_mah: (p0.consumed_mah || 0) + ((p1.consumed_mah || 0) - (p0.consumed_mah || 0)) * alpha,
+                cum_dist_km: (p0.cum_dist_km || 0) + ((p1.cum_dist_km || 0) - (p0.cum_dist_km || 0)) * alpha,
                 rem_pct: (p0.rem_pct !== undefined && p1.rem_pct !== undefined) ? (p0.rem_pct + (p1.rem_pct - p0.rem_pct) * alpha) : 100,
                 wh_km: p0.wh_km + (p1.wh_km - p0.wh_km) * alpha,
                 density: (p0.density || 1.18) + ((p1.density || 1.18) - (p0.density || 1.18)) * alpha,
