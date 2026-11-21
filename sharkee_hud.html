@@ -43,12 +43,12 @@
         }
 
         body.dark-mode {
-            --bg-color: #000000;
-            --panel-bg: rgba(28, 28, 30, 0.75);
-            --text-primary: #f5f5f7;
-            --text-secondary: #98989d;
-            --border-color: rgba(255, 255, 255, 0.15);
-            --shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            --bg-color: #0b0d11;
+            --panel-bg: rgba(18, 21, 28, 0.96); /* Solid Precision Matte Charcoal Black */
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --border-color: #282e3c; /* Clean Precision Matte Grey Border */
+            --shadow: 0 12px 36px rgba(0, 0, 0, 0.55);
             --accent: #0a84ff;
             --accent-cyan: #00e5ff;
             --accent-green: #30d158;
@@ -56,13 +56,56 @@
             --accent-red: #ff453a;
             --wind-color: #00e5ff; /* Vivid Garmin electric cyan for dark mode */
             --wind-arrow-color: #00e5ff;
-            --motor-bg: #3a3a3c;
-            --btn-bg: rgba(255, 255, 255, 0.1);
-            --btn-hover: rgba(255, 255, 255, 0.15);
+            --motor-bg: #1c202a;
+            --btn-bg: #181c25;
+            --btn-hover: #222734;
             --danger: #ff453a;
             --success: #30d158;
-            --option-bg: #1c1c1e;
-            --option-text: #ffffff;
+            --option-bg: #181c24;
+            --option-text: #f8fafc;
+        }
+
+        /* Matte Black & Charcoal Grey Cockpit Avionics Surface Tuning */
+        body.dark-mode #ui-panel,
+        body.dark-mode #compass-widget,
+        body.dark-mode #lxnav-mfd-widget,
+        body.dark-mode #terrain-graph-container,
+        body.dark-mode #actuators-panel-container,
+        body.dark-mode #eis-widget,
+        body.dark-mode #weather-widget {
+            background: var(--panel-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow);
+        }
+
+        body.dark-mode .data-card {
+            background: #181c25;
+            border: 1px solid #262b37;
+        }
+
+        body.dark-mode select {
+            background: #181c25;
+            border: 1px solid #282e3c;
+            color: #f8fafc;
+        }
+
+        body.dark-mode .btn-group {
+            background: #141720;
+            border: 1px solid #222733;
+        }
+
+        body.dark-mode .mode-btn {
+            background: #181c25;
+            color: #94a3b8;
+            border: 1px solid transparent;
+        }
+
+        body.dark-mode .mode-btn.btn-active {
+            background: #242936;
+            color: #f8fafc;
+            border: 1px solid #3b4559;
         }
 
         body {
@@ -559,6 +602,15 @@
             padding: 10px 12px;
             margin-bottom: 10px;
             font-family: var(--font-sans);
+        }
+
+        .mp-battery-backdrop {
+            background: #141720;
+            border: 1px solid #222733;
+        }
+        body:not(.dark-mode) .mp-battery-backdrop {
+            background: rgba(15, 23, 42, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.08);
         }
 
         .data-row {
@@ -1908,7 +1960,7 @@
             font-size: 9.5px;
             font-weight: 700;
             letter-spacing: 1.5px;
-            color: #8a9bb2;
+            color: #cbd5e1;
             text-transform: uppercase;
         }
         .gi-controls-row {
@@ -1917,8 +1969,8 @@
             gap: 4px;
         }
         .gi-mode-btn {
-            background: #18191d;
-            border: 1px solid #24262c;
+            background: #181c25;
+            border: 1px solid #282e3c;
             border-radius: 4px;
             padding: 1px 8px;
             min-width: 18px;
@@ -1931,22 +1983,22 @@
             transition: all 0.15s ease;
         }
         .gi-mode-btn:hover {
-            border-color: #3e424c;
+            border-color: #3b4559;
             color: #ffffff;
-            background: #22242a;
+            background: #222734;
         }
         .gi-mode-btn.active {
-            background: #24262c;
-            border-color: #3e424c;
-            color: #f1f5f9;
+            background: #242936;
+            border-color: #384255;
+            color: #f8fafc;
         }
 
 
         /* Top RPM Arch Box (Authentic Garmin Arch Capsule) */
         .gi-rpm-capsule {
-            border: 1px solid #24262c;
+            border: 1px solid #282e3c;
             border-radius: 8px;
-            background: #141519;
+            background: #181c25;
             padding: 3px 8px;
             display: flex;
             align-items: center;
@@ -1954,7 +2006,7 @@
             height: 70px;
             box-sizing: border-box;
             flex-shrink: 0;
-            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5);
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.4);
         }
         .gi-capsule-side {
             display: flex;
@@ -1965,7 +2017,7 @@
         .gi-capsule-num {
             font-size: 17px;
             font-weight: 700;
-            color: #ffffff;
+            color: #f8fafc;
             line-height: 1.1;
             font-family: var(--font-mono);
             letter-spacing: -0.5px;
@@ -1974,7 +2026,7 @@
             font-family: var(--font-sans);
             font-size: 7.5px;
             font-weight: 700;
-            color: #8a9bb2;
+            color: #94a3b8;
             letter-spacing: 0.6px;
             text-transform: uppercase;
             text-align: center;
@@ -2009,14 +2061,14 @@
         .gi-arch-lbl {
             font-size: 9px;
             font-weight: 700;
-            color: #ffffff;
+            color: #94a3b8;
             letter-spacing: 1px;
             line-height: 1;
         }
         .gi-arch-rpm-digits {
             font-size: 21px;
             font-weight: 700;
-            color: #ffffff;
+            color: #f8fafc;
             line-height: 1.1;
             font-family: var(--font-mono);
             letter-spacing: -0.5px;
@@ -2027,9 +2079,9 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             grid-template-rows: 1fr 1fr 1fr;
-            border: 1px solid #24262c;
+            border: 1px solid #282e3c;
             border-radius: 8px;
-            background: #18191d;
+            background: #181c25;
             gap: 1px;
             overflow: hidden;
             flex: 1;
@@ -2041,11 +2093,11 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            border-bottom: 1px solid #1a1b20;
-            background: #0f1013;
+            border-bottom: 1px solid #1e232e;
+            background: #141720;
         }
         .gi-grid-cell:nth-child(odd) {
-            border-right: 1px solid #1a1b20;
+            border-right: 1px solid #1e232e;
         }
         .gi-grid-cell:nth-child(5), .gi-grid-cell:nth-child(6) {
             border-bottom: none;
@@ -2241,20 +2293,20 @@
             font-family: var(--font-sans);
             font-size: 8px;
             font-weight: 700;
-            color: #8a9bb2;
+            color: #94a3b8;
             letter-spacing: 0.6px;
             text-transform: uppercase;
         }
         .gi-stat-val {
             font-size: 10px;
             font-weight: 700;
-            color: #ffffff;
+            color: #f8fafc;
             letter-spacing: 0.2px;
         }
         .gi-stat-divider {
             width: 1px;
             height: 12px;
-            background: #24262c;
+            background: #282e3c;
         }
 
         /* ========================================================= */
@@ -2262,8 +2314,8 @@
         /* ========================================================= */
         #terrain-graph-container {
             background: var(--panel-bg);
-            backdrop-filter: blur(20px) saturate(180%);
-            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             border: 1px solid var(--border-color);
             border-radius: 18px;
             padding: 7px 10px;
@@ -2277,7 +2329,7 @@
             align-items: center;
             padding: 0 2px 4px 2px;
             flex-shrink: 0;
-            border-bottom: 1px solid #1e2026;
+            border-bottom: 1px solid #222734;
             cursor: grab;
         }
         .env-top-bar:active { cursor: grabbing; }
@@ -2287,13 +2339,13 @@
             font-size: 10px;
             font-weight: 800;
             letter-spacing: 1.5px;
-            color: #8a9bb2;
+            color: #cbd5e1;
             text-transform: uppercase;
         }
 
         .env-badge {
-            background: #18191d;
-            border: 1px solid #24262c;
+            background: #181c25;
+            border: 1px solid #282e3c;
             border-radius: 4px;
             padding: 1px 7px;
             font-family: var(--font-mono);
@@ -2303,13 +2355,13 @@
             align-items: center;
         }
         .env-badge-lbl {
-            color: #8a9bb2;
+            color: #94a3b8;
             font-size: 8.5px;
             margin-right: 4px;
             letter-spacing: 0.5px;
         }
         .env-badge-val {
-            color: #ffffff;
+            color: #f8fafc;
         }
 
         .env-grid {
@@ -2317,8 +2369,8 @@
             grid-template-columns: repeat(3, 1fr);
             grid-template-rows: repeat(2, 1fr);
             gap: 1px;
-            background: #18191d;
-            border: 1px solid #24262c;
+            background: #181c25;
+            border: 1px solid #262b37;
             border-radius: 8px;
             overflow: hidden;
             flex: 1;
@@ -2326,7 +2378,7 @@
         }
 
         .env-grid-cell {
-            background: #0f1013;
+            background: #141720;
             padding: 5px 8px;
             display: flex;
             flex-direction: column;
@@ -2337,7 +2389,7 @@
             font-family: var(--font-sans);
             font-size: 9px;
             font-weight: 700;
-            color: #8a9bb2;
+            color: #94a3b8;
             letter-spacing: 0.8px;
             text-transform: uppercase;
         }
@@ -2352,8 +2404,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: #141519;
-            border: 1px solid #1e2026;
+            background: #1a1e28;
+            border: 1px solid #242936;
             border-radius: 3px;
             padding: 2px 5px;
             font-family: var(--font-mono);
@@ -2438,8 +2490,8 @@
             box-sizing: border-box;
             overflow: hidden;
             background: var(--panel-bg);
-            backdrop-filter: blur(20px) saturate(180%);
-            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             border: 1px solid var(--border-color);
             border-radius: 18px;
             padding: 8px 10px 10px 10px;
@@ -2459,7 +2511,7 @@
             align-items: center;
             padding: 0 2px 6px 2px;
             flex-shrink: 0;
-            border-bottom: 1px solid #1e2026;
+            border-bottom: 1px solid #222734;
             cursor: grab;
         }
         .actuators-header:active { cursor: grabbing; }
@@ -2469,7 +2521,7 @@
             font-size: 11px;
             font-weight: 700;
             letter-spacing: 1px;
-            color: #8a9bb2;
+            color: #cbd5e1;
             text-transform: uppercase;
         }
 
@@ -2481,8 +2533,8 @@
             flex-direction: column;
             align-items: center;
             justify-content: space-between;
-            background: #141519;
-            border: 1px solid #24262c;
+            background: #181c25;
+            border: 1px solid #262b37;
             border-radius: 8px;
             padding: 6px 4px 5px 4px;
             transition: all 0.15s ease;
@@ -2494,7 +2546,7 @@
             font-size: 10.5px;
             font-weight: 700;
             font-feature-settings: 'tnum';
-            color: #f1f5f9;
+            color: #f8fafc;
             text-align: center;
             margin-bottom: 2px;
         }
@@ -2502,11 +2554,11 @@
         .actuator-bar-bg {
             width: 14px;
             height: 110px;
-            background: #0f1013;
+            background: #12151c;
             border-radius: 7px;
             position: relative;
             overflow: hidden;
-            border: 1px solid #24262c;
+            border: 1px solid #222733;
             display: flex;
             flex-direction: column-reverse;
             margin: 3px auto;
@@ -2515,6 +2567,47 @@
 
         .actuator-bar-fill {
             width: 100%;
+            height: 0%;
+            background: #30d158;
+            border-radius: 7px;
+            transition: height 0.08s ease, background 0.12s ease;
+        }
+
+        .actuator-bar-mid-tick {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.16);
+            pointer-events: none;
+        }
+
+        .actuator-ch-lbl {
+            font-family: var(--font-mono);
+            font-size: 9px;
+            font-weight: 700;
+            color: #94a3b8;
+            text-align: center;
+            margin-top: 3px;
+        }
+
+        .actuator-fn-lbl {
+            font-family: var(--font-sans);
+            font-size: 9.5px;
+            font-weight: 600;
+            color: #cbd5e1;
+            text-align: center;
+            line-height: 1.15;
+            word-break: break-word;
+            min-height: 22px;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            letter-spacing: -0.1px;
+            margin-top: 2px;
+        }
             height: 0%;
             background: #30d158;
             border-radius: 7px;
@@ -4049,8 +4142,8 @@
                     <h3 style="margin: 0; font-family: var(--font-sans); font-size: 11.5px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-primary);">BATTERY &amp; POWER</h3>
                 </div>
 
-                <!-- Sunken Black Backdrop Box for Battery Symbol & HUD Metrics -->
-                <div style="display: flex; align-items: center; gap: 12px; background: rgba(0, 0, 0, 0.45); padding: 7px 10px; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.08); margin-bottom: 7px;">
+                <!-- Sunken Matte Backdrop Box for Battery Symbol & HUD Metrics -->
+                <div class="mp-battery-backdrop" style="display: flex; align-items: center; gap: 12px; padding: 7px 10px; border-radius: 6px; margin-bottom: 7px;">
                     <!-- Vertical Battery Symbol -->
                     <div style="display: flex; flex-direction: column; align-items: center; flex-shrink: 0; width: 22px;">
                         <div style="width: 8px; height: 2px; background: #e2e8f0; border-radius: 1px 1px 0 0; margin-bottom: 1px;"></div>
@@ -4099,8 +4192,8 @@
                     <h3 style="margin: 0; font-family: var(--font-sans); font-size: 11.5px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-primary);">BATTERY &amp; POWER</h3>
                 </div>
 
-                <!-- Sunken Black Backdrop Box for Battery Symbol & HUD Metrics -->
-                <div style="display: flex; align-items: center; gap: 12px; background: rgba(0, 0, 0, 0.45); padding: 7px 10px; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.08); margin-bottom: 7px;">
+                <!-- Sunken Matte Backdrop Box for Battery Symbol & HUD Metrics -->
+                <div class="mp-battery-backdrop" style="display: flex; align-items: center; gap: 12px; padding: 7px 10px; border-radius: 6px; margin-bottom: 7px;">
                     <!-- Vertical Battery Symbol -->
                     <div style="display: flex; flex-direction: column; align-items: center; width: 22px; flex-shrink: 0;">
                         <div style="width: 8px; height: 2px; background: #e2e8f0; border-radius: 1px 1px 0 0; margin-bottom: 1px;"></div>
