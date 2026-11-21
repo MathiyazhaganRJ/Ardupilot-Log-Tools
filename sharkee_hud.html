@@ -5077,18 +5077,14 @@
                 </div>
             </div>
 
-            <!-- Box 5: mAH / KM (Cruise Energy Efficiency - Instantaneous vs Cumulative Trip Average) -->
-            <div class="gi-grid-cell" id="gi-cell-box5" style="cursor: pointer;" title="Efficiency: Click to toggle primary between Instantaneous (INST) and Flight Average (FLT AVG)">
+            <!-- Box 5: Flight Average Efficiency (mAH / KM) -->
+            <div class="gi-grid-cell" id="gi-cell-box5" title="Flight Average Efficiency: Consumed mAh / Cumulative Distance (mAH/KM)">
                 <div class="gi-cell-title-row">
                     <span class="gi-cell-tag" id="gi-tag-box5">EFFICIENCY</span>
-                    <span class="gi-cell-unit gi-clickable-badge" id="gi-unit-box5" title="Click to toggle: INST (Instantaneous Cruise) vs FLT AVG (Cumulative Distance)">INST</span>
+                    <span class="gi-cell-unit" id="gi-unit-box5">FLT AVG</span>
                 </div>
                 <div class="gi-cell-val-wrap">
                     <span class="gi-cell-val" id="gi-val-box5">---</span>
-                </div>
-                <div class="gi-sub-efficiency" id="gi-sub-eff-row">
-                    <span id="gi-sub-eff-lbl">FLT AVG</span>
-                    <span id="gi-sub-eff-val">--- mAH/KM</span>
                 </div>
             </div>
 
@@ -14683,9 +14679,9 @@
                 if (unitBox4) unitBox4.textContent = `/ ${batteryCapacityMah}`;
                 if (lblBox5) lblBox5.textContent = 'EFFICIENCY';
                 if (unitBox5) {
-                    unitBox5.textContent = (eisEfficiencyMode === 'avg') ? 'FLT AVG' : 'INST';
-                    unitBox5.title = 'Click to toggle: INST (Instantaneous Cruise) vs FLT AVG (Cumulative Distance)';
-                    if (!unitBox5.onclick) unitBox5.onclick = toggleEfficiencyMode;
+                    unitBox5.textContent = 'FLT AVG';
+                    unitBox5.title = 'Flight Average Efficiency: Consumed mAh / Cumulative Distance (mAH/KM)';
+                    unitBox5.onclick = null;
                 }
             } else {
                 if (lblBox1) lblBox1.textContent = `L AMPS (E${eisTwinLeftCh})`;
@@ -14698,9 +14694,9 @@
                 if (unitBox4) unitBox4.innerHTML = '&deg;C';
                 if (lblBox5) lblBox5.textContent = 'EFFICIENCY';
                 if (unitBox5) {
-                    unitBox5.textContent = (eisEfficiencyMode === 'avg') ? 'FLT AVG' : 'INST';
-                    unitBox5.title = 'Click to toggle: INST (Instantaneous Cruise) vs FLT AVG (Cumulative Distance)';
-                    if (!unitBox5.onclick) unitBox5.onclick = toggleEfficiencyMode;
+                    unitBox5.textContent = 'FLT AVG';
+                    unitBox5.title = 'Flight Average Efficiency: Consumed mAh / Cumulative Distance (mAH/KM)';
+                    unitBox5.onclick = null;
                 }
             }
         }
@@ -15312,48 +15308,25 @@
                 }
                 if (unitBox4) unitBox4.textContent = `/ ${batteryCapacityMah}`;
 
-                // Box 5: mAH / KM (Cruise Energy Efficiency - Instantaneous vs Cumulative Trip Average)
-                let instMahPerKm = '---';
-                if (typeof planeGroundspeed === 'number' && planeGroundspeed > 1.0 && totAmp > 0.1) {
-                    const gndSpdKmH = planeGroundspeed * 3.6;
-                    const mahPerKm = (totAmp * 1000.0) / gndSpdKmH;
-                    if (isFinite(mahPerKm) && mahPerKm > 0) {
-                        instMahPerKm = Math.round(mahPerKm);
-                    }
-                }
-
+                // Box 5: Flight Average Efficiency (Consumed mAh / Distance in km)
                 let avgMahPerKm = '---';
                 const curConsumedMah = (typeof am32Telemetry.consumed_mah === 'number') ? am32Telemetry.consumed_mah : 0;
-                if (currentFlightDistKm > 0.1 && curConsumedMah > 1.0) {
+                if (currentFlightDistKm > 0.05 && curConsumedMah > 1.0) {
                     const avgVal = curConsumedMah / currentFlightDistKm;
                     if (isFinite(avgVal) && avgVal > 0 && avgVal < 5000) {
                         avgMahPerKm = Math.round(avgVal);
                     }
                 }
 
-                const isAvgMode = (eisEfficiencyMode === 'avg');
-                const primaryVal = isAvgMode ? avgMahPerKm : instMahPerKm;
-                const subLabel = isAvgMode ? 'INSTANT' : 'FLT AVG';
-                const subVal = isAvgMode ? (instMahPerKm !== '---' ? `${instMahPerKm} mAH/KM` : '--- mAH/KM')
-                                         : (avgMahPerKm !== '---' ? `${avgMahPerKm} mAH/KM` : '--- mAH/KM');
-
                 const valBox5 = document.getElementById('gi-val-box5');
                 const unitBox5 = document.getElementById('gi-unit-box5');
-                const subEffLbl = document.getElementById('gi-sub-eff-lbl');
-                const subEffVal = document.getElementById('gi-sub-eff-val');
-                const cellBox5 = document.getElementById('gi-cell-box5');
-
                 if (unitBox5) {
-                    unitBox5.textContent = isAvgMode ? 'FLT AVG' : 'INST';
-                    if (!unitBox5.onclick) unitBox5.onclick = toggleEfficiencyMode;
-                }
-                if (cellBox5 && !cellBox5.onclick) {
-                    cellBox5.onclick = toggleEfficiencyMode;
+                    unitBox5.textContent = 'FLT AVG';
                 }
 
                 if (valBox5) {
-                    valBox5.textContent = primaryVal;
-                    if (primaryVal !== '---') {
+                    valBox5.textContent = avgMahPerKm;
+                    if (avgMahPerKm !== '---') {
                         valBox5.style.color = colGreen; // Old vivid green (#30d158) in both light and dark mode
                         valBox5.style.textShadow = 'none';
                     } else {
@@ -15361,9 +15334,6 @@
                         valBox5.style.textShadow = 'none';
                     }
                 }
-
-                if (subEffLbl) subEffLbl.textContent = subLabel;
-                if (subEffVal) subEffVal.textContent = subVal;
             } else {
                 const lCh = Math.max(0, Math.min(7, eisTwinLeftCh - 1));
                 const rCh = Math.max(0, Math.min(7, eisTwinRightCh - 1));
@@ -15451,48 +15421,25 @@
                     else valBox4.style.color = colText;
                 }
 
-                // Box 5: mAH / KM (Cruise Energy Efficiency - Instantaneous vs Cumulative Trip Average)
-                let instMahPerKm = '---';
-                if (typeof planeGroundspeed === 'number' && planeGroundspeed > 1.0 && totAmp > 0.1) {
-                    const gndSpdKmH = planeGroundspeed * 3.6;
-                    const mahPerKm = (totAmp * 1000.0) / gndSpdKmH;
-                    if (isFinite(mahPerKm) && mahPerKm > 0) {
-                        instMahPerKm = Math.round(mahPerKm);
-                    }
-                }
-
+                // Box 5: Flight Average Efficiency (Consumed mAh / Distance in km)
                 let avgMahPerKm = '---';
                 const curConsumedMah = (typeof am32Telemetry.consumed_mah === 'number') ? am32Telemetry.consumed_mah : 0;
-                if (currentFlightDistKm > 0.1 && curConsumedMah > 1.0) {
+                if (currentFlightDistKm > 0.05 && curConsumedMah > 1.0) {
                     const avgVal = curConsumedMah / currentFlightDistKm;
                     if (isFinite(avgVal) && avgVal > 0 && avgVal < 5000) {
                         avgMahPerKm = Math.round(avgVal);
                     }
                 }
 
-                const isAvgMode = (eisEfficiencyMode === 'avg');
-                const primaryVal = isAvgMode ? avgMahPerKm : instMahPerKm;
-                const subLabel = isAvgMode ? 'INSTANT' : 'FLT AVG';
-                const subVal = isAvgMode ? (instMahPerKm !== '---' ? `${instMahPerKm} mAH/KM` : '--- mAH/KM')
-                                         : (avgMahPerKm !== '---' ? `${avgMahPerKm} mAH/KM` : '--- mAH/KM');
-
                 const valBox5 = document.getElementById('gi-val-box5');
                 const unitBox5 = document.getElementById('gi-unit-box5');
-                const subEffLbl = document.getElementById('gi-sub-eff-lbl');
-                const subEffVal = document.getElementById('gi-sub-eff-val');
-                const cellBox5 = document.getElementById('gi-cell-box5');
-
                 if (unitBox5) {
-                    unitBox5.textContent = isAvgMode ? 'FLT AVG' : 'INST';
-                    if (!unitBox5.onclick) unitBox5.onclick = toggleEfficiencyMode;
-                }
-                if (cellBox5 && !cellBox5.onclick) {
-                    cellBox5.onclick = toggleEfficiencyMode;
+                    unitBox5.textContent = 'FLT AVG';
                 }
 
                 if (valBox5) {
-                    valBox5.textContent = primaryVal;
-                    if (primaryVal !== '---') {
+                    valBox5.textContent = avgMahPerKm;
+                    if (avgMahPerKm !== '---') {
                         valBox5.style.color = colGreen; // Old vivid green (#30d158) in both light and dark mode
                         valBox5.style.textShadow = 'none';
                     } else {
@@ -15500,9 +15447,6 @@
                         valBox5.style.textShadow = 'none';
                     }
                 }
-
-                if (subEffLbl) subEffLbl.textContent = subLabel;
-                if (subEffVal) subEffVal.textContent = subVal;
             }
 
             // Top Arch Right: Battery Remaining % & Total Pack Capacity
