@@ -2867,7 +2867,10 @@
             color: #475569;
         }
         body:not(.dark-mode) .gi-elec-val {
-            color: #0284c7;
+            color: #0f172a;
+        }
+        body.dark-mode .gi-elec-val {
+            color: #ffffff;
         }
         body:not(.dark-mode) .gi-elec-unit {
             color: #64748b;
@@ -6257,7 +6260,8 @@
             const elRemPct = document.getElementById('mp-stat-remaining-pct');
             if (elRemPct) {
                 elRemPct.textContent = `${Math.round(remPct)}%`;
-                elRemPct.style.color = barColor;
+                const remPctCol = (remPct < 15) ? (isDark ? '#ef4444' : '#b91c1c') : ((remPct < 25) ? (isDark ? '#facc15' : '#b45309') : '#22c55e');
+                elRemPct.style.color = remPctCol;
             }
 
             const elStatusBadge = document.getElementById('mp-view-status-badge');
@@ -15440,7 +15444,8 @@
             }
 
             // Universal per-cell health color coding (accurate across 1S to 12S packs)
-            let voltColor = colCyan;
+            // Volt & Cell values in dark black for white mode, in white for dark mode; Efficiency in green
+            let voltColor = isDark ? '#ffffff' : '#0f172a';
             let voltShadow = 'none';
 
             if (avgCellVolt > 0) {
@@ -15450,11 +15455,8 @@
                 } else if (avgCellVolt < 3.70) {
                     voltColor = colAmber; // Caution amber (3.50V - 3.70V per cell)
                     voltShadow = 'none';
-                } else if (avgCellVolt >= 3.80) {
-                    voltColor = colGreen; // Healthy cruise / full green (>= 3.80V per cell)
-                    voltShadow = 'none';
                 } else {
-                    voltColor = colCyan; // Nominal cyan (3.70V - 3.80V per cell)
+                    voltColor = isDark ? '#ffffff' : '#0f172a'; // Dark black in white mode, white in dark mode
                     voltShadow = 'none';
                 }
             }
