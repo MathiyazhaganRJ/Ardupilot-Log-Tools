@@ -28,7 +28,7 @@
             --shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
             --accent: #0284c7;
             --accent-cyan: #0284c7;
-            --accent-green: #16a34a;
+            --accent-green: #30d158;
             --accent-yellow: #d97706;
             --accent-red: #dc2626;
             --wind-color: #0284c7; /* High-contrast aviation cyan-blue for light mode */
@@ -37,7 +37,7 @@
             --btn-bg: rgba(15, 23, 42, 0.07);
             --btn-hover: rgba(15, 23, 42, 0.14);
             --danger: #dc2626;
-            --success: #16a34a;
+            --success: #30d158;
             --option-bg: #ffffff;
             --option-text: #0f172a;
         }
@@ -2553,7 +2553,7 @@
         body:not(.dark-mode) #env-wind-comps,
         body:not(.dark-mode) #env-wind-dir,
         body:not(.dark-mode) .env-grid-cell:nth-child(6) .env-cell-unit {
-            color: #15803d !important; /* Deep Aviation Emerald Green */
+            color: #30d158 !important; /* Old Vivid Green */
         }
         body:not(.dark-mode) #env-baro-avg,
         body:not(.dark-mode) #env-arsp-avg,
@@ -6181,7 +6181,7 @@
             else if (remPct >= 25) activeBars = 2;
             else if (remPct > 0) activeBars = 1;
 
-            let barColor = isDark ? '#00ff00' : '#15803d'; // High contrast green
+            let barColor = '#00ff00'; // Mission Planner old vivid green
             if (remPct < 15) barColor = isDark ? '#ef4444' : '#b91c1c'; // Red alert
             else if (remPct < 25) barColor = isDark ? '#facc15' : '#b45309'; // Yellow caution
 
@@ -6274,9 +6274,9 @@
                     elStatusBadge.style.borderColor = isDark ? 'rgba(250, 204, 21, 0.35)' : 'rgba(180, 83, 9, 0.25)';
                 } else {
                     elStatusBadge.textContent = 'POWER NORMAL';
-                    elStatusBadge.style.color = isDark ? '#22c55e' : '#15803d';
-                    elStatusBadge.style.background = isDark ? 'rgba(34, 197, 94, 0.12)' : 'rgba(21, 128, 61, 0.1)';
-                    elStatusBadge.style.borderColor = isDark ? 'rgba(34, 197, 94, 0.3)' : 'rgba(21, 128, 61, 0.25)';
+                    elStatusBadge.style.color = '#22c55e'; // Old vivid green
+                    elStatusBadge.style.background = isDark ? 'rgba(34, 197, 94, 0.12)' : 'rgba(34, 197, 94, 0.16)';
+                    elStatusBadge.style.borderColor = isDark ? 'rgba(34, 197, 94, 0.3)' : 'rgba(34, 197, 94, 0.35)';
                 }
             }
 
@@ -6333,7 +6333,7 @@
                     if (elFill) {
                         const pct = Math.max(0, Math.min(100, ((cv - 3.2) / (4.2 - 3.2)) * 100));
                         elFill.style.width = `${pct}%`;
-                        const greenCol = isDark ? '#22c55e' : '#15803d';
+                        const greenCol = '#22c55e'; // Old vivid green
                         const yellowCol = isDark ? '#facc15' : '#b45309';
                         const redCol = isDark ? '#ef4444' : '#b91c1c';
                         elFill.style.background = (cv >= 3.7) ? greenCol : (cv >= 3.5 ? yellowCol : redCol);
@@ -6344,7 +6344,7 @@
                 if (elDelta) {
                     const delta = Math.max(0, maxCv - minCv);
                     elDelta.textContent = `Δ ${delta.toFixed(2)} V`;
-                    const deltaGreen = isDark ? '#22c55e' : '#15803d';
+                    const deltaGreen = '#22c55e'; // Old vivid green
                     const deltaYellow = isDark ? '#facc15' : '#b45309';
                     const deltaRed = isDark ? '#ef4444' : '#b91c1c';
                     elDelta.style.color = (delta <= 0.05) ? deltaGreen : (delta <= 0.10 ? deltaYellow : deltaRed);
@@ -10748,7 +10748,7 @@
                 const pwm = Math.round(servos[i] !== undefined ? servos[i] : 1000);
                 const pct = Math.max(0, Math.min(100, ((pwm - 1000) / 1000.0) * 100));
 
-                let fillColor = isDark ? '#30d158' : '#16a34a'; // Normal green
+                let fillColor = '#30d158'; // Old vivid green
                 let textColor = isDark ? '#f1f5f9' : '#0f172a';
                 if (pwm <= 1000) {
                     fillColor = isDark ? '#252e3d' : 'rgba(15, 23, 42, 0.15)'; // Idle/Cutoff
@@ -15112,8 +15112,8 @@
 
             // Extract metrics based on mode
             const isDark = document.body.classList.contains('dark-mode');
-            const colGreen = isDark ? '#30d158' : '#15803d'; // High contrast green (aerospace emerald)
-            const colLime = isDark ? '#a3e635' : '#15803d';  // Efficiency: #15803d emerald in light mode (no washed out lime)
+            const colGreen = '#30d158'; // Old vivid green
+            const colLime = '#a3e635';  // Old vivid aerospace lime green
             const colCyan = isDark ? '#38bdf8' : '#0369a1';  // Deep aviation cobalt in light mode
             const colCyanBright = isDark ? '#22d3ee' : '#0284c7'; // Vivid cyan in dark / rich sky blue in light
             const colAmber = isDark ? '#ffd60a' : '#b45309'; // Deep bronze amber in light mode
